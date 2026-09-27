@@ -22,13 +22,17 @@ export const SCROLL_READ_BATCH = 200;
  * over the TOP edge of the list: rows that were never seen, or that left over
  * the bottom edge, are never marked. Marked ids are batched: at most one
  * request per `delayMs`, however fast the scroll.
+ *
+ * `isRead` is true only for an article known to be read. An id it does not
+ * know is not read: on a scope change the list is already the new one when
+ * the queue is sent, and the rows scrolled past in the old list must still go.
  */
 export function createScrollReadTracker({
-  isUnread,
+  isRead,
   flush,
   delayMs = 500,
 }: {
-  isUnread: (id: string) => boolean;
+  isRead: (id: string) => boolean;
   flush: (ids: string[]) => void;
   delayMs?: number;
 }): ScrollReadTracker {
@@ -40,7 +44,7 @@ export function createScrollReadTracker({
     clearTimeout(timer);
     timer = undefined;
     // Re-check: the item may have been marked read some other way meanwhile.
-    const ids = [...pending].filter(isUnread);
+    const ids = [...pending].filter((id) => !isRead(id));
     pending.clear();
     for (let i = 0; i < ids.length; i += SCROLL_READ_BATCH) {
       flush(ids.slice(i, i + SCROLL_READ_BATCH));
@@ -55,7 +59,7 @@ export function createScrollReadTracker({
         seen.add(id);
         return;
       }
-      if (!seen.has(id) || entry.bottom > rootTop || !isUnread(id)) return;
+      if (!seen.has(id) || entry.bottom > rootTop || isRead(id)) return;
       pending.add(id);
       timer ??= setTimeout(flushNow, delayMs);
     },

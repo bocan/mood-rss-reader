@@ -127,7 +127,7 @@ export function useArticleSurface(
   useEffect(() => {
     if (!markReadOnScroll) return;
     const tracker = createScrollReadTracker({
-      isUnread: (id) => itemsRef.current.find((a) => a.id === id)?.read === false,
+      isRead: (id) => itemsRef.current.find((a) => a.id === id)?.read === true,
       flush: (articleIds) => markReadRef.current({ articleIds }),
     });
     // The viewport is the root, so this works for whichever scroller (list

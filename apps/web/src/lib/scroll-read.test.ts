@@ -8,14 +8,19 @@ const pastTop = { isIntersecting: false, bottom: 90, height: 80 };
 const belowBottom = { isIntersecting: false, bottom: 2000, height: 80 };
 const hidden = { isIntersecting: false, bottom: 0, height: 0 };
 
-let unread: Set<string>;
+// The list the tracker looks at: id -> read. An id missing from it is unknown.
+let list: Map<string, boolean>;
 let flush: ReturnType<typeof vi.fn<(ids: string[]) => void>>;
 const make = () =>
-  createScrollReadTracker({ isUnread: (id) => unread.has(id), flush, delayMs: 500 });
+  createScrollReadTracker({ isRead: (id) => list.get(id) === true, flush, delayMs: 500 });
 
 beforeEach(() => {
   vi.useFakeTimers();
-  unread = new Set(['a', 'b', 'c']);
+  list = new Map([
+    ['a', false],
+    ['b', false],
+    ['c', false],
+  ]);
   flush = vi.fn<(ids: string[]) => void>();
 });
 afterEach(() => vi.useRealTimers());
@@ -53,14 +58,26 @@ test('a list hidden by the reader marks nothing', () => {
 
 test('read rows are skipped, also when they became read while queued', () => {
   const t = make();
-  unread.delete('b');
+  list.set('b', true);
   for (const id of ['a', 'b', 'c']) {
     t.update(id, onScreen, TOP);
     t.update(id, pastTop, TOP);
   }
-  unread.delete('c'); // e.g. opened in the reader before the flush
+  list.set('c', true); // e.g. opened in the reader before the flush
   vi.advanceTimersByTime(500);
   expect(flush).toHaveBeenCalledWith(['a']);
+});
+
+test('a scope change still sends the rows scrolled past in the old list', () => {
+  const t = make();
+  for (const id of ['a', 'b']) {
+    t.update(id, onScreen, TOP);
+    t.update(id, pastTop, TOP);
+  }
+  // Within the 500 ms: the list is now another scope's, without a or b.
+  list = new Map([['z', false]]);
+  t.flushNow();
+  expect(flush).toHaveBeenCalledWith(['a', 'b']);
 });
 
 test('a fast scroll sends one batched request, not one per row', () => {
@@ -78,7 +95,7 @@ test('a fast scroll sends one batched request, not one per row', () => {
 
 test('flushNow sends at once and splits large batches', () => {
   const ids = Array.from({ length: SCROLL_READ_BATCH + 5 }, (_, i) => `x${i}`);
-  unread = new Set(ids);
+  list = new Map(ids.map((id) => [id, false]));
   const t = make();
   for (const id of ids) {
     t.update(id, onScreen, TOP);
