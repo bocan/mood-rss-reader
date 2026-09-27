@@ -1,6 +1,5 @@
 import {
   articleQuerySchema,
-  FIREHOSE_EXPIRY_DAYS,
   markReadSchema,
   markUnreadSchema,
   newArticleCountQuerySchema,
@@ -24,6 +23,7 @@ import {
 } from '../lib/cursor.js';
 import { folderScopeIds, resolveSubscribedFeedIds } from '../lib/feed-scope.js';
 import { ensureReadableSnapshot } from '../lib/readable-snapshot.js';
+import { pastFirehoseExpiry } from '../lib/unread-counts.js';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -38,14 +38,23 @@ const canOpen = or(
   eq(articleStates.shared, true),
 );
 
+const sortTs = sql`coalesce(${articles.publishedAt}, ${articles.fetchedAt})`;
+
+/**
+ * Firehose expiry (SPEC-022) for a query that left joins the caller's
+ * subscription: false, not null, when there is none.
+ */
+const expiredForSub = sql<boolean>`coalesce(${subscriptions.attention} = 'firehose' and ${pastFirehoseExpiry(sortTs)}, false)`;
+
 /**
  * Whether the user may open (and so change the state of) this article, by
- * the canOpen rule. False when the id is malformed or the article is gone.
+ * the canOpen rule: null when not, or when the id is malformed or the article
+ * is gone. `expired` is its firehose expiry, for a first state row.
  */
-async function isOpenable(userId: string, id: string): Promise<boolean> {
-  if (!UUID_RE.test(id)) return false;
+async function openable(userId: string, id: string): Promise<{ expired: boolean } | null> {
+  if (!UUID_RE.test(id)) return null;
   const rows = await db
-    .select({ id: articles.id })
+    .select({ expired: expiredForSub })
     .from(articles)
     .leftJoin(
       subscriptions,
@@ -57,7 +66,7 @@ async function isOpenable(userId: string, id: string): Promise<boolean> {
     )
     .where(and(eq(articles.id, id), canOpen))
     .limit(1);
-  return rows.length > 0;
+  return rows[0] ?? null;
 }
 
 /**
@@ -84,7 +93,8 @@ async function loadArticleDetail(userId: string, id: string) {
       feedTitle: feeds.title,
       feedSiteUrl: feeds.siteUrl,
       feedFaviconUrl: feeds.faviconUrl,
-      read: sql<boolean>`coalesce(${articleStates.read}, false)`,
+      // The same read flag as the list shows (expired firehose items too).
+      read: sql<boolean>`coalesce(${articleStates.read}, ${expiredForSub})`,
       starred: sql<boolean>`coalesce(${articleStates.starred}, false)`,
       shared: sql<boolean>`coalesce(${articleStates.shared}, false)`,
       shareNote: articleStates.shareNote,
@@ -145,7 +155,7 @@ const SEARCH_RESULT_CAP = 500;
 async function articleScope(
   query: Omit<NewArticleCountQuery, 'since'> & { q?: string },
   userId: string,
-): Promise<{ filters: SQL[]; fhExpired: SQL | null } | null> {
+): Promise<{ filters: SQL[]; read: SQL<boolean> } | null> {
   // Resolve the caller's feed ids, always scoped by userId, optionally
   // narrowed by feedId, folderId, and/or attention tier (SPEC-022).
   const subFilters = [eq(subscriptions.userId, userId)];
@@ -180,34 +190,31 @@ async function articleScope(
     .where(and(...subFilters));
   const feedIds = subs.map((s) => s.feedId);
 
-  // Firehose expiry (SPEC-022): items older than the window are treated as
-  // read at query time (no state writes). Bound as a single Postgres array
-  // literal of DB-sourced uuids, same trick as mark-read.
+  // Firehose expiry (SPEC-022): items older than the window count as read at
+  // query time (no state writes), until the user has a state row for one
+  // (see pastFirehoseExpiry). Bound as a single Postgres array literal of
+  // DB-sourced uuids, same trick as mark-read.
   const firehoseIds = subs.filter((s) => s.attention === 'firehose').map((s) => s.feedId);
   const fhArray = `{${firehoseIds.join(',')}}`;
-  const fhExpired =
+  // The read flag as the user sees it. No state row means unread, except for
+  // an expired firehose item.
+  const read =
     firehoseIds.length > 0
-      ? sql`(${articles.feedId} = any(${fhArray}::uuid[])
-          and coalesce(${articles.publishedAt}, ${articles.fetchedAt})
-              < now() - make_interval(days => ${FIREHOSE_EXPIRY_DAYS}))`
-      : null;
+      ? sql<boolean>`coalesce(${articleStates.read},
+          ${articles.feedId} = any(${fhArray}::uuid[]) and ${pastFirehoseExpiry(sortTs)})`
+      : sql<boolean>`coalesce(${articleStates.read}, false)`;
 
   if (feedIds.length === 0 && !isStateScope) return null;
 
   const filters: SQL[] = isStateScope ? [] : [inArray(articles.feedId, feedIds)];
-  if (query.unread !== undefined) {
-    // No state row means unread; treat missing rows as read=false.
-    filters.push(sql`coalesce(${articleStates.read}, false) = ${!query.unread}`);
-    // Expired firehose items are no longer owed: keep them out of unread.
-    if (query.unread && fhExpired) filters.push(sql`not ${fhExpired}`);
-  }
+  if (query.unread !== undefined) filters.push(sql`${read} = ${!query.unread}`);
   if (query.starred) {
     filters.push(sql`coalesce(${articleStates.starred}, false) = true`);
   }
   if (query.shared) {
     filters.push(sql`coalesce(${articleStates.shared}, false) = true`);
   }
-  return { filters, fhExpired };
+  return { filters, read };
 }
 
 export async function articleRoutes(app: FastifyInstance): Promise<void> {
@@ -243,9 +250,7 @@ export async function articleRoutes(app: FastifyInstance): Promise<void> {
 
     const scope = await articleScope(query, userId);
     if (!scope) return { items: [], nextCursor: null, asOf } satisfies Paginated<never>;
-    const { filters, fhExpired } = scope;
-
-    const sortKey = sql`coalesce(${articles.publishedAt}, ${articles.fetchedAt})`;
+    const { filters, read } = scope;
 
     // websearch_to_tsquery understands "exact phrase", -exclude and OR, and
     // never throws on malformed input. An all-stopword query yields an empty
@@ -283,9 +288,7 @@ export async function articleRoutes(app: FastifyInstance): Promise<void> {
         imageUrl: articles.imageUrl,
         publishedAt: articles.publishedAt,
         // Expired firehose items render as read so rows agree with counts.
-        read: fhExpired
-          ? sql<boolean>`coalesce(${articleStates.read}, false) or ${fhExpired}`
-          : sql<boolean>`coalesce(${articleStates.read}, false)`,
+        read,
         starred: sql<boolean>`coalesce(${articleStates.starred}, false)`,
         // ::text preserves the exact timestamp (microseconds) for the cursor.
         sortTs: sql<string>`coalesce(${articles.publishedAt}, ${articles.fetchedAt})::text`,
@@ -302,8 +305,8 @@ export async function articleRoutes(app: FastifyInstance): Promise<void> {
         isSearch
           ? sql`${rankExpr} desc, ${articles.id} desc`
           : query.sort === 'oldest'
-            ? sql`${sortKey} asc, ${articles.id} asc`
-            : sql`${sortKey} desc, ${articles.id} desc`,
+            ? sql`${sortTs} asc, ${articles.id} asc`
+            : sql`${sortTs} desc, ${articles.id} desc`,
       )
       .limit(query.limit + 1);
 
@@ -417,6 +420,17 @@ export async function articleRoutes(app: FastifyInstance): Promise<void> {
     const idsClause = input.articleIds
       ? sql`and a.id = any(${`{${input.articleIds.join(',')}}`}::uuid[])`
       : sql``;
+    // An expired firehose item with no state row already counts as read
+    // (SPEC-022). Leave it alone: a row would change nothing on screen, but
+    // the toast would count it, and an Undo would make it unread.
+    const notExpiredClause = sql`and not (
+      ${pastFirehoseExpiry(sql`coalesce(a.published_at, a.fetched_at)`)}
+      and exists (
+        select 1 from subscriptions s
+        where s.user_id = ${userId}::uuid and s.feed_id = a.feed_id and s.attention = 'firehose')
+      and not exists (
+        select 1 from article_states st
+        where st.user_id = ${userId}::uuid and st.article_id = a.id))`;
 
     // The conflict guard (read = false) makes this idempotent: already-read
     // articles keep their original read_at, and starred/starred_at survive.
@@ -426,7 +440,7 @@ export async function articleRoutes(app: FastifyInstance): Promise<void> {
       insert into article_states (user_id, article_id, read, read_at)
       select ${userId}::uuid, a.id, true, now()
       from articles a
-      where ${scopeClause} ${beforeClause} ${fetchedClause} ${idsClause}
+      where ${scopeClause} ${beforeClause} ${fetchedClause} ${idsClause} ${notExpiredClause}
       on conflict (user_id, article_id) do update
         set read = true, read_at = now()
         where article_states.read = false
@@ -460,17 +474,21 @@ export async function articleRoutes(app: FastifyInstance): Promise<void> {
     const input = updateArticleStateSchema.parse(request.body);
     const userId = request.user!.id;
     const now = new Date();
-    if (!(await isOpenable(userId, id))) return reply.code(404).send(notFound);
+    const access = await openable(userId, id);
+    if (!access) return reply.code(404).send(notFound);
+    // A first state row takes the read flag the user sees: a star on an
+    // expired firehose item must not turn it unread (see pastFirehoseExpiry).
+    const read = input.read ?? access.expired;
 
     await db
       .insert(articleStates)
       .values({
         userId,
         articleId: id,
-        read: input.read ?? false,
+        read,
         starred: input.starred ?? false,
         shared: input.shared ?? false,
-        readAt: input.read ? now : null,
+        readAt: read ? now : null,
         starredAt: input.starred ? now : null,
         sharedAt: input.shared ? now : null,
         shareNote: input.shareNote ?? null,
