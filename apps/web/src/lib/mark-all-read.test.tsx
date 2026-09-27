@@ -60,11 +60,20 @@ test('when nothing changed, it says so and offers no Undo', async () => {
 });
 
 describe('offersMarkAllRead', () => {
-  const view = { filters: {}, communityOpen: false, isSearching: false, unread: 3 };
+  const view = {
+    filters: {},
+    communityOpen: false,
+    isSearching: false,
+    unread: 3,
+    listHasUnread: true,
+  };
 
   test('a scope with unread articles offers it', () => {
     expect(offersMarkAllRead(view)).toBe(true);
-    expect(offersMarkAllRead({ ...view, unread: 0 })).toBe(false);
+    expect(offersMarkAllRead({ ...view, unread: 0, listHasUnread: false })).toBe(false);
+  });
+  test('unread Skim articles in the list count, though the scope count leaves them out', () => {
+    expect(offersMarkAllRead({ ...view, unread: 0, listHasUnread: true })).toBe(true);
   });
   test('never during a search, where it would mark the whole scope, not the results', () => {
     expect(offersMarkAllRead({ ...view, isSearching: true })).toBe(false);

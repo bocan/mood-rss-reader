@@ -417,7 +417,13 @@ export function ReaderPage() {
     mustRead: preciousUnread,
   });
   const hasUnread = (unreadForView ?? 0) > 0;
-  const canMarkAll = offersMarkAllRead({ filters, communityOpen, isSearching, unread: unreadForView });
+  const canMarkAll = offersMarkAllRead({
+    filters,
+    communityOpen,
+    isSearching,
+    unread: unreadForView,
+    listHasUnread: surface.items.some((a) => !a.read),
+  });
   const markAll = useMarkAllRead();
   // Undo on the toast replaces the old "more than 20?" confirm (#26).
   // `olderThanMs` keeps items newer than that unread.
