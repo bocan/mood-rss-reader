@@ -2,10 +2,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { toast } from 'sonner';
-import { afterEach, beforeEach, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { Toaster } from '@/components/ui/sonner';
 import { registerMutationDefaults } from './articles';
-import { olderThan, useMarkAllRead } from './mark-all-read';
+import { offersMarkAllRead, olderThan, useMarkAllRead } from './mark-all-read';
 
 // #26: Mark all read offers Undo, which restores exactly what it marked.
 
@@ -57,6 +57,24 @@ test('when nothing changed, it says so and offers no Undo', async () => {
   act(() => result.current({}, 'All items'));
   expect(await screen.findByText('Nothing to mark as read in All items.')).toBeInTheDocument();
   expect(screen.queryByRole('button', { name: 'Undo' })).not.toBeInTheDocument();
+});
+
+describe('offersMarkAllRead', () => {
+  const view = { filters: {}, communityOpen: false, isSearching: false, unread: 3 };
+
+  test('a scope with unread articles offers it', () => {
+    expect(offersMarkAllRead(view)).toBe(true);
+    expect(offersMarkAllRead({ ...view, unread: 0 })).toBe(false);
+  });
+  test('never during a search, where it would mark the whole scope, not the results', () => {
+    expect(offersMarkAllRead({ ...view, isSearching: true })).toBe(false);
+  });
+  test('not for Starred, Shared, Must read, or Community', () => {
+    expect(offersMarkAllRead({ ...view, filters: { starred: true } })).toBe(false);
+    expect(offersMarkAllRead({ ...view, filters: { shared: true } })).toBe(false);
+    expect(offersMarkAllRead({ ...view, filters: { attention: 'precious' } })).toBe(false);
+    expect(offersMarkAllRead({ ...view, communityOpen: true })).toBe(false);
+  });
 });
 
 test('"older than" sends a before cutoff that far back', () => {

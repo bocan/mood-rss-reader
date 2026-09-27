@@ -67,7 +67,7 @@ import { useShortcuts } from '@/hooks/use-shortcuts';
 import { useSidebar } from '@/hooks/use-sidebar';
 import { announce } from '@/lib/announce';
 import { useUnreadCounts } from '@/lib/articles';
-import { OLDER_THAN, olderThan, useMarkAllRead } from '@/lib/mark-all-read';
+import { OLDER_THAN, offersMarkAllRead, olderThan, useMarkAllRead } from '@/lib/mark-all-read';
 import { useSession } from '@/lib/auth';
 import { useCommunityShares } from '@/lib/community';
 import { ATTENTION_LABELS } from '@/lib/attention';
@@ -417,7 +417,7 @@ export function ReaderPage() {
     mustRead: preciousUnread,
   });
   const hasUnread = (unreadForView ?? 0) > 0;
-  const canMarkAll = !filters.starred && !filters.shared && !filters.attention && !communityOpen;
+  const canMarkAll = offersMarkAllRead({ filters, communityOpen, isSearching, unread: unreadForView });
   const markAll = useMarkAllRead();
   // Undo on the toast replaces the old "more than 20?" confirm (#26).
   // `olderThanMs` keeps items newer than that unread.
@@ -510,7 +510,7 @@ export function ReaderPage() {
     toggleStar: toggles.toggleStar,
     toggleShared: toggles.toggleShared,
     openOriginal: toggles.openOriginal,
-    markAllRead: () => canMarkAll && hasUnread && markAllRead(),
+    markAllRead: () => canMarkAll && markAllRead(),
     fetchFeeds,
     focusSearch: () => searchRef.current?.focus(),
     nextFeed: () => stepFeed(1),
@@ -762,7 +762,7 @@ export function ReaderPage() {
             savedAs={activeSaved?.name}
           />
         )}
-        {canMarkAll && !isSearching && hasUnread && (
+        {canMarkAll && (
           <div className="hidden items-center sm:flex">
             <Button variant="ghost" size="sm" className="rounded-r-none pr-2" onClick={() => markAllRead()}>
               Mark all read
@@ -808,7 +808,7 @@ export function ReaderPage() {
   // the bar lives in AppShell's "More actions" menu (#22).
   const phoneMenu = (
     <>
-      {canMarkAll && !isSearching && hasUnread && (
+      {canMarkAll && (
         <>
           <DropdownMenuItem onSelect={() => markAllRead()}>Mark all read</DropdownMenuItem>
           {OLDER_THAN.map((o) => (
