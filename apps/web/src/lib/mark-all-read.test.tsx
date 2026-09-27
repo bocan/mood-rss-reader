@@ -95,11 +95,14 @@ describe('offersMarkAllRead', () => {
   test('never during a search, where it would mark the whole scope, not the results', () => {
     expect(offersMarkAllRead({ ...view, isSearching: true })).toBe(false);
   });
-  test('not for Starred, Shared, Must read, or Community', () => {
+  test('not for Starred, Shared, or Community', () => {
     expect(offersMarkAllRead({ ...view, filters: { starred: true } })).toBe(false);
     expect(offersMarkAllRead({ ...view, filters: { shared: true } })).toBe(false);
-    expect(offersMarkAllRead({ ...view, filters: { attention: 'precious' } })).toBe(false);
     expect(offersMarkAllRead({ ...view, communityOpen: true })).toBe(false);
+  });
+  test('Must read has an unread count, so it offers it too', () => {
+    const mustRead = { ...view, filters: { attention: 'precious' as const } };
+    expect(offersMarkAllRead(mustRead)).toBe(true);
   });
 });
 

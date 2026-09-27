@@ -435,7 +435,9 @@ export function ReaderPage() {
       ? { feedId: filters.feedId }
       : filters.folderId
         ? { folderId: filters.folderId }
-        : {};
+        : filters.attention
+          ? { attention: filters.attention }
+          : {};
     markAll({ ...scope, fetchedBefore, before }, scopeLabel);
   }
 

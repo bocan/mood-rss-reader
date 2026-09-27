@@ -374,25 +374,28 @@ export async function articleRoutes(app: FastifyInstance): Promise<void> {
     return { ...detail, ...snapshot };
   });
 
-  // Bulk mark-as-read across a feed, a folder's feeds, or All items, optionally
+  // Bulk mark-as-read across a feed, a folder's feeds, a tier, or All items, optionally
   // only items older than `before` and only items already stored by
   // `fetchedBefore`. One set-based statement.
   app.post('/articles/mark-read', auth, async (request) => {
     const input = markReadSchema.parse(request.body);
     const userId = request.user!.id;
 
-    // feedId wins over folderId; neither means All items, which leaves out
-    // hidden feeds exactly as the All-items list does. Explicit articleIds
-    // came from a list that showed them, so hidden feeds count there.
+    // feedId wins over folderId; attention (Must read) narrows to one tier;
+    // none of them means All items, which leaves out hidden feeds exactly as
+    // the All-items list does. Explicit articleIds came from a list that
+    // showed them, so hidden feeds count there.
     const feedIds = await resolveSubscribedFeedIds(userId, {
       feedId: input.feedId,
       folderId: input.folderId,
+      attention: input.attention,
       excludeHidden: !input.articleIds,
     });
-    // Ids with no feed or folder (mark read on scroll) reach every article the
+    // Ids with no other scope (mark read on scroll) reach every article the
     // user may open (canOpen): also a starred or shared one from a feed they
     // left (#16), which the Starred list shows and `m` can mark.
-    const byIdsOnly = Boolean(input.articleIds) && !input.feedId && !input.folderId;
+    const byIdsOnly =
+      Boolean(input.articleIds) && !input.feedId && !input.folderId && !input.attention;
     // Empty folder / no subs: nothing to mark.
     if (feedIds.length === 0 && !byIdsOnly) return { markedIds: [] } satisfies MarkReadResult;
 

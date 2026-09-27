@@ -84,6 +84,11 @@ export type ReadableQuery = z.infer<typeof readableQuerySchema>;
 export const markReadSchema = z.object({
   feedId: z.uuid().optional(),
   folderId: z.uuid().optional(),
+  /**
+   * Only feeds of this attention tier (the Must read shelf, SPEC-022). Like
+   * the tier's list, it includes feeds hidden from All items.
+   */
+  attention: z.enum(ATTENTION_TIERS).optional(),
   /** Only mark items published (or, if undated, fetched) before this time. */
   before: z.iso.datetime().optional(),
   /** Only mark items the server had stored by this time (a list's `asOf`). */

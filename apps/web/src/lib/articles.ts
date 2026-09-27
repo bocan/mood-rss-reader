@@ -1,6 +1,7 @@
 import {
   MARK_UNREAD_MAX,
   type ArticleDetail,
+  type AttentionTier,
   type MarkReadResult,
   type Paginated,
   type UnreadCounts,
@@ -61,19 +62,23 @@ function badgeFolders(qc: QueryClient, folderId: string | null | undefined): str
 /**
  * Which feeds a bulk mark-read covers, mirroring the server: one feed, one
  * folder with its child folders (#25), or All items, which leaves out hidden
- * feeds. A feed missing from the cache counts as visible (the refetch
- * corrects any drift).
+ * feeds. An attention tier (Must read) narrows any of them, and includes
+ * hidden feeds. A feed missing from the cache counts as visible but in no
+ * tier (the refetch corrects any drift).
  */
 export function markReadScopeTest(
   qc: QueryClient,
-  scope: { feedId?: string; folderId?: string },
+  scope: { feedId?: string; folderId?: string; attention?: AttentionTier },
 ): (feedId: string) => boolean {
   const meta = feedMeta(qc);
-  if (scope.feedId) return (id) => id === scope.feedId;
+  const tier = scope.attention;
+  const inTier = (id: string) => !tier || meta.get(id)?.attention === tier;
+  if (scope.feedId) return (id) => id === scope.feedId && inTier(id);
   if (scope.folderId) {
     const folderId = scope.folderId;
-    return (id) => badgeFolders(qc, meta.get(id)?.folderId).includes(folderId);
+    return (id) => badgeFolders(qc, meta.get(id)?.folderId).includes(folderId) && inTier(id);
   }
+  if (tier) return inTier;
   return (id) => !meta.get(id)?.hideFromAll;
 }
 
@@ -251,6 +256,8 @@ type TogglePatch = Omit<ToggleVars, 'articleId'>;
 export type MarkReadScope = {
   feedId?: string;
   folderId?: string;
+  /** One attention tier: the Must read shelf. */
+  attention?: AttentionTier;
   before?: string;
   fetchedBefore?: string;
   /** Exactly these articles (mark read on scroll, #17). */

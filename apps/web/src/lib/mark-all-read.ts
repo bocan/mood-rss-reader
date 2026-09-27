@@ -32,7 +32,7 @@ export function offersMarkAllRead(view: {
   listHasUnread: boolean;
 }): boolean {
   const { filters } = view;
-  if (filters.starred || filters.shared || filters.attention) return false;
+  if (filters.starred || filters.shared) return false;
   if (view.communityOpen || view.isSearching) return false;
   return (view.unread ?? 0) > 0 || view.listHasUnread;
 }

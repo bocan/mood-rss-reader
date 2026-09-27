@@ -73,6 +73,28 @@ test('All items (#14): hidden feeds keep their unread, counts match the server r
   expect(body).toEqual({ fetchedBefore: '2026-01-01T00:00:00.000Z' });
 });
 
+test('Must read (a tier scope) marks only that tier, hidden feeds included', async () => {
+  qc.setQueryData(['feeds'], {
+    items: [
+      ...feeds,
+      { feedId: 'gem', folderId: null, unreadCount: 4, hideFromAll: true, attention: 'precious' },
+    ],
+  });
+  qc.setQueryData<UnreadCounts>(['counts'], {
+    ...counts(),
+    feeds: [...counts().feeds, { feedId: 'gem', unreadCount: 4 }],
+  });
+  const { result } = renderHook(() => useMarkRead(), { wrapper });
+  act(() => result.current.mutate({ attention: 'precious' }));
+
+  await waitFor(() => expect(unread('gem')).toBe(0));
+  expect(unread('shown')).toBe(3);
+  expect(unread('hidden')).toBe(2);
+  expect(counts().total).toBe(3); // a hidden feed was never in the total
+  expect(itemRead('a1')).toBe(false);
+  expect(JSON.parse(fetchMock.mock.calls[0]![1].body as string)).toEqual({ attention: 'precious' });
+});
+
 test('a scroll batch (#17) marks only its ids and leaves the list in place', async () => {
   const invalidate = vi.spyOn(qc, 'invalidateQueries');
   const { result } = renderHook(() => useMarkRead(), { wrapper });

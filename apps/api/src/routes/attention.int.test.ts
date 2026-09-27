@@ -180,6 +180,35 @@ describe('attention tiers', () => {
     expect(res.json().markedIds).toEqual([fhFresh.id]);
   });
 
+  test('mark all read on Must read marks only precious feeds, hidden ones included', async () => {
+    const { cookie, preciousFresh, precious, normal } = await seedTiers();
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/articles/mark-read',
+      headers: { cookie },
+      payload: { attention: 'precious' },
+    });
+    expect(res.json().markedIds).toEqual([preciousFresh.id]);
+
+    const counts = await getJson(cookie, '/api/counts');
+    const byFeed = new Map(
+      counts.feeds.map((f: { feedId: string; unreadCount: number }) => [f.feedId, f.unreadCount]),
+    );
+    expect(byFeed.get(precious.id)).toBe(0);
+    expect(byFeed.get(normal.id)).toBe(1);
+  });
+
+  test('mark-read refuses an unknown tier', async () => {
+    const { cookie } = await seedTiers();
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/articles/mark-read',
+      headers: { cookie },
+      payload: { attention: 'obsessive' },
+    });
+    expect(res.statusCode).toBe(400);
+  });
+
   test('marking an unexpired firehose item read still decrements its count', async () => {
     const { user, cookie, firehose, fhFresh } = await seedTiers();
     await seedArticleState(user.id, fhFresh.id, { read: true, readAt: new Date() });
