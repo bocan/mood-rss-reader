@@ -1,3 +1,4 @@
+import { MARK_UNREAD_MAX } from '@rss/shared';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
@@ -47,6 +48,22 @@ test('the toast counts what the server marked, and Undo sends exactly those ids'
   fireEvent.click(screen.getByRole('button', { name: 'Undo' }));
   await waitFor(() => expect(call('/mark-unread')).toBeDefined());
   expect(JSON.parse(call('/mark-unread')![1].body)).toEqual({ articleIds: ['a1', 'a2'] });
+});
+
+test('Undo of more than one batch sends every id, in batches the API takes', async () => {
+  marked = Array.from({ length: MARK_UNREAD_MAX * 2 + 5 }, (_, i) => `a${i}`);
+  render(<Toaster />);
+  const { result } = renderHook(() => useMarkAllRead(), { wrapper });
+
+  act(() => result.current({}, 'All items'));
+  fireEvent.click(await screen.findByRole('button', { name: 'Undo' }));
+  const batches = () =>
+    fetchMock.mock.calls
+      .filter(([url]) => String(url).endsWith('/mark-unread'))
+      .map(([, init]) => JSON.parse(init.body).articleIds as string[]);
+  await waitFor(() => expect(batches()).toHaveLength(3));
+  expect(batches().map((b) => b.length)).toEqual([MARK_UNREAD_MAX, MARK_UNREAD_MAX, 5]);
+  expect(batches().flat()).toEqual(marked);
 });
 
 test('when nothing changed, it says so and offers no Undo', async () => {

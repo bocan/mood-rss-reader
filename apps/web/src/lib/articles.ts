@@ -1,4 +1,10 @@
-import type { ArticleDetail, MarkReadResult, Paginated, UnreadCounts } from '@rss/shared';
+import {
+  MARK_UNREAD_MAX,
+  type ArticleDetail,
+  type MarkReadResult,
+  type Paginated,
+  type UnreadCounts,
+} from '@rss/shared';
 import {
   useMutation,
   useQuery,
@@ -353,13 +359,20 @@ export function useMarkRead() {
   return useMutation<MarkReadResult, Error, MarkReadScope, Ctx>({ mutationKey: MARK_READ_KEY });
 }
 
-/** Undo a mark-read (#26): these articles go back to unread, then refetch. */
+/**
+ * Undo a mark-read (#26): these articles go back to unread, then refetch. A
+ * mark-read has no upper limit, so a large Undo goes in batches the API takes.
+ */
 export function useMarkUnread() {
   const qc = useQueryClient();
   return useMutation({
     meta: { errorMessage: 'Could not undo. The articles are still read.' },
-    mutationFn: (articleIds: string[]) =>
-      api<void>('/articles/mark-unread', { method: 'POST', body: { articleIds } }),
+    mutationFn: async (articleIds: string[]) => {
+      for (let i = 0; i < articleIds.length; i += MARK_UNREAD_MAX) {
+        const batch = articleIds.slice(i, i + MARK_UNREAD_MAX);
+        await api<void>('/articles/mark-unread', { method: 'POST', body: { articleIds: batch } });
+      }
+    },
     onSettled: () => reconcile(qc),
   });
 }

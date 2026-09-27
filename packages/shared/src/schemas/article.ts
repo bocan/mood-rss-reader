@@ -104,8 +104,15 @@ export interface MarkReadResult {
   markedIds: string[];
 }
 
+/**
+ * Most ids one mark-unread request takes. A mark-read can change more, so the
+ * web sends its Undo in batches of this size. 20,000 ids are about 780 KB of
+ * JSON, inside Fastify's default 1 MiB body limit.
+ */
+export const MARK_UNREAD_MAX = 20_000;
+
 /** Undo a mark-read (#26): set these articles back to unread. */
 export const markUnreadSchema = z.object({
-  articleIds: z.array(z.uuid()).min(1).max(20_000),
+  articleIds: z.array(z.uuid()).min(1).max(MARK_UNREAD_MAX),
 });
 export type MarkUnreadInput = z.infer<typeof markUnreadSchema>;
