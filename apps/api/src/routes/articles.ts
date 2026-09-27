@@ -28,10 +28,42 @@ import { ensureReadableSnapshot } from '../lib/readable-snapshot.js';
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
- * Load one article for a user. Access needs a subscription to its feed, or the
- * user's own star or share on it (those outlive an unsubscribe, #16). Returns
- * null when the id is malformed, the article does not exist, or neither holds -
- * all of which the caller maps to an indistinguishable 404.
+ * Who may open an article: a subscriber to its feed, or a user with their own
+ * star or share on it (those outlive an unsubscribe, #16). The query must
+ * left join the caller's subscription and article_states rows.
+ */
+const canOpen = or(
+  isNotNull(subscriptions.id),
+  eq(articleStates.starred, true),
+  eq(articleStates.shared, true),
+);
+
+/**
+ * Whether the user may open (and so change the state of) this article, by
+ * the canOpen rule. False when the id is malformed or the article is gone.
+ */
+async function isOpenable(userId: string, id: string): Promise<boolean> {
+  if (!UUID_RE.test(id)) return false;
+  const rows = await db
+    .select({ id: articles.id })
+    .from(articles)
+    .leftJoin(
+      subscriptions,
+      and(eq(subscriptions.feedId, articles.feedId), eq(subscriptions.userId, userId)),
+    )
+    .leftJoin(
+      articleStates,
+      and(eq(articleStates.articleId, articles.id), eq(articleStates.userId, userId)),
+    )
+    .where(and(eq(articles.id, id), canOpen))
+    .limit(1);
+  return rows.length > 0;
+}
+
+/**
+ * Load one article for a user, by the canOpen rule. Returns null when the id
+ * is malformed, the article does not exist, or the user may not open it - all
+ * of which the caller maps to an indistinguishable 404.
  */
 async function loadArticleDetail(userId: string, id: string) {
   if (!UUID_RE.test(id)) return null;
@@ -67,16 +99,7 @@ async function loadArticleDetail(userId: string, id: string) {
       articleStates,
       and(eq(articleStates.articleId, articles.id), eq(articleStates.userId, userId)),
     )
-    .where(
-      and(
-        eq(articles.id, id),
-        or(
-          isNotNull(subscriptions.id),
-          eq(articleStates.starred, true),
-          eq(articleStates.shared, true),
-        ),
-      ),
-    )
+    .where(and(eq(articles.id, id), canOpen))
     .limit(1);
 
   const r = rows[0];
@@ -419,11 +442,14 @@ export async function articleRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // Update read / starred state for a single article (upsert the state row).
+  // Only an article the user may open: else a star on any known id would
+  // give access to it (canOpen) and start a snapshot fetch of its page.
   app.patch('/articles/:id/state', auth, async (request, reply) => {
     const { id } = request.params as { id: string };
     const input = updateArticleStateSchema.parse(request.body);
     const userId = request.user!.id;
     const now = new Date();
+    if (!(await isOpenable(userId, id))) return reply.code(404).send(notFound);
 
     await db
       .insert(articleStates)

@@ -174,6 +174,36 @@ test('a failed capture on star stamps the attempt, as the view does', async () =
   expect((await snapshotOf(article.id)).readableHtml).toBeNull();
 });
 
+test('PATCH state: a malformed or unknown id is a 404, not a 500', async () => {
+  const { cookie } = await subscribedArticle();
+  expect((await patchState('nope', cookie, { read: true })).statusCode).toBe(404);
+  expect((await patchState(crypto.randomUUID(), cookie, { starred: true })).statusCode).toBe(404);
+});
+
+test('PATCH state cannot star an article of a feed the user does not follow', async () => {
+  const { cookie } = await subscribedArticle();
+  const otherFeed = await seedFeed();
+  const other = await seedArticle(otherFeed.id, { url: 'https://x.example/p' });
+
+  // Else the star would give access to the article, and fetch its page.
+  expect((await patchState(other.id, cookie, { starred: true })).statusCode).toBe(404);
+  const detail = await app.inject({ method: 'GET', url: `/api/articles/${other.id}`, headers: { cookie } });
+  expect(detail.statusCode).toBe(404);
+  await new Promise((r) => setTimeout(r, 50));
+  expect(extractMock).not.toHaveBeenCalled();
+});
+
+test('PATCH state still works on a starred article after an unsubscribe (#16)', async () => {
+  const user = await seedUser();
+  const feed = await seedFeed();
+  const article = await seedArticle(feed.id, {});
+  await seedArticleState(user.id, article.id, { starred: true }); // no subscription
+  const cookie = await loginAs(user);
+
+  expect((await patchState(article.id, cookie, { read: true })).statusCode).toBe(204);
+  expect((await patchState(article.id, cookie, { starred: false })).statusCode).toBe(204);
+});
+
 test('readable ?refresh=true on a dead page keeps the stored copy', async () => {
   const { article, cookie } = await subscribedArticle({
     readableHtml: '<p>taken while alive</p>',
