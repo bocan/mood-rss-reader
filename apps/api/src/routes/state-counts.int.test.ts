@@ -185,6 +185,24 @@ test('articleIds never reaches a feed the user does not follow', async () => {
   expect(row).toBeUndefined();
 });
 
+test('articleIds reaches a starred or shared article from a feed the user left (#16)', async () => {
+  const user = await seedUser();
+  const left = await seedFeed();
+  const starred = await seedArticle(left.id, {});
+  const shared = await seedArticle(left.id, {});
+  const neither = await seedArticle(left.id, {});
+  await seedArticleState(user.id, starred.id, { starred: true });
+  await seedArticleState(user.id, shared.id, { shared: true });
+  const cookie = await loginAs(user); // no subscription at all
+
+  const res = await markRead(cookie, { articleIds: [starred.id, shared.id, neither.id] });
+  expect(res.json().markedIds.sort()).toEqual([starred.id, shared.id].sort());
+  const rows = await db.select().from(articleStates).where(eq(articleStates.userId, user.id));
+  expect(rows.filter((r) => r.read).map((r) => r.articleId).sort()).toEqual(
+    [starred.id, shared.id].sort(),
+  );
+});
+
 test('articleIds rejects an empty or oversized batch', async () => {
   const user = await seedUser();
   const cookie = await loginAs(user);

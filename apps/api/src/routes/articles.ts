@@ -386,13 +386,24 @@ export async function articleRoutes(app: FastifyInstance): Promise<void> {
       folderId: input.folderId,
       excludeHidden: !input.articleIds,
     });
+    // Ids with no feed or folder (mark read on scroll) reach every article the
+    // user may open (canOpen): also a starred or shared one from a feed they
+    // left (#16), which the Starred list shows and `m` can mark.
+    const byIdsOnly = Boolean(input.articleIds) && !input.feedId && !input.folderId;
     // Empty folder / no subs: nothing to mark.
-    if (feedIds.length === 0) return { markedIds: [] } satisfies MarkReadResult;
+    if (feedIds.length === 0 && !byIdsOnly) return { markedIds: [] } satisfies MarkReadResult;
 
     // Bind the feed ids as a single Postgres array literal param. (drizzle's sql
     // template expands a JS array into separate params, which breaks any(...).)
     // feedIds are DB-sourced uuids, so the literal is safe and still parameterized.
     const feedIdArray = `{${feedIds.join(',')}}`;
+    const inFeeds = sql`a.feed_id = any(${feedIdArray}::uuid[])`;
+    const scopeClause = byIdsOnly
+      ? sql`(${inFeeds} or exists (
+          select 1 from article_states own
+          where own.user_id = ${userId}::uuid and own.article_id = a.id
+            and (own.starred or own.shared)))`
+      : inFeeds;
 
     // Undated articles fall back to fetched_at so `before` is deterministic.
     const beforeClause = input.before
@@ -415,7 +426,7 @@ export async function articleRoutes(app: FastifyInstance): Promise<void> {
       insert into article_states (user_id, article_id, read, read_at)
       select ${userId}::uuid, a.id, true, now()
       from articles a
-      where a.feed_id = any(${feedIdArray}::uuid[]) ${beforeClause} ${fetchedClause} ${idsClause}
+      where ${scopeClause} ${beforeClause} ${fetchedClause} ${idsClause}
       on conflict (user_id, article_id) do update
         set read = true, read_at = now()
         where article_states.read = false
