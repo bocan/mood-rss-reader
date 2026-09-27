@@ -204,4 +204,9 @@ export interface UnreadCounts {
   feeds: { feedId: string; unreadCount: number }[];
   folders: { folderId: string; unreadCount: number }[];
   total: number;
+  /**
+   * Server time taken before the counts were read. The sidebar's Mark all
+   * read sends it as `fetchedBefore`, so it marks only what a badge counted.
+   */
+  asOf: string;
 }

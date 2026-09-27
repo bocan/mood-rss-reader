@@ -185,12 +185,48 @@ test('articleIds never reaches a feed the user does not follow', async () => {
   expect(row).toBeUndefined();
 });
 
+test('articleIds reaches a starred or shared article from a feed the user left (#16)', async () => {
+  const user = await seedUser();
+  const left = await seedFeed();
+  const starred = await seedArticle(left.id, {});
+  const shared = await seedArticle(left.id, {});
+  const neither = await seedArticle(left.id, {});
+  await seedArticleState(user.id, starred.id, { starred: true });
+  await seedArticleState(user.id, shared.id, { shared: true });
+  const cookie = await loginAs(user); // no subscription at all
+
+  const res = await markRead(cookie, { articleIds: [starred.id, shared.id, neither.id] });
+  expect(res.json().markedIds.sort()).toEqual([starred.id, shared.id].sort());
+  const rows = await db.select().from(articleStates).where(eq(articleStates.userId, user.id));
+  expect(rows.filter((r) => r.read).map((r) => r.articleId).sort()).toEqual(
+    [starred.id, shared.id].sort(),
+  );
+});
+
 test('articleIds rejects an empty or oversized batch', async () => {
   const user = await seedUser();
   const cookie = await loginAs(user);
   expect((await markRead(cookie, { articleIds: [] })).statusCode).toBe(400);
   const many = Array.from({ length: 201 }, () => crypto.randomUUID());
   expect((await markRead(cookie, { articleIds: many })).statusCode).toBe(400);
+});
+
+test('the counts report the server time they were taken (asOf), for fetchedBefore', async () => {
+  const user = await seedUser();
+  const feed = await seedFeed();
+  await seedSubscription(user.id, feed.id);
+  await seedArticle(feed.id, {});
+  const cookie = await loginAs(user);
+
+  const before = Date.now();
+  const { asOf } = await counts(cookie);
+  expect(Date.parse(asOf)).toBeGreaterThanOrEqual(before - 1000);
+  expect(Date.parse(asOf)).toBeLessThanOrEqual(Date.now());
+
+  // An article stored after the counts is not what the badge counted.
+  await seedArticle(feed.id, { fetchedAt: new Date(Date.parse(asOf) + 1000) });
+  const res = await markRead(cookie, { feedId: feed.id, fetchedBefore: asOf });
+  expect(res.json().markedIds).toHaveLength(1);
 });
 
 test('the article list reports the server time it was produced (asOf)', async () => {

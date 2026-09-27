@@ -1,3 +1,4 @@
+import type { ArticleFilters } from '@/hooks/use-articles';
 import { useMarkRead, useMarkUnread, type MarkReadScope } from './articles';
 import { notify } from './notify';
 
@@ -11,6 +12,30 @@ export const OLDER_THAN = [
   { label: 'Older than 1 day', ms: DAY_MS },
   { label: 'Older than 1 week', ms: 7 * DAY_MS },
 ] as const;
+
+/**
+ * Whether Mark all read is on offer for the list in view. The top bar, the
+ * phone menu, and the `a` key all ask this, so they agree. Never during a
+ * search: the mark covers the whole scope, not only the results.
+ *
+ * The count alone is not enough: Skim (firehose) articles are unread in the
+ * list but left out of the All items and folder counts (SPEC-022), so a list
+ * whose only unread articles are Skim ones has a count of 0.
+ */
+export function offersMarkAllRead(view: {
+  filters: Pick<ArticleFilters, 'starred' | 'shared' | 'attention'>;
+  communityOpen: boolean;
+  isSearching: boolean;
+  /** The scope's unread count; null when it has none (Starred, Shared). */
+  unread: number | null;
+  /** The loaded list shows at least one unread article. */
+  listHasUnread: boolean;
+}): boolean {
+  const { filters } = view;
+  if (filters.starred || filters.shared) return false;
+  if (view.communityOpen || view.isSearching) return false;
+  return (view.unread ?? 0) > 0 || view.listHasUnread;
+}
 
 /** A `before` cutoff for an "older than" choice, from now. */
 export function olderThan(ms: number, now = Date.now()): string {

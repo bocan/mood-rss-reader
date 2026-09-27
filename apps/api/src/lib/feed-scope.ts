@@ -1,3 +1,4 @@
+import type { AttentionTier } from '@rss/shared';
 import { and, eq, inArray } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import { folders, subscriptions } from '../db/schema.js';
@@ -24,19 +25,29 @@ export async function folderScopeIds(userId: string, folderId: string): Promise<
  * userId, so a crafted feedId/folderId can never reach feeds the user does not
  * follow.
  *
- * `excludeHidden` drops feeds hidden from All items when no feedId/folderId is
- * given, matching the All-items list (SPEC-018).
+ * `attention` narrows to one tier as well (SPEC-022).
+ *
+ * `excludeHidden` drops feeds hidden from All items when no feedId, folderId,
+ * or attention is given, matching the All-items list (SPEC-018).
  */
 export async function resolveSubscribedFeedIds(
   userId: string,
-  scope: { feedId?: string; folderId?: string; excludeHidden?: boolean } = {},
+  scope: {
+    feedId?: string;
+    folderId?: string;
+    attention?: AttentionTier;
+    excludeHidden?: boolean;
+  } = {},
 ): Promise<string[]> {
   const filters = [eq(subscriptions.userId, userId)];
   if (scope.feedId) {
     filters.push(eq(subscriptions.feedId, scope.feedId));
   } else if (scope.folderId) {
     filters.push(inArray(subscriptions.folderId, await folderScopeIds(userId, scope.folderId)));
-  } else if (scope.excludeHidden) {
+  }
+  if (scope.attention) {
+    filters.push(eq(subscriptions.attention, scope.attention));
+  } else if (!scope.feedId && !scope.folderId && scope.excludeHidden) {
     filters.push(eq(subscriptions.hideFromAll, false));
   }
   const rows = await db

@@ -1,4 +1,11 @@
-import type { ArticleDetail, MarkReadResult, Paginated, UnreadCounts } from '@rss/shared';
+import {
+  MARK_UNREAD_MAX,
+  type ArticleDetail,
+  type AttentionTier,
+  type MarkReadResult,
+  type Paginated,
+  type UnreadCounts,
+} from '@rss/shared';
 import {
   useMutation,
   useQuery,
@@ -55,19 +62,23 @@ function badgeFolders(qc: QueryClient, folderId: string | null | undefined): str
 /**
  * Which feeds a bulk mark-read covers, mirroring the server: one feed, one
  * folder with its child folders (#25), or All items, which leaves out hidden
- * feeds. A feed missing from the cache counts as visible (the refetch
- * corrects any drift).
+ * feeds. An attention tier (Must read) narrows any of them, and includes
+ * hidden feeds. A feed missing from the cache counts as visible but in no
+ * tier (the refetch corrects any drift).
  */
 export function markReadScopeTest(
   qc: QueryClient,
-  scope: { feedId?: string; folderId?: string },
+  scope: { feedId?: string; folderId?: string; attention?: AttentionTier },
 ): (feedId: string) => boolean {
   const meta = feedMeta(qc);
-  if (scope.feedId) return (id) => id === scope.feedId;
+  const tier = scope.attention;
+  const inTier = (id: string) => !tier || meta.get(id)?.attention === tier;
+  if (scope.feedId) return (id) => id === scope.feedId && inTier(id);
   if (scope.folderId) {
     const folderId = scope.folderId;
-    return (id) => badgeFolders(qc, meta.get(id)?.folderId).includes(folderId);
+    return (id) => badgeFolders(qc, meta.get(id)?.folderId).includes(folderId) && inTier(id);
   }
+  if (tier) return inTier;
   return (id) => !meta.get(id)?.hideFromAll;
 }
 
@@ -101,7 +112,7 @@ function zeroCounts(
     const drop = folderDrop.get(f.folderId) ?? 0;
     return drop ? { ...f, unreadCount: clamp(f.unreadCount - drop) } : f;
   });
-  return { feeds, folders, total: clamp(c.total - totalDrop) };
+  return { ...c, feeds, folders, total: clamp(c.total - totalDrop) };
 }
 
 /** Current read state + feed id for an article, from the list or detail cache. */
@@ -177,6 +188,7 @@ function adjustCounts(qc: QueryClient, feedId: string, delta: number) {
   qc.setQueryData<UnreadCounts>(['counts'], (c) =>
     c
       ? {
+          ...c,
           feeds: c.feeds.map((f) =>
             f.feedId === feedId ? { ...f, unreadCount: clamp(f.unreadCount + delta) } : f,
           ),
@@ -244,6 +256,8 @@ type TogglePatch = Omit<ToggleVars, 'articleId'>;
 export type MarkReadScope = {
   feedId?: string;
   folderId?: string;
+  /** One attention tier: the Must read shelf. */
+  attention?: AttentionTier;
   before?: string;
   fetchedBefore?: string;
   /** Exactly these articles (mark read on scroll, #17). */
@@ -353,13 +367,20 @@ export function useMarkRead() {
   return useMutation<MarkReadResult, Error, MarkReadScope, Ctx>({ mutationKey: MARK_READ_KEY });
 }
 
-/** Undo a mark-read (#26): these articles go back to unread, then refetch. */
+/**
+ * Undo a mark-read (#26): these articles go back to unread, then refetch. A
+ * mark-read has no upper limit, so a large Undo goes in batches the API takes.
+ */
 export function useMarkUnread() {
   const qc = useQueryClient();
   return useMutation({
     meta: { errorMessage: 'Could not undo. The articles are still read.' },
-    mutationFn: (articleIds: string[]) =>
-      api<void>('/articles/mark-unread', { method: 'POST', body: { articleIds } }),
+    mutationFn: async (articleIds: string[]) => {
+      for (let i = 0; i < articleIds.length; i += MARK_UNREAD_MAX) {
+        const batch = articleIds.slice(i, i + MARK_UNREAD_MAX);
+        await api<void>('/articles/mark-unread', { method: 'POST', body: { articleIds: batch } });
+      }
+    },
     onSettled: () => reconcile(qc),
   });
 }

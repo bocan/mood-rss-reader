@@ -138,6 +138,77 @@ describe('attention tiers', () => {
     expect(titles).not.toContain('P fresh');
   });
 
+  // An expired item counts as read only while the user has no state row for it.
+  const patchState = (cookie: string, id: string, payload: Record<string, unknown>) =>
+    app.inject({ method: 'PATCH', url: `/api/articles/${id}/state`, headers: { cookie }, payload });
+  const listed = async (cookie: string, url: string, id: string) =>
+    (await getJson(cookie, url)).items.find((a: { id: string }) => a.id === id);
+
+  test('the detail shows an expired item read, as the list does', async () => {
+    const { cookie, fhStale, fhFresh } = await seedTiers();
+    expect((await getJson(cookie, `/api/articles/${fhStale.id}`)).read).toBe(true);
+    expect((await getJson(cookie, `/api/articles/${fhFresh.id}`)).read).toBe(false);
+  });
+
+  test('mark unread on an expired item sticks: list, detail, unread list, and count', async () => {
+    const { cookie, firehose, fhStale } = await seedTiers();
+    expect((await patchState(cookie, fhStale.id, { read: false })).statusCode).toBe(204);
+
+    expect((await listed(cookie, `/api/articles?feedId=${firehose.id}`, fhStale.id)).read).toBe(false);
+    expect((await getJson(cookie, `/api/articles/${fhStale.id}`)).read).toBe(false);
+    expect(await listed(cookie, `/api/articles?feedId=${firehose.id}&unread=true`, fhStale.id)).toBeDefined();
+    const counts = await getJson(cookie, '/api/counts');
+    const fh = counts.feeds.find((f: { feedId: string }) => f.feedId === firehose.id);
+    expect(fh.unreadCount).toBe(2); // the fresh one and the kept one
+  });
+
+  test('a star on an expired item keeps it read', async () => {
+    const { cookie, firehose, fhStale } = await seedTiers();
+    await patchState(cookie, fhStale.id, { starred: true });
+    const row = await listed(cookie, `/api/articles?feedId=${firehose.id}`, fhStale.id);
+    expect(row).toMatchObject({ read: true, starred: true });
+  });
+
+  test('mark all read leaves untouched expired items alone, so Undo cannot unread them', async () => {
+    const { cookie, firehose, fhFresh } = await seedTiers();
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/articles/mark-read',
+      headers: { cookie },
+      payload: { feedId: firehose.id },
+    });
+    expect(res.json().markedIds).toEqual([fhFresh.id]);
+  });
+
+  test('mark all read on Must read marks only precious feeds, hidden ones included', async () => {
+    const { cookie, preciousFresh, precious, normal } = await seedTiers();
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/articles/mark-read',
+      headers: { cookie },
+      payload: { attention: 'precious' },
+    });
+    expect(res.json().markedIds).toEqual([preciousFresh.id]);
+
+    const counts = await getJson(cookie, '/api/counts');
+    const byFeed = new Map(
+      counts.feeds.map((f: { feedId: string; unreadCount: number }) => [f.feedId, f.unreadCount]),
+    );
+    expect(byFeed.get(precious.id)).toBe(0);
+    expect(byFeed.get(normal.id)).toBe(1);
+  });
+
+  test('mark-read refuses an unknown tier', async () => {
+    const { cookie } = await seedTiers();
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/articles/mark-read',
+      headers: { cookie },
+      payload: { attention: 'obsessive' },
+    });
+    expect(res.statusCode).toBe(400);
+  });
+
   test('marking an unexpired firehose item read still decrements its count', async () => {
     const { user, cookie, firehose, fhFresh } = await seedTiers();
     await seedArticleState(user.id, fhFresh.id, { read: true, readAt: new Date() });

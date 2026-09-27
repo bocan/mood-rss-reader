@@ -7,6 +7,7 @@ import {
 import { and, eq, isNull, or, sql } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import { articleStates, filterRules, subscriptions } from '../db/schema.js';
+import { pastFirehoseExpiry } from './unread-counts.js';
 
 /**
  * Filter rules (SPEC-025): "when <field> contains <phrase>, <action>". A
@@ -162,9 +163,14 @@ export async function applyRuleToExisting(
   const read = rule.action === 'markRead';
   const feedClause = rule.feedId ? sql`and a.feed_id = ${rule.feedId}::uuid` : sql``;
   const onlyClause = onlyFeedId ? sql`and a.feed_id = ${onlyFeedId}::uuid` : sql``;
+  // A new row for an expired firehose item starts read, as the user sees it
+  // (pastFirehoseExpiry): a star rule must not turn old Skim items unread. An
+  // existing row keeps its own read flag, and only the rule's read is added.
   const rows = await db.execute<{ count: number }>(sql`
     with scope as (
-      select a.id
+      select a.id,
+        s.attention = 'firehose'
+          and ${pastFirehoseExpiry(sql`coalesce(a.published_at, a.fetched_at)`)} as expired
       from articles a
       join subscriptions s on s.feed_id = a.feed_id and s.user_id = ${userId}::uuid
       where true ${feedClause} ${onlyClause}
@@ -172,20 +178,21 @@ export async function applyRuleToExisting(
       limit ${RULE_APPLY_LIMIT}
     ),
     matched as (
-      select a.id
+      select a.id, scope.expired
       from articles a
       join scope on scope.id = a.id
       where ${FIELD_SQL[rule.field]} ilike ${likePattern(rule.phrase)} escape '\\'
     ),
     written as (
       insert into article_states (user_id, article_id, read, starred, read_at, starred_at)
-      select ${userId}::uuid, m.id, ${read}::boolean, ${!read}::boolean,
-        ${read ? sql`now()` : sql`null`}, ${read ? sql`null` : sql`now()`}
+      select ${userId}::uuid, m.id, ${read}::boolean or m.expired, ${!read}::boolean,
+        case when ${read}::boolean or m.expired then now() end,
+        ${read ? sql`null` : sql`now()`}
       from matched m
       on conflict (user_id, article_id) do update
-        set read = article_states.read or excluded.read,
+        set read = article_states.read or ${read}::boolean,
             starred = article_states.starred or excluded.starred,
-            read_at = coalesce(article_states.read_at, excluded.read_at),
+            read_at = coalesce(article_states.read_at, ${read ? sql`now()` : sql`null`}),
             starred_at = coalesce(article_states.starred_at, excluded.starred_at)
       returning 1
     )

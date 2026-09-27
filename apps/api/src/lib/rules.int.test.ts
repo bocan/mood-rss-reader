@@ -176,6 +176,23 @@ test('apply never un-reads or un-stars, and keeps the first read time', async ()
   expect(b).toMatchObject({ read: true, starred: true, readAt });
 });
 
+test('a star rule keeps expired Skim items read, and a kept-unread row unread', async () => {
+  const feed = await seedFeed();
+  const user = await seedUser();
+  await seedSubscription(user.id, feed.id, { attention: 'firehose' });
+  const old = new Date(Date.now() - 20 * 24 * 60 * 60 * 1000);
+  const expired = await seedArticle(feed.id, { title: 'Sponsored old', publishedAt: old });
+  const keptUnread = await seedArticle(feed.id, { title: 'Sponsored kept', publishedAt: old });
+  await seedArticleState(user.id, keptUnread.id, { read: false }); // the user pressed u
+  const fresh = await seedArticle(feed.id, { title: 'Sponsored new' });
+
+  await applyRuleToExisting({ feedId: null, field: 'title', phrase: 'sponsored', action: 'star' }, user.id);
+
+  expect(await stateOf(user.id, expired.guid)).toEqual({ read: true, starred: true });
+  expect(await stateOf(user.id, keptUnread.guid)).toEqual({ read: false, starred: true });
+  expect(await stateOf(user.id, fresh.guid)).toEqual({ read: false, starred: true });
+});
+
 test('apply is literal in SQL too: % and _ match only themselves', async () => {
   const feed = await seedFeed();
   const user = await seedUser();

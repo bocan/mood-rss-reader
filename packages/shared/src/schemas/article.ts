@@ -84,6 +84,11 @@ export type ReadableQuery = z.infer<typeof readableQuerySchema>;
 export const markReadSchema = z.object({
   feedId: z.uuid().optional(),
   folderId: z.uuid().optional(),
+  /**
+   * Only feeds of this attention tier (the Must read shelf, SPEC-022). Like
+   * the tier's list, it includes feeds hidden from All items.
+   */
+  attention: z.enum(ATTENTION_TIERS).optional(),
   /** Only mark items published (or, if undated, fetched) before this time. */
   before: z.iso.datetime().optional(),
   /** Only mark items the server had stored by this time (a list's `asOf`). */
@@ -104,8 +109,15 @@ export interface MarkReadResult {
   markedIds: string[];
 }
 
+/**
+ * Most ids one mark-unread request takes. A mark-read can change more, so the
+ * web sends its Undo in batches of this size. 20,000 ids are about 780 KB of
+ * JSON, inside Fastify's default 1 MiB body limit.
+ */
+export const MARK_UNREAD_MAX = 20_000;
+
 /** Undo a mark-read (#26): set these articles back to unread. */
 export const markUnreadSchema = z.object({
-  articleIds: z.array(z.uuid()).min(1).max(20_000),
+  articleIds: z.array(z.uuid()).min(1).max(MARK_UNREAD_MAX),
 });
 export type MarkUnreadInput = z.infer<typeof markUnreadSchema>;

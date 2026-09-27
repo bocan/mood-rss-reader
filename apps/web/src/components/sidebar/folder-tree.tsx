@@ -114,6 +114,11 @@ interface FolderTreeProps {
   countByFeed: Map<string, number>;
   /** Unread per folder, child folders included (server rollup, #25). */
   countByFolder?: Map<string, number>;
+  /**
+   * When the counts were taken (UnreadCounts.asOf). Mark all read in a row
+   * menu marks only articles stored by then: what the badge counted.
+   */
+  countsAsOf?: string;
   sort: FeedSort;
   /** When true, hide feeds (and now-empty folders) that have no unread items. */
   hideRead?: boolean;
@@ -131,6 +136,7 @@ export function FolderTree({
   onSelectFolder,
   countByFeed,
   countByFolder = NO_COUNTS,
+  countsAsOf,
   sort,
   hideRead = false,
   creatingFolder,
@@ -147,7 +153,9 @@ export function FolderTree({
   const updateSub = useUpdateSubscription();
   const unsubscribe = useUnsubscribe();
   // The same Mark all read as the top bar: Undo on a toast (#26).
-  const markAll = useMarkAllRead();
+  const markAllRead = useMarkAllRead();
+  const markAll = (scope: { feedId: string } | { folderId: string }, label: string) =>
+    markAllRead({ ...scope, fetchedBefore: countsAsOf }, label);
   const feedName = (feedId: string) => {
     const s = subs.find((x) => x.feedId === feedId);
     return s ? (s.customTitle ?? s.title ?? s.feedUrl) : 'this feed';
