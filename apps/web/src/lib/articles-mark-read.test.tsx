@@ -17,6 +17,8 @@ const feeds = [
 let qc: QueryClient;
 let fetchMock: ReturnType<typeof vi.fn>;
 
+const AS_OF = '2026-09-28T08:00:00.000Z';
+
 beforeEach(() => {
   qc = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
   registerMutationDefaults(qc);
@@ -25,6 +27,7 @@ beforeEach(() => {
     feeds: feeds.map(({ feedId, unreadCount }) => ({ feedId, unreadCount })),
     folders: [{ folderId: 'd1', unreadCount: 5 }], // shown 3 + hidden 2
     total: 3, // shown only
+    asOf: AS_OF,
   });
   qc.setQueryData(['articles', {}], {
     pages: [
@@ -111,6 +114,8 @@ test('marking a parent folder read clears its child folders, and both badges dro
     { folderId: 'd0', unreadCount: 0 },
     { folderId: 'd1', unreadCount: 0 },
   ]);
+  // The optimistic write keeps the time the counts were taken (for fetchedBefore).
+  expect(counts().asOf).toBe(AS_OF);
 });
 
 test('reading one article in a child folder drops the child and the parent badge', async () => {
@@ -135,6 +140,7 @@ test('reading one article in a child folder drops the child and the parent badge
     { folderId: 'd0', unreadCount: 4 },
     { folderId: 'd1', unreadCount: 4 },
   ]);
+  expect(counts().asOf).toBe(AS_OF);
 });
 
 test('a folder scope still includes its hidden feeds', async () => {

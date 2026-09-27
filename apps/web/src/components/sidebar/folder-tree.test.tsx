@@ -34,6 +34,8 @@ const sub: SubscriptionRow = {
   unreadCount: 3,
 };
 
+const COUNTS_AS_OF = '2026-09-28T08:00:00.000Z';
+
 function renderTree(sort: FeedSort = 'name') {
   const qc = new QueryClient({ defaultOptions: { queries: { staleTime: Infinity } } });
   qc.setQueryData(['folders'], { items: [] });
@@ -44,6 +46,7 @@ function renderTree(sort: FeedSort = 'name') {
         onSelectFeed={vi.fn()}
         onSelectFolder={vi.fn()}
         countByFeed={new Map([['f1', 3]])}
+        countsAsOf={COUNTS_AS_OF}
         sort={sort}
       />
     </QueryClientProvider>,
@@ -85,8 +88,12 @@ test('"Mark all read" fires even when the pointer moves a few px during the clic
   fireEvent.mouseUp(document, at(10));
   fireEvent.click(item);
 
-  // The same Undo-able mark as the top bar (#26), named for the toast.
-  expect(markRead).toHaveBeenCalledWith({ feedId: 'f1' }, 'Dave Rupert');
+  // The same Undo-able mark as the top bar (#26), named for the toast. Only
+  // what the badge counted: nothing stored after the counts were taken.
+  expect(markRead).toHaveBeenCalledWith(
+    { feedId: 'f1', fetchedBefore: COUNTS_AS_OF },
+    'Dave Rupert',
+  );
 });
 
 test('"Rename" from a feed menu shows a focused input that stays open', async () => {

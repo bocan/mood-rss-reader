@@ -211,6 +211,24 @@ test('articleIds rejects an empty or oversized batch', async () => {
   expect((await markRead(cookie, { articleIds: many })).statusCode).toBe(400);
 });
 
+test('the counts report the server time they were taken (asOf), for fetchedBefore', async () => {
+  const user = await seedUser();
+  const feed = await seedFeed();
+  await seedSubscription(user.id, feed.id);
+  await seedArticle(feed.id, {});
+  const cookie = await loginAs(user);
+
+  const before = Date.now();
+  const { asOf } = await counts(cookie);
+  expect(Date.parse(asOf)).toBeGreaterThanOrEqual(before - 1000);
+  expect(Date.parse(asOf)).toBeLessThanOrEqual(Date.now());
+
+  // An article stored after the counts is not what the badge counted.
+  await seedArticle(feed.id, { fetchedAt: new Date(Date.parse(asOf) + 1000) });
+  const res = await markRead(cookie, { feedId: feed.id, fetchedBefore: asOf });
+  expect(res.json().markedIds).toHaveLength(1);
+});
+
 test('the article list reports the server time it was produced (asOf)', async () => {
   const user = await seedUser();
   const feed = await seedFeed();

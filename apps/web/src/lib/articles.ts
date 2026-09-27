@@ -107,7 +107,7 @@ function zeroCounts(
     const drop = folderDrop.get(f.folderId) ?? 0;
     return drop ? { ...f, unreadCount: clamp(f.unreadCount - drop) } : f;
   });
-  return { feeds, folders, total: clamp(c.total - totalDrop) };
+  return { ...c, feeds, folders, total: clamp(c.total - totalDrop) };
 }
 
 /** Current read state + feed id for an article, from the list or detail cache. */
@@ -183,6 +183,7 @@ function adjustCounts(qc: QueryClient, feedId: string, delta: number) {
   qc.setQueryData<UnreadCounts>(['counts'], (c) =>
     c
       ? {
+          ...c,
           feeds: c.feeds.map((f) =>
             f.feedId === feedId ? { ...f, unreadCount: clamp(f.unreadCount + delta) } : f,
           ),

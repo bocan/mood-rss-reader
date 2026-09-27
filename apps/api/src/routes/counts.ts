@@ -13,6 +13,8 @@ export async function countsRoutes(app: FastifyInstance): Promise<void> {
   // they can never drift from GET /feeds (which uses the same helper).
   app.get('/counts', auth, async (request) => {
     const userId = request.user!.id;
+    // Taken before the query runs: anything fetched later is not counted.
+    const asOf = new Date().toISOString();
     const feedCounts = await getUnreadCountsByFeed(userId);
 
     const subs = await db
@@ -56,6 +58,7 @@ export async function countsRoutes(app: FastifyInstance): Promise<void> {
       feeds: feedCounts.map(({ feedId, unreadCount }) => ({ feedId, unreadCount })),
       folders: [...folderTotals].map(([folderId, unreadCount]) => ({ folderId, unreadCount })),
       total,
+      asOf,
     } satisfies UnreadCounts;
   });
 }

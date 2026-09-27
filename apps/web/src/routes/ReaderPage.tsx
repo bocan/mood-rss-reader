@@ -652,6 +652,7 @@ export function ReaderPage() {
         onSelectFolder={onSelectFolder}
         countByFeed={countByFeed}
         countByFolder={countByFolder}
+        countsAsOf={counts?.asOf}
         sort={feedSort}
         hideRead={unreadOnly}
         creatingFolder={newFolderOpen}
