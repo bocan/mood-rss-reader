@@ -3,11 +3,14 @@ import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { SHORTCUTS, type Shortcut } from '@/lib/shortcuts/registry';
 
-/** Render a shortcut's trigger as <kbd> chips ("g then g" for chords). */
+/**
+ * Render a shortcut's trigger as <kbd> chips ("g then g" for chords). A chip
+ * has no key of its own: a chord can repeat a key, and the list below keys
+ * the span around each chip.
+ */
 function KeyHint({ shortcut }: { shortcut: Shortcut }) {
   const kbd = (k: string) => (
     <kbd
-      key={k}
       className="rounded border bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground"
     >
       {k === ' ' ? 'Space' : k}

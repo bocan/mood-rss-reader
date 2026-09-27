@@ -22,3 +22,13 @@ test('shows every group heading and renders a chord as two keys', () => {
   expect(screen.getByText('then')).toBeInTheDocument();
   expect(screen.getByText('Jump to top')).toBeInTheDocument();
 });
+
+test('a chord that repeats a key renders both keys, with no React warning', () => {
+  const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+  render(<ShortcutsOverlay open onOpenChange={vi.fn()} />);
+  const row = screen.getByText('Jump to top').closest('[data-shortcut-row]')!;
+  expect([...row.querySelectorAll('kbd')].map((k) => k.textContent)).toEqual(['g', 'g']);
+  // React reports a duplicate key through console.error.
+  expect(error).not.toHaveBeenCalled();
+  error.mockRestore();
+});
