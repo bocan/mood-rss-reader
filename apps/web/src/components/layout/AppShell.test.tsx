@@ -44,6 +44,11 @@ test('with phone items, a phone-only menu holds them, then settings and sign out
   expect(onMark).toHaveBeenCalled();
 });
 
+test('the header shows the product name, Mood Reader', () => {
+  renderShell();
+  expect(screen.getByRole('banner')).toHaveTextContent('Mood Reader');
+});
+
 test('without phone items (Settings, Admin), the header is unchanged', () => {
   renderShell();
   expect(screen.queryByRole('button', { name: 'More actions' })).not.toBeInTheDocument();
