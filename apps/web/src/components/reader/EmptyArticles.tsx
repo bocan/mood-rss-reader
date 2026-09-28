@@ -18,7 +18,7 @@ export function EmptyArticles({ reason, actions }: { reason: EmptyReason; action
   switch (reason.kind) {
     case 'welcome':
       return (
-        <Empty Icon={Rss} title="Welcome to Reader">
+        <Empty Icon={Rss} title="Welcome to Mood Reader">
           <p>Add the feeds you want to follow, or bring them all from another reader.</p>
           <Actions>
             <Button size="sm" onClick={actions.onAddFeed}>
