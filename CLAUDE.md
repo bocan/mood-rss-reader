@@ -1,4 +1,4 @@
-# Reader — working notes for Claude
+# Mood Reader: working notes for Claude
 
 A self-hosted, multi-user RSS reader. pnpm + Turborepo monorepo.
 

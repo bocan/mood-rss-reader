@@ -1,4 +1,4 @@
-# Reader
+# Mood Reader
 
 A calm, self-hosted RSS reader for people who miss the old web.
 
