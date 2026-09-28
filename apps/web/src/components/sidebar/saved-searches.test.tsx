@@ -18,14 +18,31 @@ const search = (id: string, name: string, q = name.toLowerCase()): SavedSearchDt
   createdAt: '',
 });
 
+// A small fake of the API: it keeps the list, so the reload after a rename or
+// a delete gets `{ items }` as the real GET /searches does.
+let stored: SavedSearchDto[];
 let fetchMock: ReturnType<typeof vi.fn>;
 beforeEach(() => {
-  fetchMock = vi.fn(async () => ({ ok: true, status: 204, json: async () => ({}) }) as Response);
+  stored = [];
+  fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+    const id = String(url).split('/').pop();
+    const method = init?.method ?? 'GET';
+    if (method === 'GET') {
+      return { ok: true, status: 200, json: async () => ({ items: stored }) } as Response;
+    }
+    if (method === 'PATCH') {
+      const patch = JSON.parse(String(init!.body)) as Partial<SavedSearchDto>;
+      stored = stored.map((s) => (s.id === id ? { ...s, ...patch } : s));
+    }
+    if (method === 'DELETE') stored = stored.filter((s) => s.id !== id);
+    return { ok: true, status: 204, json: async () => ({}) } as Response;
+  });
   vi.stubGlobal('fetch', fetchMock);
 });
 afterEach(() => vi.unstubAllGlobals());
 
 function renderList(items: SavedSearchDto[], activeId: string | null = null) {
+  stored = items;
   const qc = new QueryClient({ defaultOptions: { queries: { staleTime: Infinity } } });
   qc.setQueryData(['saved-searches'], { items });
   const onOpen = vi.fn();
@@ -91,4 +108,6 @@ test('Delete asks first', async () => {
   openMenu('Postgres');
   fireEvent.click(screen.getByRole('menuitem', { name: 'Delete' }));
   await waitFor(() => expect(sent('DELETE')).toEqual([{ url: '/api/searches/s1', body: undefined }]));
+  // The reload shows the list without it.
+  await waitFor(() => expect(screen.queryByRole('button', { name: 'Postgres' })).not.toBeInTheDocument());
 });
