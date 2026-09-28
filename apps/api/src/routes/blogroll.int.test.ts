@@ -67,6 +67,7 @@ describe('public blogroll', () => {
     expect(html).toContain('&lt;script&gt;Evil&lt;/script&gt; Blog');
     expect(html).toContain('Root Feed');
     expect(html).not.toContain('Private Guilty Pleasure'); // inBlogroll = false
+    expect(html).toContain('powered by Mood Reader');
     expect(html).not.toContain('Secret Empty Folder'); // pruned
     expect(html).toContain('rel="blogroll" type="text/x-opml"');
     expect(html).toContain('/u/roller/blogroll.opml');

@@ -119,4 +119,8 @@ describe('buildOpml', () => {
     expect(xml).not.toContain('htmlUrl');
     expect(parseOpml(xml)[0]).toMatchObject({ title: 'Empty', children: [] });
   });
+
+  test('the default title names the product', () => {
+    expect(buildOpml({ folders: [], feeds: [] })).toContain('<title>Mood Reader subscriptions</title>');
+  });
 });
