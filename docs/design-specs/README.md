@@ -89,6 +89,7 @@ each other unless noted.
 | 023 | Subscribe to social-web profiles                  | 002                   | Done   |
 | 024 | Link-rot armor (archives, retention, Wayback)     | 004, 005              | Done   |
 | 025 | Saved searches (virtual feeds) + filter rules     | 006, 015              | Done   |
+| 026 | IndieWeb identity (h-card, rel="me", bookmarks)   | 019, 020              | Todo   |
 
 ## Scope summary
 
@@ -159,3 +160,7 @@ each other unless noted.
 - **025 Saved searches + filter rules** - Named scoped searches pinned to
   the sidebar as virtual feeds, and phrase-based ingestion rules
   (auto-mark-read / auto-star) with a bounded retroactive apply.
+- **026 IndieWeb identity** - Website, photo, and `rel="me"` links on the
+  profile; an owner `h-card` on both public pages (Mastodon verification);
+  shares marked up as `u-bookmark-of` entries with permalinks; and
+  `rel="blogroll"` discovery on the shares page.
