@@ -1,6 +1,7 @@
 import {
   DEFAULT_ARTICLE_VIEWS,
   DENSITIES,
+  MAX_ME_LINKS,
   READING_SIZES,
   READING_WIDTHS,
   SHARE_VISIBILITIES,
@@ -24,7 +25,7 @@ import { ApiRequestError } from '@/lib/api';
 import { ARTICLE_VIEW_LABELS } from '@/lib/article-view';
 import { useChangePassword, useSession, useUpdateAccount } from '@/lib/auth';
 import { useResetViews } from '@/lib/folders';
-import { useProfile, useUpdateProfile } from '@/lib/profile';
+import { identityInput, useProfile, useUpdateProfile } from '@/lib/profile';
 import { useInstallPrompt } from '@/lib/pwa';
 import { READING_SIZE_LABELS, READING_WIDTH_LABELS } from '@/lib/reading-format';
 import { useSettings } from '@/lib/settings';
@@ -305,6 +306,30 @@ const VISIBILITY_HINT: Record<ShareVisibility, string> = {
 /** Sharing profile (SPEC-019): visibility, slug, and the public page fields.
  *  The switches save at once, as in Preferences. The text fields wait for
  *  their Save button (#44). */
+/**
+ * How to get a verified link on Mastodon (SPEC-026). The rel="me" links show
+ * only on a public page, so the hint names that page, or says to turn one on.
+ */
+function VerifyHint({ pageUrl }: { pageUrl: string | null }) {
+  if (!pageUrl) {
+    return (
+      <p className="text-xs text-muted-foreground">
+        These links show only on a public page. Turn on public shares or the public blogroll
+        first.
+      </p>
+    );
+  }
+  return (
+    <p className="text-xs text-muted-foreground">
+      To show this page as verified on Mastodon, add its address,{' '}
+      <a href={pageUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+        {pageUrl.replace(/^https?:\/\//, '')}
+      </a>
+      , to your Mastodon profile, and add your Mastodon profile to Other profiles.
+    </p>
+  );
+}
+
 export function SharingSection() {
   const { data: profile } = useProfile();
   const update = useUpdateProfile();
@@ -315,6 +340,10 @@ export function SharingSection() {
   const [title, setTitle] = useState('');
   const [bio, setBio] = useState('');
   const [blogrollEnabled, setBlogrollEnabled] = useState(false);
+  // IndieWeb identity (SPEC-026). The links box holds one address per line.
+  const [website, setWebsite] = useState('');
+  const [photo, setPhoto] = useState('');
+  const [links, setLinks] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   // Seed the form once from the loaded profile (or its server suggestion).
@@ -327,6 +356,9 @@ export function SharingSection() {
     setTitle(profile.title ?? '');
     setBio(profile.bio ?? '');
     setBlogrollEnabled(profile.blogrollEnabled);
+    setWebsite(profile.websiteUrl ?? '');
+    setPhoto(profile.photoUrl ?? '');
+    setLinks(profile.meLinks.join('\n'));
   }, [profile]);
 
   // Show the new value at once. If the save fails, go back to the old one.
@@ -361,11 +393,17 @@ export function SharingSection() {
   function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
+    const identity = identityInput({ website, photo, links });
+    if ('error' in identity) {
+      setError(identity.error);
+      return;
+    }
     update.mutate(
       {
         slug: slug.trim(),
         title: title.trim() || null,
         bio: bio.trim() || null,
+        ...identity.input,
       },
       {
         onSuccess: () => notify.success('Page details saved.'),
@@ -453,6 +491,58 @@ export function SharingSection() {
             placeholder="A line about you or what you share (optional)"
           />
         </label>
+
+        <label className="block space-y-1">
+          <span className="text-sm">Your website</span>
+          <input
+            type="url"
+            value={website}
+            onChange={(e) => setWebsite(e.target.value)}
+            className={inputClass}
+            maxLength={300}
+            placeholder="https://example.com"
+          />
+        </label>
+
+        {/* The hints sit outside the labels, so they describe the field
+            (aria-describedby) and are not read as part of its name. */}
+        <div className="space-y-1">
+          <label className="block space-y-1">
+            <span className="text-sm">Photo</span>
+            <input
+              type="url"
+              value={photo}
+              onChange={(e) => setPhoto(e.target.value)}
+              className={inputClass}
+              maxLength={300}
+              placeholder="https://example.com/me.jpg"
+              aria-describedby="photo-hint"
+            />
+          </label>
+          <p id="photo-hint" className="text-xs text-muted-foreground">
+            An https address of a square image. It is shown on your public pages.
+          </p>
+        </div>
+
+        <div className="space-y-1">
+          <label className="block space-y-1">
+            <span className="text-sm">Other profiles</span>
+            <textarea
+              value={links}
+              onChange={(e) => setLinks(e.target.value)}
+              rows={3}
+              className={cn(inputClass, 'h-auto resize-y py-2')}
+              placeholder={'https://mastodon.social/@you\nhttps://github.com/you'}
+              aria-describedby="links-hint"
+            />
+          </label>
+          <p id="links-hint" className="text-xs text-muted-foreground">
+            Mastodon, GitHub, or any profile that is you. One address per line, up to{' '}
+            {MAX_ME_LINKS}.
+          </p>
+        </div>
+
+        <VerifyHint pageUrl={profile?.shareUrl ?? profile?.blogrollUrl ?? null} />
 
         {error &&<p className="text-sm text-destructive">{error}</p>}
 
