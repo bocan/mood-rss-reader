@@ -166,6 +166,48 @@ describe('profile', () => {
     expect(res.statusCode).toBe(400);
   });
 
+  // SPEC-026: the IndieWeb identity fields.
+  test('identity fields: empty before any row, then round-trip, keep, and clear', async () => {
+    const user = await seedUser();
+    const cookie = await loginAs(user);
+    const put = (payload: Record<string, unknown>) =>
+      app.inject({ method: 'PUT', url: '/api/profile', headers: { cookie }, payload });
+    const get = () =>
+      app.inject({ method: 'GET', url: '/api/profile', headers: { cookie } }).then((r) => r.json());
+
+    expect(await get()).toMatchObject({ websiteUrl: null, photoUrl: null, meLinks: [] });
+
+    const identity = {
+      websiteUrl: 'https://chris.example',
+      photoUrl: 'https://chris.example/me.jpg',
+      meLinks: ['https://mastodon.example/@chris', 'https://github.com/chris'],
+    };
+    expect((await put(identity)).json()).toMatchObject(identity);
+    await put({ title: 'Links' }); // other fields leave them alone
+    expect(await get()).toMatchObject(identity);
+
+    await put({ websiteUrl: null, photoUrl: null, meLinks: [] });
+    expect(await get()).toMatchObject({ websiteUrl: null, photoUrl: null, meLinks: [] });
+  });
+
+  test('identity fields: a bad address or too many links is a 400, and nothing is written', async () => {
+    const user = await seedUser();
+    const cookie = await loginAs(user);
+    const put = (payload: Record<string, unknown>) =>
+      app.inject({ method: 'PUT', url: '/api/profile', headers: { cookie }, payload });
+    await put({ websiteUrl: 'https://chris.example' });
+
+    expect((await put({ websiteUrl: 'javascript:alert(1)' })).statusCode).toBe(400);
+    expect((await put({ photoUrl: 'http://chris.example/me.jpg' })).statusCode).toBe(400);
+    const nine = Array.from({ length: 9 }, (_, i) => `https://s${i}.example.com`);
+    expect((await put({ meLinks: nine })).statusCode).toBe(400);
+
+    const profile = await app
+      .inject({ method: 'GET', url: '/api/profile', headers: { cookie } })
+      .then((r) => r.json());
+    expect(profile).toMatchObject({ websiteUrl: 'https://chris.example', photoUrl: null, meLinks: [] });
+  });
+
   test('profile routes require auth', async () => {
     expect((await app.inject({ method: 'GET', url: '/api/profile' })).statusCode).toBe(401);
     expect((await app.inject({ method: 'GET', url: '/api/shares/community' })).statusCode).toBe(401);

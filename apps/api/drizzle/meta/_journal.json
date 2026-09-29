@@ -169,6 +169,13 @@
       "when": 1790449079103,
       "tag": "0023_broken_junta",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1790643714607,
+      "tag": "0024_cultured_nico_minoru",
+      "breakpoints": true
     }
   ]
 }

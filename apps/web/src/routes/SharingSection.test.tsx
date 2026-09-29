@@ -15,6 +15,9 @@ const profile: ProfileDto = {
   shareUrl: null,
   blogrollEnabled: false,
   blogrollUrl: null,
+  websiteUrl: null,
+  photoUrl: null,
+  meLinks: [],
 };
 
 let fetchMock: ReturnType<typeof vi.fn>;

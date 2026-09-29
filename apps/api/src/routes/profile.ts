@@ -44,6 +44,9 @@ function toDto(row: ProfileRow, base: string): ProfileDto {
     shareUrl: visibility === 'public' ? `${base}/u/${row.slug}` : null,
     blogrollEnabled: row.blogrollEnabled,
     blogrollUrl: row.blogrollEnabled ? `${base}/u/${row.slug}/blogroll` : null,
+    websiteUrl: row.websiteUrl,
+    photoUrl: row.photoUrl,
+    meLinks: row.meLinks,
   };
 }
 
@@ -76,6 +79,9 @@ export async function profileRoutes(app: FastifyInstance): Promise<void> {
       shareUrl: null,
       blogrollEnabled: false,
       blogrollUrl: null,
+      websiteUrl: null,
+      photoUrl: null,
+      meLinks: [],
     };
   });
 
@@ -95,6 +101,9 @@ export async function profileRoutes(app: FastifyInstance): Promise<void> {
           bio: input.bio ?? null,
           visibility: input.visibility ?? 'off',
           blogrollEnabled: input.blogrollEnabled ?? false,
+          websiteUrl: input.websiteUrl ?? null,
+          photoUrl: input.photoUrl ?? null,
+          meLinks: input.meLinks ?? [],
           updatedAt: now,
         })
         .onConflictDoUpdate({
@@ -107,6 +116,9 @@ export async function profileRoutes(app: FastifyInstance): Promise<void> {
             ...(input.blogrollEnabled !== undefined
               ? { blogrollEnabled: input.blogrollEnabled }
               : {}),
+            ...(input.websiteUrl !== undefined ? { websiteUrl: input.websiteUrl } : {}),
+            ...(input.photoUrl !== undefined ? { photoUrl: input.photoUrl } : {}),
+            ...(input.meLinks !== undefined ? { meLinks: input.meLinks } : {}),
             updatedAt: now,
           },
         });
