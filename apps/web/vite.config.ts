@@ -3,6 +3,7 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import { SERVER_PATHS } from './src/lib/server-paths';
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -44,9 +45,10 @@ export default defineConfig({
         // plugin default) so reading works fully offline.
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         // Precache the built shell; any route falls back to index.html offline,
-        // except /api which must always hit the network / runtime cache.
+        // except the paths the server answers itself (/api, the public /u/
+        // pages, ...), which must always hit the network.
         navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/api\//],
+        navigateFallbackDenylist: SERVER_PATHS,
         cleanupOutdatedCaches: true,
         runtimeCaching: [
           {
