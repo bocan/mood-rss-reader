@@ -89,7 +89,7 @@ each other unless noted.
 | 023 | Subscribe to social-web profiles                  | 002                   | Done   |
 | 024 | Link-rot armor (archives, retention, Wayback)     | 004, 005              | Done   |
 | 025 | Saved searches (virtual feeds) + filter rules     | 006, 015              | Done   |
-| 026 | IndieWeb identity (h-card, rel="me", bookmarks)   | 019, 020              | Todo   |
+| 026 | IndieWeb identity (h-card, rel="me", bookmarks)   | 019, 020              | Done   |
 
 ## Scope summary
 

@@ -1,6 +1,6 @@
 # SPEC-026: IndieWeb identity on the public pages (h-card, rel="me", bookmarks, blogroll discovery)
 
-- **Status:** Todo
+- **Status:** Done
 - **Phase:** 4
 - **Depends on:** SPEC-019 (Done), SPEC-020 (Done)
 - **Estimated size:** M (about a day)
@@ -357,25 +357,25 @@ One commit per step, Conventional Commits, `make check` after each.
 
 ## Acceptance criteria
 
-- [ ] Settings has Your website, Photo and Other profiles fields that save
+- [x] Settings has Your website, Photo and Other profiles fields that save
       with "Save page details", and a Mastodon hint that names the right
       page URL.
-- [ ] The API refuses any URL that is not http or https with a real domain,
+- [x] The API refuses any URL that is not http or https with a real domain,
       a photo that is not https, and more than 8 profile links.
-- [ ] Both public pages have one representative `h-card` for the owner, with
+- [x] Both public pages have one representative `h-card` for the owner, with
       name, page URL, and (when set) photo, website, bio and `rel="me"` links.
-- [ ] Every `rel="me"` link on a page is the website or one of the
+- [x] Every `rel="me"` link on a page is the website or one of the
       `meLinks`, in the saved order, and nothing else.
-- [ ] Each shared item parses as an `h-entry` with `bookmark-of`, a
+- [x] Each shared item parses as an `h-entry` with `bookmark-of`, a
       permalink `url` (`#s-<id>`), `published`, and `content` when it has a
       note; the feed's author is the owner card.
-- [ ] The shares page has `rel="blogroll"` when the blogroll is on, and not
+- [x] The shares page has `rel="blogroll"` when the blogroll is on, and not
       when it is off.
-- [ ] Blogroll entries are `h-card`s with name and URL.
-- [ ] No new data shows on a page that is not already public, and no page
+- [x] Blogroll entries are `h-card`s with name and URL.
+- [x] No new data shows on a page that is not already public, and no page
       that 404s today starts to serve.
-- [ ] All values are escaped; the escaping tests pass.
-- [ ] `make check` passes, and the existing SPEC-019 and SPEC-020 tests pass
+- [x] All values are escaped; the escaping tests pass.
+- [x] `make check` passes, and the existing SPEC-019 and SPEC-020 tests pass
       unchanged or with only the class changes this spec requires.
 
 ## Gotchas
@@ -412,6 +412,37 @@ One commit per step, Conventional Commits, `make check` after each.
   `class="h-entry"` and `class="h-feed"`; keep those exact class strings as
   the first class on each element, or update the assertions in the same
   commit.
+
+## As built
+
+Built as specified, in the four planned commits. The differences:
+
+- **The shared schemas are exported.** `webUrlSchema`,
+  `httpsImageUrlSchema` and `meLinksSchema` live in
+  `packages/shared/src/schemas/profile.ts`, and the web form uses them too.
+  Trimming is `z.string().trim().pipe(...)`; duplicate removal is a
+  `transform` on the array.
+- **The form checks all three fields, not only the links.**
+  `identityInput()` in `apps/web/src/lib/profile.ts` gives "Your website is
+  not a web address." and "The photo must be an https web address." as
+  well as the line message, and "Up to 8 other profiles." for too many
+  links. Tests are in `apps/web/src/lib/profile.test.ts`.
+- **The field hints sit outside their labels.** They are linked with
+  `aria-describedby`, so a screen reader does not read them as part of the
+  field name. A test checks the names and the descriptions.
+- **One `blogrollTitle()` helper** in `public.ts` replaces the two copies of
+  the blogroll title, because the shares page now needs it too for its
+  `rel="blogroll"` link.
+- **The owner card also has the class `owner`**, for its CSS (`h-card`
+  stays the first class).
+- **The permalink date is a link.** On the shares page, the date of each
+  share is now the `#s-<id>` permalink, so it shows as a link.
+- **Checked on screen:** Settings > Sharing at 375 px and 1280 px, and the
+  public page in light and dark mode at the same widths. The Settings page
+  still scrolls 14 px sideways at 375 px; the cause is the Preferences
+  toggle group, which was already the case before this spec.
+
+The open questions below are still open.
 
 ## Handoff
 
