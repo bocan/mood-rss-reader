@@ -315,6 +315,12 @@ export const profiles = pgTable('profiles', {
   // Public blogroll toggle (SPEC-020). Independent of shares visibility: a
   // user may publish a blogroll without a shared-items page and vice versa.
   blogrollEnabled: boolean().notNull().default(false),
+  // IndieWeb identity (SPEC-026). Shown only on pages that are already
+  // public. Stored as typed: Mastodon matches rel="me" URLs exactly.
+  websiteUrl: text(),
+  photoUrl: text(),
+  // Other profiles of the same person, rendered as rel="me" links. Order kept.
+  meLinks: text().array().notNull().default(sql`'{}'::text[]`),
   createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
 }, (t) => [uniqueIndex('profiles_slug_key').on(t.slug)]);

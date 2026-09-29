@@ -1,4 +1,5 @@
 import type { FastifyInstance } from 'fastify';
+import { mf2 } from 'microformats-parser';
 import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'vitest';
 import { buildApp } from '../app.js';
 import {
@@ -73,6 +74,31 @@ describe('public blogroll', () => {
     expect(html).toContain('/u/roller/blogroll.opml');
     // Shares are off, so no cross-link to the share page.
     expect(html).not.toContain('Shared items</a>');
+  });
+
+  // SPEC-026: the owner card and h-card entries.
+  test('the blogroll carries the owner h-card, also with shares off, and each feed is an h-card', async () => {
+    const { user } = await seedBlogroller();
+    await app.inject({
+      method: 'PUT',
+      url: '/api/profile',
+      headers: { cookie: await loginAs(user) },
+      payload: { websiteUrl: 'https://roller.example', meLinks: ['https://mastodon.example/@roller'] },
+    });
+
+    const res = await app.inject({ method: 'GET', url: '/u/roller/blogroll' });
+    expect(res.statusCode).toBe(200); // shares are off; the blogroll is on
+    const { items, rels } = mf2(res.body, { baseUrl: 'http://localhost/' });
+    const cards = items.filter((i) => i.type?.includes('h-card'));
+    const owner = cards.find((c) => String(c.properties.uid?.[0] ?? '').endsWith('/u/roller/blogroll'));
+    expect(owner?.properties).toMatchObject({ name: ['Roller'] });
+    expect(owner?.properties.url).toContain('https://roller.example');
+    expect(rels.me).toEqual(['https://roller.example', 'https://mastodon.example/@roller']);
+
+    const feedNames = cards.filter((c) => c !== owner).map((c) => c.properties.name?.[0]);
+    expect(feedNames).toEqual(expect.arrayContaining(['<script>Evil</script> Blog', 'Root Feed']));
+    const root = cards.find((c) => c.properties.name?.[0] === 'Root Feed');
+    expect(root?.properties.url).toEqual(['https://root.example']);
   });
 
   test('cross-links appear when both surfaces are on', async () => {

@@ -173,6 +173,11 @@ spec in [`docs/design-specs`](docs/design-specs).
       save a search, scope and all, to the sidebar, and set rules that mark
       read or star new articles as they arrive ("title contains sponsored:
       mark it read"), with a button to run a rule over older articles too.
+- [x] **IndieWeb identity** ([SPEC-026](docs/design-specs/026-indieweb-identity.md)):
+      add your website, a photo and your other profiles, and your public
+      pages carry a proper `h-card` with `rel="me"` links (so Mastodon can
+      show them as verified), shares marked up as bookmarks, and blogroll
+      discovery.
 
 ## What's coming
 

@@ -1,9 +1,10 @@
 import { and, eq, sql } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
+import { mf2 } from 'microformats-parser';
 import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'vitest';
 import { buildApp } from '../app.js';
 import { db } from '../db/index.js';
-import { articleStates } from '../db/schema.js';
+import { articleStates, profiles } from '../db/schema.js';
 import {
   loginAs,
   resetDb,
@@ -166,6 +167,48 @@ describe('profile', () => {
     expect(res.statusCode).toBe(400);
   });
 
+  // SPEC-026: the IndieWeb identity fields.
+  test('identity fields: empty before any row, then round-trip, keep, and clear', async () => {
+    const user = await seedUser();
+    const cookie = await loginAs(user);
+    const put = (payload: Record<string, unknown>) =>
+      app.inject({ method: 'PUT', url: '/api/profile', headers: { cookie }, payload });
+    const get = () =>
+      app.inject({ method: 'GET', url: '/api/profile', headers: { cookie } }).then((r) => r.json());
+
+    expect(await get()).toMatchObject({ websiteUrl: null, photoUrl: null, meLinks: [] });
+
+    const identity = {
+      websiteUrl: 'https://chris.example',
+      photoUrl: 'https://chris.example/me.jpg',
+      meLinks: ['https://mastodon.example/@chris', 'https://github.com/chris'],
+    };
+    expect((await put(identity)).json()).toMatchObject(identity);
+    await put({ title: 'Links' }); // other fields leave them alone
+    expect(await get()).toMatchObject(identity);
+
+    await put({ websiteUrl: null, photoUrl: null, meLinks: [] });
+    expect(await get()).toMatchObject({ websiteUrl: null, photoUrl: null, meLinks: [] });
+  });
+
+  test('identity fields: a bad address or too many links is a 400, and nothing is written', async () => {
+    const user = await seedUser();
+    const cookie = await loginAs(user);
+    const put = (payload: Record<string, unknown>) =>
+      app.inject({ method: 'PUT', url: '/api/profile', headers: { cookie }, payload });
+    await put({ websiteUrl: 'https://chris.example' });
+
+    expect((await put({ websiteUrl: 'javascript:alert(1)' })).statusCode).toBe(400);
+    expect((await put({ photoUrl: 'http://chris.example/me.jpg' })).statusCode).toBe(400);
+    const nine = Array.from({ length: 9 }, (_, i) => `https://s${i}.example.com`);
+    expect((await put({ meLinks: nine })).statusCode).toBe(400);
+
+    const profile = await app
+      .inject({ method: 'GET', url: '/api/profile', headers: { cookie } })
+      .then((r) => r.json());
+    expect(profile).toMatchObject({ websiteUrl: 'https://chris.example', photoUrl: null, meLinks: [] });
+  });
+
   test('profile routes require auth', async () => {
     expect((await app.inject({ method: 'GET', url: '/api/profile' })).statusCode).toBe(401);
     expect((await app.inject({ method: 'GET', url: '/api/shares/community' })).statusCode).toBe(401);
@@ -262,6 +305,87 @@ describe('public share pages', () => {
     );
     expect(parsed.items).toHaveLength(100);
     expect(parsed.items[0].title).toBe('Post 0'); // newest first
+  });
+
+  // SPEC-026: the page as IndieWeb tools read it.
+  const identity = {
+    websiteUrl: 'https://sharer.example/',
+    photoUrl: 'https://sharer.example/me.jpg',
+    meLinks: ['https://mastodon.example/@sharer', 'https://github.com/sharer'],
+    bio: 'I share things.',
+  };
+  const parsePage = async (url: string) => {
+    const res = await app.inject({ method: 'GET', url });
+    expect(res.statusCode).toBe(200);
+    return { html: res.body, ...mf2(res.body, { baseUrl: 'http://localhost/' }) };
+  };
+
+  test('the page parses as an h-feed of bookmarks, by the owner h-card', async () => {
+    const { user, article } = await seedPublicSharer();
+    await db.update(profiles).set(identity).where(eq(profiles.userId, user.id));
+    // A second share with no article URL and no site URL: nothing to bookmark.
+    const bare = await seedFeed({ title: 'Bare' });
+    await seedSubscription(user.id, bare.id);
+    const noLink = await seedArticle(bare.id, { title: 'No link' });
+    await seedArticleState(user.id, noLink.id, { shared: true, sharedAt: new Date('2026-07-29T10:00:00Z') });
+
+    const { items, rels } = await parsePage('/u/sharer');
+    expect(items).toHaveLength(1);
+    const feed = items[0]!;
+    expect(feed.type).toEqual(['h-feed']);
+
+    const author = feed.properties.author![0] as { type: string[]; properties: Record<string, unknown[]> };
+    expect(author.type).toEqual(['h-card']);
+    const pageUrl = author.properties.uid![0] as string;
+    expect(pageUrl).toMatch(/\/u\/sharer$/);
+    expect(author.properties).toMatchObject({
+      name: ['Sharer'],
+      url: [pageUrl, 'https://sharer.example/'],
+      photo: ['https://sharer.example/me.jpg'],
+      note: ['I share things.'],
+    });
+    expect(rels.me).toEqual(['https://sharer.example/', ...identity.meLinks]);
+    expect(rels.blogroll).toBeUndefined(); // the blogroll is off
+
+    const entries = (feed.children ?? []) as { type: string[]; properties: Record<string, unknown[]> }[];
+    expect(entries.map((e) => e.type)).toEqual([['h-entry'], ['h-entry']]);
+    const [shared, bareEntry] = entries;
+    expect(shared!.properties).toMatchObject({
+      name: ['<script>alert(1)</script> post'],
+      'bookmark-of': ['https://site.example/p?a=1&b=2'],
+      url: [`${pageUrl}#s-${article.id}`],
+      uid: [`${pageUrl}#s-${article.id}`],
+      published: ['2026-07-30T10:00:00.000Z'],
+    });
+    expect((shared!.properties.content![0] as { value: string }).value).toBe('A "note" with <angles> & lines');
+    expect(bareEntry!.properties['bookmark-of']).toBeUndefined();
+    expect(bareEntry!.properties.url).toEqual([`${pageUrl}#s-${noLink.id}`]);
+  });
+
+  test('rel="blogroll" is on the shares page only while the blogroll is on', async () => {
+    const { user } = await seedPublicSharer();
+    await db.update(profiles).set({ blogrollEnabled: true }).where(eq(profiles.userId, user.id));
+    const { rels } = await parsePage('/u/sharer');
+    expect(rels.blogroll).toEqual([expect.stringMatching(/\/u\/sharer\/blogroll\.opml$/)]);
+  });
+
+  test('a profile with no identity fields renders nothing empty', async () => {
+    await seedPublicSharer();
+    const { html, rels } = await parsePage('/u/sharer');
+    const body = html.slice(html.indexOf('<body>')); // the CSS names the classes too
+    expect(body).not.toContain('href=""');
+    expect(body).not.toMatch(/me-links|u-photo|p-note/);
+    expect(rels.me).toBeUndefined();
+  });
+
+  test('the identity fields show on no page that is not public', async () => {
+    const { user } = await seedPublicSharer('instance');
+    await db.update(profiles).set(identity).where(eq(profiles.userId, user.id));
+    for (const url of ['/u/sharer', '/u/sharer/blogroll']) {
+      const res = await app.inject({ method: 'GET', url });
+      expect(res.statusCode).toBe(404);
+      expect(res.body).not.toContain('sharer.example');
+    }
   });
 });
 
