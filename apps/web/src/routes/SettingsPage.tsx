@@ -582,7 +582,7 @@ export function SettingsPage() {
               articles available offline.
             </p>
             <Button className="mt-3" onClick={promptInstall}>
-              <Smartphone className="size-4" /> Install Reader
+              <Smartphone className="size-4" /> Install Mood Reader
             </Button>
           </section>
         )}

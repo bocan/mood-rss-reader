@@ -109,7 +109,7 @@ function folderOutline(folder: OpmlFolderNode): Record<string, unknown> {
 /** Build an OPML 2.0 document. Attribute values are escaped by the builder. */
 export function buildOpml(
   tree: { folders: OpmlFolderNode[]; feeds: OpmlFeedNode[] },
-  title = 'Reader subscriptions',
+  title = 'Mood Reader subscriptions',
 ): string {
   const body = {
     outline: [...tree.folders.map(folderOutline), ...tree.feeds.map(feedOutline)],

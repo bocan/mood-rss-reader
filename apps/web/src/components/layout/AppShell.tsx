@@ -79,7 +79,7 @@ export function AppShell({
         {leading}
         <span className="flex shrink-0 items-center gap-2">
           <Rss className="size-5 text-primary" />
-          <span className="hidden font-semibold tracking-tight sm:inline">Reader</span>
+          <span className="hidden font-semibold tracking-tight sm:inline">Mood Reader</span>
         </span>
         {bar && <div className="flex min-w-0 flex-1 items-center gap-2">{bar}</div>}
         <div className={bar ? 'flex shrink-0 items-center gap-2' : 'ml-auto flex items-center gap-2'}>

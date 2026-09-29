@@ -19,7 +19,7 @@ function renderReason(reason: EmptyReason, extra: Partial<EmptyActions> = {}) {
 
 test('first run: add a feed or import OPML', () => {
   const a = renderReason({ kind: 'welcome' });
-  expect(screen.getByText('Welcome to Reader')).toBeInTheDocument();
+  expect(screen.getByText('Welcome to Mood Reader')).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: 'Add a feed' }));
   fireEvent.click(screen.getByRole('button', { name: 'Import OPML' }));
   expect(a.onAddFeed).toHaveBeenCalled();

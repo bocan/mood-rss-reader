@@ -17,8 +17,8 @@ export default defineConfig({
       strategies: 'generateSW',
       includeAssets: ['favicon.svg'],
       manifest: {
-        name: 'Reader',
-        short_name: 'Reader',
+        name: 'Mood Reader',
+        short_name: 'Mood Reader',
         description: 'A calm, elegant, self-hosted RSS reader.',
         display: 'standalone',
         start_url: '/',

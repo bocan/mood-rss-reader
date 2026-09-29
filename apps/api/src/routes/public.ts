@@ -121,7 +121,7 @@ ${item.note ? `  <p class="note p-content">${escMultiline(item.note)}</p>\n` : '
 ${profile.bio ? `  <p>${escMultiline(profile.bio)}</p>\n` : ''}</header>
 ${entries || '<p class="meta">Nothing shared yet.</p>'}
 <footer>
-  <p>Subscribe: <a href="${esc(pageUrl)}/feed.xml">Atom</a> · <a href="${esc(pageUrl)}/feed.json">JSON Feed</a>${profile.blogrollEnabled ? ` · <a href="${esc(pageUrl)}/blogroll">Blogroll</a>` : ''} · powered by Reader</p>
+  <p>Subscribe: <a href="${esc(pageUrl)}/feed.xml">Atom</a> · <a href="${esc(pageUrl)}/feed.json">JSON Feed</a>${profile.blogrollEnabled ? ` · <a href="${esc(pageUrl)}/blogroll">Blogroll</a>` : ''} · powered by Mood Reader</p>
 </footer>
 </div>`;
 
@@ -166,7 +166,7 @@ ${tree.folders.map((f) => folderSection(f, 0)).join('\n')}
 ${tree.feeds.length > 0 ? `<ul>\n${tree.feeds.map(feedItem).join('\n')}\n</ul>` : ''}
 ${tree.folders.length === 0 && tree.feeds.length === 0 ? '<p>Nothing here yet.</p>' : ''}
 <footer>
-  <p><a href="${esc(pageUrl)}/blogroll.opml">Download OPML</a> (import it into any feed reader)${profile.visibility === 'public' ? ` · <a href="${esc(pageUrl)}">Shared items</a>` : ''} · powered by Reader</p>
+  <p><a href="${esc(pageUrl)}/blogroll.opml">Download OPML</a> (import it into any feed reader)${profile.visibility === 'public' ? ` · <a href="${esc(pageUrl)}">Shared items</a>` : ''} · powered by Mood Reader</p>
 </footer>`;
 
     const head = `<link rel="blogroll" type="text/x-opml" title="${esc(rollTitle)}" href="${esc(pageUrl)}/blogroll.opml">
