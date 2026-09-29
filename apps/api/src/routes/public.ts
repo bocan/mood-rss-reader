@@ -4,7 +4,7 @@ import { db } from '../db/index.js';
 import { articles, articleStates, feeds, profiles, users } from '../db/schema.js';
 import { buildOpml, type OpmlFeedNode, type OpmlFolderNode } from '../lib/opml.js';
 import { buildUserFeedTree } from '../lib/opml-tree.js';
-import { esc, escMultiline, layout } from '../lib/public-html.js';
+import { esc, escMultiline, layout, ownerCard, type OwnerCardSource } from '../lib/public-html.js';
 import { buildShareAtom, buildShareJsonFeed, type ShareFeedItem } from '../lib/share-feeds.js';
 import { publicBase } from './profile.js';
 
@@ -13,14 +13,12 @@ const SHARE_PAGE_ITEMS = 100;
 
 const dateFmt = new Intl.DateTimeFormat('en', { dateStyle: 'medium' });
 
-interface PublicProfile {
+interface PublicProfile extends OwnerCardSource {
   userId: string;
   slug: string;
   title: string | null;
-  bio: string | null;
   visibility: string;
   blogrollEnabled: boolean;
-  displayName: string;
 }
 
 /** The profile behind /u/:slug for an active user, regardless of what it
@@ -35,6 +33,9 @@ async function loadProfileForSlug(slug: string): Promise<PublicProfile | null> {
       visibility: profiles.visibility,
       blogrollEnabled: profiles.blogrollEnabled,
       displayName: users.displayName,
+      websiteUrl: profiles.websiteUrl,
+      photoUrl: profiles.photoUrl,
+      meLinks: profiles.meLinks,
     })
     .from(profiles)
     .innerJoin(users, and(eq(users.id, profiles.userId), isNull(users.disabledAt)))
@@ -80,6 +81,10 @@ function pageTitle(profile: PublicProfile): string {
   return profile.title ?? `${profile.displayName}'s shared items`;
 }
 
+function blogrollTitle(profile: PublicProfile): string {
+  return `${profile.title ?? profile.displayName}'s blogroll`;
+}
+
 const notFound = { error: 'NotFound', message: 'Not found', statusCode: 404 } as const;
 
 function cache(reply: FastifyReply): FastifyReply {
@@ -99,17 +104,21 @@ export async function publicRoutes(app: FastifyInstance): Promise<void> {
     const base = publicBase(request);
     const pageUrl = `${base}/u/${profile.slug}`;
 
+    // Each share is a bookmark with a comment (SPEC-026): the article is
+    // u-bookmark-of, the note is the content, and the entry's own address is
+    // its #s-<id> anchor on this page. Entries take the feed's author.
     const entries = items
       .map((item) => {
         const link = item.url ?? item.feedSiteUrl;
         const title = esc(item.title ?? 'Untitled');
-        return `<article class="h-entry">
-${item.note ? `  <p class="note p-content">${escMultiline(item.note)}</p>\n` : ''}  <h2>${
+        const anchor = `s-${item.articleId}`;
+        return `<article class="h-entry" id="${esc(anchor)}">
+${item.note ? `  <div class="note e-content">${escMultiline(item.note)}</div>\n` : ''}  <h2 class="p-name">${
           link
-            ? `<a class="u-url" href="${esc(link)}" rel="noopener noreferrer">${title}</a>`
+            ? `<a class="u-bookmark-of" href="${esc(link)}" rel="noopener noreferrer">${title}</a>`
             : title
         }</h2>
-  <p class="meta">${item.feedTitle ? `${esc(item.feedTitle)} · ` : ''}<time class="dt-published" datetime="${item.sharedAt.toISOString()}">${dateFmt.format(item.sharedAt)}</time></p>
+  <p class="meta">${item.feedTitle ? `${esc(item.feedTitle)} · ` : ''}<a class="u-url u-uid" href="${esc(`${pageUrl}#${anchor}`)}"><time class="dt-published" datetime="${item.sharedAt.toISOString()}">${dateFmt.format(item.sharedAt)}</time></a></p>
 </article>`;
       })
       .join('\n');
@@ -118,7 +127,8 @@ ${item.note ? `  <p class="note p-content">${escMultiline(item.note)}</p>\n` : '
 <header>
   <h1 class="p-name">${esc(pageTitle(profile))}</h1>
   <p>Links shared by ${esc(profile.displayName)}.</p>
-${profile.bio ? `  <p>${escMultiline(profile.bio)}</p>\n` : ''}</header>
+  ${ownerCard(profile, pageUrl, { author: true })}
+</header>
 ${entries || '<p class="meta">Nothing shared yet.</p>'}
 <footer>
   <p>Subscribe: <a href="${esc(pageUrl)}/feed.xml">Atom</a> · <a href="${esc(pageUrl)}/feed.json">JSON Feed</a>${profile.blogrollEnabled ? ` · <a href="${esc(pageUrl)}/blogroll">Blogroll</a>` : ''} · powered by Mood Reader</p>
@@ -126,7 +136,11 @@ ${entries || '<p class="meta">Nothing shared yet.</p>'}
 </div>`;
 
     const head = `<link rel="alternate" type="application/atom+xml" title="${esc(pageTitle(profile))}" href="${esc(pageUrl)}/feed.xml">
-<link rel="alternate" type="application/feed+json" title="${esc(pageTitle(profile))}" href="${esc(pageUrl)}/feed.json">`;
+<link rel="alternate" type="application/feed+json" title="${esc(pageTitle(profile))}" href="${esc(pageUrl)}/feed.json">${
+      profile.blogrollEnabled
+        ? `\n<link rel="blogroll" type="text/x-opml" title="${esc(blogrollTitle(profile))}" href="${esc(pageUrl)}/blogroll.opml">`
+        : ''
+    }`;
 
     return cache(reply)
       .type('text/html; charset=utf-8')
@@ -142,10 +156,11 @@ ${entries || '<p class="meta">Nothing shared yet.</p>'}
     const tree = await buildUserFeedTree(profile.userId, { blogrollOnly: true });
     const base = publicBase(request);
     const pageUrl = `${base}/u/${profile.slug}`;
-    const rollTitle = `${profile.title ?? profile.displayName}'s blogroll`;
+    const rollTitle = blogrollTitle(profile);
 
-    const feedItem = (feed: OpmlFeedNode): string => `<li>
-  ${feed.faviconUrl ? `<img src="${esc(feed.faviconUrl)}" alt="" width="16" height="16" loading="lazy" referrerpolicy="no-referrer"> ` : ''}<a href="${esc(feed.htmlUrl ?? feed.xmlUrl)}" rel="noopener noreferrer">${esc(feed.title)}</a>
+    // Each feed is an h-card (the IndieWeb blogroll convention, SPEC-026).
+    const feedItem = (feed: OpmlFeedNode): string => `<li class="h-card">
+  ${feed.faviconUrl ? `<img class="u-logo" src="${esc(feed.faviconUrl)}" alt="" width="16" height="16" loading="lazy" referrerpolicy="no-referrer"> ` : ''}<a class="p-name u-url" href="${esc(feed.htmlUrl ?? feed.xmlUrl)}" rel="noopener noreferrer">${esc(feed.title)}</a>
   <a class="feedlink" href="${esc(feed.xmlUrl)}">feed</a>
 </li>`;
 
@@ -161,7 +176,8 @@ ${folder.feeds.length > 0 ? `<ul>\n${folder.feeds.map(feedItem).join('\n')}\n</u
     const body = `<header>
   <h1>${esc(rollTitle)}</h1>
   <p>The feeds ${esc(profile.displayName)} reads.</p>
-${profile.bio ? `  <p>${escMultiline(profile.bio)}</p>\n` : ''}</header>
+  ${ownerCard(profile, `${pageUrl}/blogroll`, { author: false })}
+</header>
 ${tree.folders.map((f) => folderSection(f, 0)).join('\n')}
 ${tree.feeds.length > 0 ? `<ul>\n${tree.feeds.map(feedItem).join('\n')}\n</ul>` : ''}
 ${tree.folders.length === 0 && tree.feeds.length === 0 ? '<p>Nothing here yet.</p>' : ''}
@@ -181,7 +197,7 @@ ${tree.folders.length === 0 && tree.feeds.length === 0 ? '<p>Nothing here yet.</
     const profile = await loadBlogrollProfile(request.params.slug);
     if (!profile) return reply.code(404).send(notFound);
     const tree = await buildUserFeedTree(profile.userId, { blogrollOnly: true });
-    const rollTitle = `${profile.title ?? profile.displayName}'s blogroll`;
+    const rollTitle = blogrollTitle(profile);
     return cache(reply)
       .header('content-type', 'text/x-opml; charset=utf-8')
       .header('content-disposition', 'inline')
