@@ -69,7 +69,11 @@ export function ReadingPane({
     queryFn: () => api<ArticleDetail>(`/articles/${articleId}/readable`),
     enabled: needsReadable,
     staleTime: Infinity,
-    retry: false,
+    // A request the browser dropped (wake from sleep, network change) is tried
+    // again: the server completes the extraction anyway, so the retry is a
+    // cache hit. An answer from the server (4xx/5xx) is final.
+    retry: (failures, error) => !(error instanceof ApiRequestError) && failures < 3,
+    retryDelay: (attempt) => Math.min(500 * 2 ** attempt, 4000),
   });
   useEffect(() => {
     if (readableQuery.data) queryClient.setQueryData(['article', articleId], readableQuery.data);
