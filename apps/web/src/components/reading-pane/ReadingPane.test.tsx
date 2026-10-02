@@ -2,6 +2,7 @@ import { DEFAULT_SETTINGS, type ArticleDetail, type Settings } from '@rss/shared
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { expect, test, vi } from 'vitest';
+import { api, ApiRequestError } from '@/lib/api';
 import { ReadingPane } from './ReadingPane';
 
 // Everything the pane needs is seeded into the cache; no request ever settles.
@@ -144,6 +145,43 @@ test('a failed extraction points at the Wayback Machine', () => {
   expect(screen.getByText('Could not extract a clean version of this article.')).toBeInTheDocument();
   expect(screen.getByText(/The original may have moved or died/)).toBeInTheDocument();
   expect(screen.getByRole('link', { name: 'Try the Wayback Machine.' })).toHaveAttribute('href', WAYBACK);
+});
+
+// A dropped /readable request is not a failed extraction.
+function mockReadable(answer: () => Promise<unknown>) {
+  vi.mocked(api).mockImplementation(((path: string) =>
+    path.endsWith('/readable') ? answer() : new Promise(() => {})) as typeof api);
+}
+
+test('a dropped /readable request is tried again', async () => {
+  let calls = 0;
+  mockReadable(() =>
+    ++calls === 1
+      ? Promise.reject(new TypeError('Failed to fetch'))
+      : Promise.resolve({
+          ...changelogItem,
+          readableHtml: '<p>Extracted on the second try.</p>',
+          readableFetchedAt: '2026-10-01T00:00:00Z',
+        }),
+  );
+  renderPane({ defaultArticleView: 'simplified' });
+  expect(await screen.findByText('Extracted on the second try.')).toBeInTheDocument();
+  expect(calls).toBe(2);
+  vi.mocked(api).mockImplementation(() => new Promise(() => {}));
+});
+
+test('an error answer from the server for /readable is not tried again', async () => {
+  let calls = 0;
+  mockReadable(() => {
+    calls++;
+    return Promise.reject(new ApiRequestError(422, null));
+  });
+  renderPane({ defaultArticleView: 'simplified' });
+  expect(
+    await screen.findByText('Could not extract a clean version of this article.'),
+  ).toBeInTheDocument();
+  expect(calls).toBe(1);
+  vi.mocked(api).mockImplementation(() => new Promise(() => {}));
 });
 
 test('an empty Feed view points at the Wayback Machine', () => {
