@@ -34,7 +34,17 @@ const stagger = (index: number) => ({
 
 const ENTER = 'animate-in fade-in slide-in-from-bottom-1 fill-mode-backwards motion-reduce:animate-none';
 
+// On the <li>, not the tile button: a dimmed read tile must not dim its ring.
 const focusRing = (focused: boolean) => focused && 'ring-2 ring-ring';
+
+/**
+ * A read tile steps back as a whole (text, image and excerpt), so read and
+ * unread tell apart at a glance. Every read tile looks the same, the
+ * keyboard-focused one too; only the open article stays at full strength.
+ * Not on hover or focus-within: after "Mark as read" the pointer and the
+ * focus are still on the tile, so it never dimmed.
+ */
+const readDim = (isRead: boolean, open: boolean) => isRead && !open && 'opacity-50 grayscale';
 
 // --- List --------------------------------------------------------------
 // Two-line rows at comfortable density; the `compact:` variant collapses them
@@ -60,12 +70,13 @@ export function ListView({
             role="option"
             aria-selected={focused}
             ref={registerRow(article.id)}
-            className="group/row relative"
+            className={cn('group/row relative', focusRing(focused))}
           >
             <button
               type="button"
               onClick={() => onSelect(article)}
               style={stagger(index)}
+              data-read={row.isRead}
               className={cn(
                 'flex w-full items-start gap-2 border-b px-3 py-2.5 text-left',
                 'transition-colors duration-200 motion-reduce:transition-none',
@@ -73,7 +84,7 @@ export function ListView({
                 // Room for the always-visible touch "..." button.
                 onToggle && 'pointer-coarse:pr-12',
                 selectedId === article.id ? 'bg-accent' : 'hover:bg-accent/60',
-                focusRing(focused),
+                readDim(row.isRead, selectedId === article.id),
                 ENTER,
               )}
             >
@@ -152,17 +163,18 @@ function Card({
       role="option"
       aria-selected={focused}
       ref={registerRow(article.id)}
-      className="group/row relative"
+      className={cn('group/row relative rounded-lg', focusRing(focused))}
     >
       <button
         type="button"
         onClick={() => onSelect(article)}
         style={stagger(index)}
+        data-read={row.isRead}
         className={cn(
           'group relative block aspect-square w-full overflow-hidden rounded-lg border text-left',
           'transition-shadow duration-200 hover:shadow-md motion-reduce:transition-none',
           selected && 'bg-accent',
-          focusRing(focused),
+          readDim(row.isRead, selected),
           ENTER,
         )}
       >
@@ -292,19 +304,20 @@ function MagazineRow({
       role="option"
       aria-selected={focused}
       ref={registerRow(article.id)}
-      className="group/row relative"
+      className={cn('group/row relative rounded-lg', focusRing(focused))}
     >
       <button
         type="button"
         onClick={() => onSelect(article)}
         style={stagger(index)}
+        data-read={row.isRead}
         className={cn(
           'flex w-full gap-3 rounded-lg border p-3 text-left',
           'transition-[transform,box-shadow,background-color] duration-200',
           // Keyed on the whole tile, so the lift holds over the quick actions.
           'group-hover/row:-translate-y-0.5 group-hover/row:shadow-md motion-reduce:group-hover/row:translate-y-0',
           selected && 'bg-accent',
-          focusRing(focused),
+          readDim(row.isRead, selected),
           ENTER,
         )}
       >
@@ -313,6 +326,9 @@ function MagazineRow({
         )}
         <span className="min-w-0 flex-1">
           <span className="flex items-center gap-2 text-xs text-muted-foreground">
+            {!row.isRead && (
+              <span aria-hidden className="size-2 shrink-0 rounded-full bg-primary" />
+            )}
             <span className="truncate">{row.feedName}</span>
             <span className="shrink-0">{row.when}</span>
             {row.isStarred && <Star className="size-3 shrink-0 fill-primary text-primary" />}
