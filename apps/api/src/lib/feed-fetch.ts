@@ -6,6 +6,7 @@ import Parser from 'rss-parser';
 import { Agent, interceptors, request } from 'undici';
 import { db } from '../db/index.js';
 import { articles, feeds } from '../db/schema.js';
+import { errorMessage } from './error-message.js';
 import { extractText, htmlToText, looksLikeHtml, SANITIZER_VERSION, sanitizeArticleHtml } from './sanitize.js';
 import { findRenamedEntries } from './renamed-entries.js';
 import { applyFilterRules } from './rules.js';
@@ -632,7 +633,7 @@ export async function fetchAndStoreFeed(feed: FeedRow): Promise<void> {
 
     await storeNewArticles(feed.id, feedArticleRows(feed.id, parsed));
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
+    const message = errorMessage(err);
     // A short network problem gets an early retry (#29), so a feed that failed
     // while the network was down recovers in minutes, not a full interval.
     const delay = transientRetryDelaySec(message, feed.failureCount + 1);
