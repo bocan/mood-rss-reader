@@ -4,6 +4,7 @@ import type { FastifyInstance } from 'fastify';
 import { db } from '../db/index.js';
 import { feeds, folders, subscriptions } from '../db/schema.js';
 import { env } from '../env.js';
+import { errorMessage } from '../lib/error-message.js';
 import { fetchAndStoreFeed, normalizeFeedUrl } from '../lib/feed-fetch.js';
 import { applyRulesToNewSubscription } from '../lib/rules.js';
 import { buildOpml, OpmlParseError, parseOpml, type OpmlOutline } from '../lib/opml.js';
@@ -210,7 +211,7 @@ export async function opmlRoutes(app: FastifyInstance): Promise<void> {
           result.failed.push({
             title: item.title,
             xmlUrl: item.xmlUrl,
-            reason: err instanceof Error ? err.message : String(err),
+            reason: errorMessage(err),
           });
         }
       });

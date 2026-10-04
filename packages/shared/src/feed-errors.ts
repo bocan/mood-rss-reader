@@ -44,6 +44,18 @@ const RULES: { test: RegExp; summary: string; transient: boolean }[] = [
     summary: 'The address does not give a valid feed.',
     transient: false,
   },
+  // Problems on this server, not the feed's site.
+  {
+    test: /No space left on device|could not extend file|disk full/i,
+    summary: 'The server is out of disk space, so it could not store the feed.',
+    transient: false,
+  },
+  {
+    // A database error stored before error-message.ts kept only its cause.
+    test: /^Failed query:/,
+    summary: 'The server could not store the feed.',
+    transient: false,
+  },
 ];
 
 export function describeFeedError(message: string): FeedErrorInfo {

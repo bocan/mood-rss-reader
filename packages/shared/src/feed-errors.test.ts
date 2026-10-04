@@ -19,6 +19,12 @@ describe('describeFeedError', () => {
     ['HTTP 500', 'The site had a server error.', false],
     ['Feed not recognized as RSS 1 or 2.', 'The address does not give a valid feed.', false],
     ['Non-whitespace before first tag.\nLine: 0', 'The address does not give a valid feed.', false],
+    [
+      'could not write init file: No space left on device',
+      'The server is out of disk space, so it could not store the feed.',
+      false,
+    ],
+    ['Failed query: insert into "articles" values ($1)\nparams: <p>', 'The server could not store the feed.', false],
     ['something odd', 'The feed could not be updated.', false],
   ])('%s', (message, summary, transient) => {
     expect(describeFeedError(message)).toEqual({ summary, transient });

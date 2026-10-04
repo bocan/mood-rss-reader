@@ -1,4 +1,4 @@
-import type { ImportOpmlResult } from '@rss/shared';
+import { describeFeedError, type ImportOpmlResult } from '@rss/shared';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Upload } from 'lucide-react';
 import { useRef, useState } from 'react';
@@ -88,11 +88,19 @@ export function OpmlImportPanel({ autoFocus = false }: { autoFocus?: boolean }) 
                 {result.failed.length} failed
               </button>
               {showFailures && (
-                <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
+                <ul className="mt-2 space-y-2 text-xs">
                   {result.failed.map((f, i) => (
-                    <li key={`${f.xmlUrl ?? f.title ?? i}`}>
-                      <span className="font-medium">{f.title ?? '(untitled)'}</span>
-                      {f.xmlUrl ? ` ${f.xmlUrl}` : ''}: {f.reason}
+                    <li key={`${f.xmlUrl ?? f.title ?? i}`} className="rounded border bg-background p-2">
+                      <p className="font-medium">{f.title ?? '(untitled)'}</p>
+                      {f.xmlUrl && <p className="break-all text-muted-foreground">{f.xmlUrl}</p>}
+                      <p className="mt-1">{describeFeedError(f.reason).summary}</p>
+                      {/* The raw error, out of the way: it can be long. */}
+                      <details className="mt-1 text-muted-foreground">
+                        <summary className="cursor-pointer">Details</summary>
+                        <pre className="mt-1 max-h-32 overflow-auto whitespace-pre-wrap break-all font-mono">
+                          {f.reason}
+                        </pre>
+                      </details>
                     </li>
                   ))}
                 </ul>

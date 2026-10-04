@@ -44,6 +44,29 @@ test('the dialog imports the picked file and reports the result', async () => {
   expect(invalidate).toHaveBeenCalledWith({ queryKey: ['feeds'] });
 });
 
+test('a failed feed shows its name, its address and a plain reason, with the raw error folded away', async () => {
+  fetchMock.mockImplementation(async () => ({
+    ok: true,
+    status: 200,
+    json: async () => ({
+      feedsAdded: 0,
+      foldersCreated: 0,
+      skipped: 0,
+      failed: [{ title: 'Big Podcast', xmlUrl: 'https://ex.com/feed.xml', reason: 'HTTP 404' }],
+    }),
+  }));
+  renderDialog();
+  pick(new File(['<opml/>'], 'feeds.opml', { type: 'text/xml' }));
+  fireEvent.click(await screen.findByRole('button', { name: '1 failed' }));
+
+  expect(screen.getByText('Big Podcast')).toBeInTheDocument();
+  expect(screen.getByText('https://ex.com/feed.xml')).toBeInTheDocument();
+  expect(screen.getByText('The feed is not at this address any more.')).toBeInTheDocument();
+  const raw = screen.getByText('HTTP 404');
+  expect(raw.tagName).toBe('PRE');
+  expect(raw.closest('details')).not.toHaveAttribute('open');
+});
+
 test('a file over 5 MB is refused before upload', async () => {
   renderDialog();
   const big = new File(['x'], 'big.opml');
