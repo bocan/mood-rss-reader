@@ -68,10 +68,38 @@ test('marking the open article read keeps it in the unread-only list, shown as r
   ]);
   // Only the PATCH went out: the list on screen was not refetched.
   expect(fetchMock.mock.calls.every(([url]) => !String(url).includes('/api/articles?'))).toBe(true);
-  expect(qc.getQueryState(['articles', filters])!.isInvalidated).toBe(false);
-  // The list off screen is marked stale, so it refetches when shown.
+  // Every list is marked stale, the one on screen too, so each refetches when shown.
+  expect(qc.getQueryState(['articles', filters])!.isInvalidated).toBe(true);
   expect(qc.getQueryState(['articles', { sort: 'newest', starred: true }])!.isInvalidated).toBe(true);
   expect(qc.getQueryState(['counts'])!.isInvalidated).toBe(true);
+});
+
+test('an article unstarred in Starred leaves it when the reader comes back, even inside staleTime', async () => {
+  const starred = { sort: 'newest' as const, starred: true };
+  qc.setQueryData(['articles', starred], {
+    pages: [{ items: [{ id: 'a1', feedId: 'f1', read: true, starred: true }], nextCursor: null }],
+    pageParams: [null],
+  });
+  const list = renderHook(() => useArticles(starred), { wrapper });
+  const { result } = renderHook(() => useToggleArticleState('a1'), { wrapper });
+
+  act(() => result.current.mutate({ starred: false }));
+  await waitFor(() => expect(fetchMock).toHaveBeenCalledOnce());
+  await act(async () => {});
+  // Still on screen, shown as unstarred.
+  expect(list.result.current.data!.pages[0]!.items).toEqual([
+    expect.objectContaining({ id: 'a1', starred: false }),
+  ]);
+
+  // Leave Starred and come back: the list refetches and the article is gone.
+  list.unmount();
+  fetchMock.mockResolvedValue({
+    ok: true,
+    status: 200,
+    json: async () => ({ items: [], nextCursor: null }),
+  } as Response);
+  const back = renderHook(() => useArticles(starred), { wrapper });
+  await waitFor(() => expect(back.result.current.data!.pages[0]!.items).toEqual([]));
 });
 
 test('a failed toggle also rolls back the open article', async () => {

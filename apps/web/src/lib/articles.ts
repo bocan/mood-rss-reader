@@ -230,14 +230,16 @@ function reconcile(qc: QueryClient) {
 }
 
 /**
- * After a single-article change (#19): refresh the counts, and let lists the
- * reader is NOT looking at refetch the next time they show. The list on screen
- * keeps its optimistic patch and is not refetched, so an item just read stays
- * (shown as read) in an unread-only list until a scope change or refresh.
+ * After a single-article change (#19): refresh the counts, and mark every list
+ * stale without refetching any of them now. The list on screen keeps its
+ * optimistic patch, so an item just read stays (shown as read) in an
+ * unread-only list, and an unstarred one in Starred, until a scope change or
+ * refresh. The list on screen is marked too: when the reader leaves it and
+ * comes back, it refetches, even inside staleTime.
  */
 function settleOne(qc: QueryClient) {
   qc.invalidateQueries({ queryKey: ['counts'] });
-  qc.invalidateQueries({ queryKey: ['articles'], type: 'inactive' });
+  qc.invalidateQueries({ queryKey: ['articles'], refetchType: 'none' });
 }
 
 // Stable mutation keys so a rehydrated paused mutation can find its default
