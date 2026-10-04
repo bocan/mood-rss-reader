@@ -102,3 +102,56 @@ describe.each(VIEWS)('%s row quick actions (#32)', (_name, View) => {
     expect(screen.queryByRole('button', { name: 'Star' })).toBeNull();
   });
 });
+
+// A read tile steps back as a whole, so read and unread tell apart at a glance.
+describe.each(VIEWS)('%s read tiles', (_name, View) => {
+  const tile = () => screen.getByText('Hello').closest('button')!;
+
+  test('an unread tile is at full strength', () => {
+    renderView(View);
+    expect(tile()).toHaveAttribute('data-read', 'false');
+    expect(tile()).not.toHaveClass('opacity-50');
+  });
+
+  test('a read tile is dimmed', () => {
+    renderView(View, { ...ARTICLE, read: true });
+    expect(tile()).toHaveAttribute('data-read', 'true');
+    expect(tile()).toHaveClass('opacity-50', 'grayscale');
+  });
+
+  // The pointer and the focus are still on the tile after "Mark as read".
+  test('a read tile stays dimmed under the pointer or with focus inside', () => {
+    renderView(View, { ...ARTICLE, read: true });
+    expect(tile().className).not.toMatch(/group-(hover|focus-within)\/row:opacity-100/);
+  });
+
+  test('a focused read tile is dimmed like the others, and its ring is not', () => {
+    render(
+      <View
+        items={[{ ...ARTICLE, read: true }]}
+        feeds={{ f1: { name: 'Feed', faviconUrl: null } }}
+        selectedId={null}
+        focusedId="a1"
+        onSelect={vi.fn()}
+        registerRow={() => () => {}}
+      />,
+    );
+    expect(tile()).toHaveClass('opacity-50');
+    expect(tile()).not.toHaveClass('ring-2');
+    expect(screen.getByRole('option')).toHaveClass('ring-2');
+  });
+
+  test('the open tile is not dimmed, read or not', () => {
+    render(
+      <View
+        items={[{ ...ARTICLE, read: true }]}
+        feeds={{ f1: { name: 'Feed', faviconUrl: null } }}
+        selectedId="a1"
+        focusedId={null}
+        onSelect={vi.fn()}
+        registerRow={() => () => {}}
+      />,
+    );
+    expect(tile()).not.toHaveClass('opacity-50');
+  });
+});
