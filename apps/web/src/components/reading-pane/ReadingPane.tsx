@@ -32,10 +32,17 @@ function formatDate(iso: string | null): string {
 export function ReadingPane({
   articleId,
   stepper,
+  deferMarkRead = false,
 }: {
   articleId: string;
   /** Previous / Next controls, shown with the article actions (#23). */
   stepper?: ReactNode;
+  /**
+   * The app opened this article, not the reader (list view opens the top
+   * one): hold back the mark read on open. When it turns false (the reader
+   * picks this article), the mark goes through as for any opening.
+   */
+  deferMarkRead?: boolean;
 }) {
   const queryClient = useQueryClient();
   const { settings } = useSettings();
@@ -93,12 +100,13 @@ export function ReadingPane({
   const toggle = useToggleArticleState(articleId);
   const markedRef = useRef<Set<string>>(new Set());
   useEffect(() => {
+    if (deferMarkRead) return;
     if (!settings.markReadOnOpen || !article || markedRef.current.has(article.id)) return;
     // Recorded on first sight even when already read, so a later Mark unread
     // (button, u, m) is never undone by this effect.
     markedRef.current.add(article.id);
     if (!article.read) toggle.mutate({ read: true });
-  }, [article, toggle, settings.markReadOnOpen]);
+  }, [article, toggle, settings.markReadOnOpen, deferMarkRead]);
   const toggleRead = () => {
     if (!article) return;
     markedRef.current.add(article.id);
