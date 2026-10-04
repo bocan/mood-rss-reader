@@ -152,8 +152,14 @@ export function ReadingPane({
   // readable length at any window width.
   const column = readingColumnClass(settings.readingSize, settings.readingWidth);
 
+  // On a phone the header scrolls away with the article, so the whole screen
+  // is for reading: a fixed header there takes half of it. From md up the
+  // header stays and only the body scrolls. The Web view keeps the header in
+  // place at every size: its frame fills the space below and scrolls itself.
+  const phoneScrollsAll = view !== 'web';
+
   return (
-    <div className="flex h-full flex-col">
+    <div className={cn('flex h-full flex-col', phoneScrollsAll && 'max-md:overflow-y-auto')}>
       <div className="border-b p-4 md:p-6">
         <div className={column}>
           <h1 className="font-serif text-[1.7rem] font-semibold leading-tight tracking-tight break-words">
@@ -264,7 +270,12 @@ export function ReadingPane({
         // and the arrows scroll it at once. j/k are page-wide keys and still
         // work. No ring: the focus is not from the keyboard.
         tabIndex={-1}
-        className={cn('min-h-0 flex-1 outline-none', view === 'web' ? '' : 'overflow-y-auto p-4 md:p-6')}
+        className={cn(
+          'outline-none',
+          phoneScrollsAll
+            ? 'p-4 max-md:flex-none md:min-h-0 md:flex-1 md:overflow-y-auto md:p-6'
+            : 'min-h-0 flex-1',
+        )}
       >
         {view === 'web' ? (
           <WebView article={article} online={online} />
