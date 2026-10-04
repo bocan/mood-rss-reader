@@ -276,6 +276,22 @@
     --tw-prose-counters: var(--muted-foreground);
   }
 
+  /* Article HTML comes from any site. Nothing in it may be wider than the
+     column, or a phone has to scroll the article sideways: a long URL or
+     word breaks, a wide table scrolls inside itself, and an embed with a
+     fixed width shrinks. Images are already capped by Tailwind's preflight. */
+  .prose {
+    overflow-wrap: break-word;
+  }
+  .prose :where(table) {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  .prose :where(iframe, video, embed, object, svg, canvas) {
+    max-width: 100%;
+  }
+
   * {
     @apply border-border outline-ring/50;
   }
