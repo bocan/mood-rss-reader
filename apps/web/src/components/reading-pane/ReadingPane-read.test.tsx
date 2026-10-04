@@ -64,6 +64,26 @@ test('opening an unread article marks it read by default, and the pane says so',
   expect(readBodies()).toEqual([true]);
 });
 
+test('an article the app opened is not marked read until the reader picks it', async () => {
+  qc = new QueryClient({ defaultOptions: { queries: { staleTime: Infinity, retry: false } } });
+  registerMutationDefaults(qc);
+  qc.setQueryData(['article', 'a1'], item(false));
+  qc.setQueryData(['feeds'], { items: [{ feedId: 'f1', articleView: 'readable' }] });
+  qc.setQueryData(['settings'], DEFAULT_SETTINGS);
+  const pane = (deferMarkRead: boolean) => (
+    <QueryClientProvider client={qc}>
+      <ReadingPane articleId="a1" deferMarkRead={deferMarkRead} />
+    </QueryClientProvider>
+  );
+  const view = render(pane(true));
+  await flush();
+  expect(readBodies()).toEqual([]);
+
+  view.rerender(pane(false));
+  await flush();
+  expect(readBodies()).toEqual([true]);
+});
+
 test('with "Mark read when opened" off, opening changes nothing', async () => {
   renderPane(false, { markReadOnOpen: false });
   await flush();

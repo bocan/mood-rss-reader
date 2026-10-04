@@ -59,6 +59,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useArticleSurface } from '@/hooks/use-article-surface';
+import { useAutoOpenTop } from '@/hooks/use-auto-open';
 import { useArticleToggles } from '@/hooks/use-article-toggles';
 import type { ArticleFilters, ArticleListItem } from '@/hooks/use-articles';
 import { useLeaveGoneFeed } from '@/hooks/use-leave-gone-feed';
@@ -66,7 +67,7 @@ import { useListView, useSortOrder, type SortScope, type ViewScope } from '@/hoo
 import { useShortcuts } from '@/hooks/use-shortcuts';
 import { useSidebar } from '@/hooks/use-sidebar';
 import { announce } from '@/lib/announce';
-import { useUnreadCounts } from '@/lib/articles';
+import { useToggleAnyArticleState, useUnreadCounts } from '@/lib/articles';
 import { OLDER_THAN, offersMarkAllRead, olderThan, useMarkAllRead } from '@/lib/mark-all-read';
 import { useSession } from '@/lib/auth';
 import { useCommunityShares } from '@/lib/community';
@@ -360,7 +361,29 @@ export function ReaderPage() {
   };
   const surface = useArticleSurface(effectiveFilters, openInPlace, {
     markReadOnScroll: settings.markReadOnScroll,
-    onOpen: (article) => selectArticle(article.id, { replace: true }),
+    onOpen: (article) => {
+      autoOpen.claim(article.id);
+      selectArticle(article.id, { replace: true });
+    },
+  });
+  // A click on a row: the reader's own pick, also of the auto-opened article.
+  const openArticle = (article: ArticleListItem) => {
+    autoOpen.claim(article.id);
+    selectArticle(article.id);
+  };
+
+  // List view opens the top article, so the reading column is never empty.
+  const toggleAnyState = useToggleAnyArticleState();
+  const autoOpen = useAutoOpenTop({
+    enabled: isWide && !isBrowse && !communityOpen,
+    listKey: `${view}:${JSON.stringify(effectiveFilters)}`,
+    firstId: surface.items[0]?.id,
+    selectedId,
+    open: (id) => selectArticle(id, { replace: true }),
+    onMovedOn: (id) => {
+      const item = surface.items.find((a) => a.id === id);
+      if (settings.markReadOnOpen && item && !item.read) toggleAnyState(id, { read: true });
+    },
   });
 
   // Keep keyboard focus on the open article (e.g. after a deep link), so
@@ -927,7 +950,7 @@ export function ReaderPage() {
                   surface={surface}
                   feeds={feedMeta}
                   selectedId={selectedId}
-                  onSelect={(a) => selectArticle(a.id)}
+                  onSelect={openArticle}
                   header={searchStrip}
                   empty={emptyState}
                 />
@@ -950,7 +973,12 @@ export function ReaderPage() {
                     </button>
                     <div className="min-h-0 flex-1">
                       {/* Keyed so each article starts at the top when stepping. */}
-                      <ReadingPane key={selectedId} articleId={selectedId} stepper={stepper} />
+                      <ReadingPane
+                        key={selectedId}
+                        articleId={selectedId}
+                        stepper={stepper}
+                        deferMarkRead={selectedId === autoOpen.autoOpenedId}
+                      />
                     </div>
                   </div>
                 ) : (
