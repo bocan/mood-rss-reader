@@ -156,7 +156,7 @@ export function ReadingPane({
     <div className="flex h-full flex-col">
       <div className="border-b p-4 md:p-6">
         <div className={column}>
-          <h1 className="font-serif text-[1.7rem] font-semibold leading-tight tracking-tight">
+          <h1 className="font-serif text-[1.7rem] font-semibold leading-tight tracking-tight break-words">
             {article.title ?? '(untitled)'}
           </h1>
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
@@ -193,7 +193,9 @@ export function ReadingPane({
             )}
           </div>
 
-          <div className="mt-3 flex items-center justify-between gap-2">
+          {/* Wraps on a phone: the view switch and the actions do not fit in
+              one row there, and a row that does not wrap widens the page. */}
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <div className="inline-flex rounded-md border p-0.5" role="group" aria-label="Article view">
                 {ARTICLE_VIEWS.map((v) => (
@@ -222,7 +224,8 @@ export function ReadingPane({
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-1">
+            {/* ml-auto: still on the right when it wraps to its own row. */}
+            <div className="ml-auto flex items-center gap-1">
               <Button
                 variant="ghost"
                 size="icon"

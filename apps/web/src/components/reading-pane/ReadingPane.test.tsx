@@ -60,6 +60,15 @@ test('orders the switcher Feed, Extracted, Web', () => {
   expect(screen.getByRole('group', { name: 'Article view' })).toBeInTheDocument();
 });
 
+// On a phone the view switch and the actions do not fit in one row, and a row
+// that does not wrap makes the whole article wider than the screen.
+test('the view switch and the actions wrap on a narrow screen', () => {
+  renderPane();
+  const row = screen.getByRole('group', { name: 'Article view' }).parentElement!.parentElement!;
+  expect(row).toHaveClass('flex', 'flex-wrap');
+  expect(screen.getByRole('button', { name: 'Star' }).parentElement).toHaveClass('ml-auto');
+});
+
 test('auto picks Feed for a #fragment item and says it chose', () => {
   renderPane({ defaultArticleView: 'auto' });
   expect(pressed()).toEqual(['Feed']);
