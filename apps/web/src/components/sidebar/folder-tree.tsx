@@ -66,7 +66,11 @@ import {
   type FolderRow,
   type SubscriptionRow,
 } from '@/lib/folders';
-import { setFoldersExpanded, toggleFolderExpanded, useExpandedFolders } from '@/lib/sidebar-expanded';
+import {
+  setFoldersExpanded,
+  toggleFolderExpanded,
+  useExpandedFolders,
+} from '@/lib/sidebar-expanded';
 import { cn } from '@/lib/utils';
 
 type DragData =
@@ -232,9 +236,14 @@ export function FolderTree({
     feedsIn(id).length > 0 ||
     folders.some((c) => c.parentId === id && feedsIn(c.id).length > 0);
   const openFolders = query ? new Set(folders.map((f) => f.id)) : expanded;
-  const noMatches = query !== '' && !folders.some((f) => folderHasVisible(f.id)) && feedsIn(null).length === 0;
+  const noMatches =
+    query !== '' && !folders.some((f) => folderHasVisible(f.id)) && feedsIn(null).length === 0;
   // Collapse all / expand all (#46): Alt-click on a chevron, or the folder menu.
-  const setAllExpanded = (open: boolean) => setFoldersExpanded(folders.map((f) => f.id), open);
+  const setAllExpanded = (open: boolean) =>
+    setFoldersExpanded(
+      folders.map((f) => f.id),
+      open,
+    );
   const anyExpanded = folders.some((f) => expanded.has(f.id));
   const allExpanded = folders.every((f) => expanded.has(f.id));
   const childrenOf = (id: string) =>
@@ -308,7 +317,10 @@ export function FolderTree({
             .filter((f) => f.parentId === dragged.parentId)
             .sort(byFolder)
             .map((f) => f.id);
-          updateFolder.mutate({ id: dragged.id, position: dropIndex(scope, dragged.id, target.id) });
+          updateFolder.mutate({
+            id: dragged.id,
+            position: dropIndex(scope, dragged.id, target.id),
+          });
         }
       } else if (o.type === 'dropzone' && o.folderId === null && a.parentId !== null) {
         updateFolder.mutate({ id: a.folderId, parentId: null });
@@ -330,14 +342,13 @@ export function FolderTree({
       <div className="mt-1 space-y-0.5 text-sm">
         {subs.length >= FILTER_MIN_FEEDS && <FeedFilter value={filter} onChange={setFilter} />}
         {noMatches && (
-          <p className="px-2 py-1.5 text-sm text-muted-foreground">No feeds match “{filter.trim()}”.</p>
+          <p className="px-2 py-1.5 text-sm text-muted-foreground">
+            No feeds match “{filter.trim()}”.
+          </p>
         )}
 
         {/* Root folders (each collapsible, holding its feeds and child folders) */}
-        <SortableContext
-          items={rootFolders.map((f) => `folder:${f.id}`)}
-          strategy={strategy}
-        >
+        <SortableContext items={rootFolders.map((f) => `folder:${f.id}`)} strategy={strategy}>
           {rootFolders.map((folder) => (
             <FolderNode
               key={folder.id}
@@ -634,11 +645,15 @@ function FolderNode(props: FolderNodeProps) {
             <>
               <DropdownMenuItem onSelect={() => props.onEdit(folder)}>Edit…</DropdownMenuItem>
               <DropdownMenuItem
-                onSelect={() => afterClose(() => props.setEditing({ kind: 'folder', id: folder.id }))}
+                onSelect={() =>
+                  afterClose(() => props.setEditing({ kind: 'folder', id: folder.id }))
+                }
               >
                 Rename
               </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => props.onMarkRead(folder)}>Mark all read</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => props.onMarkRead(folder)}>
+                Mark all read
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               {/* One level only, as the API allows (#28). */}
               <DropdownMenuItem
@@ -654,14 +669,23 @@ function FolderNode(props: FolderNodeProps) {
                 onMove={(parentId) => props.onMove(folder.id, parentId)}
               />
               <DropdownMenuSeparator />
-              <DropdownMenuItem disabled={props.allExpanded} onSelect={() => props.onSetAllExpanded(true)}>
+              <DropdownMenuItem
+                disabled={props.allExpanded}
+                onSelect={() => props.onSetAllExpanded(true)}
+              >
                 Expand all folders
               </DropdownMenuItem>
-              <DropdownMenuItem disabled={!props.anyExpanded} onSelect={() => props.onSetAllExpanded(false)}>
+              <DropdownMenuItem
+                disabled={!props.anyExpanded}
+                onSelect={() => props.onSetAllExpanded(false)}
+              >
                 Collapse all folders
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive" onSelect={() => props.onDelete(folder)}>
+              <DropdownMenuItem
+                className="text-destructive"
+                onSelect={() => props.onDelete(folder)}
+              >
                 Delete folder
               </DropdownMenuItem>
             </>
@@ -734,7 +758,10 @@ function FolderContents({ folderId, children }: { folderId: string; children: Re
   return (
     <div
       ref={setNodeRef}
-      className={cn('ml-3 min-h-6 space-y-0.5', isOver && 'rounded-md bg-accent/50 ring-1 ring-ring')}
+      className={cn(
+        'ml-3 min-h-6 space-y-0.5',
+        isOver && 'rounded-md bg-accent/50 ring-1 ring-ring',
+      )}
     >
       {children}
     </div>
@@ -772,15 +799,22 @@ function FeedNode({
   onUnsubscribe,
   onMarkRead,
 }: FeedNodeProps) {
-  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } =
-    useSortable({
-      id: `feed:${sub.subscriptionId}`,
-      data: {
-        type: 'feed',
-        subscriptionId: sub.subscriptionId,
-        folderId: sub.folderId,
-      } satisfies DragData,
-    });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: `feed:${sub.subscriptionId}`,
+    data: {
+      type: 'feed',
+      subscriptionId: sub.subscriptionId,
+      folderId: sub.folderId,
+    } satisfies DragData,
+  });
 
   // A favicon that fails to load must fall back to the generic icon, not
   // vanish: the icon keeps titles aligned across rows. Keyed by URL so a
@@ -830,7 +864,9 @@ function FeedNode({
         {...listeners}
         className="shrink-0 cursor-grab rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         aria-label={`Drag ${label}`}
-        title={reorder ? `Drag to reorder or move ${label}` : `Drag to move ${label} to another folder`}
+        title={
+          reorder ? `Drag to reorder or move ${label}` : `Drag to move ${label} to another folder`
+        }
       >
         {sub.faviconUrl && sub.faviconUrl !== failedSrc ? (
           <img
@@ -944,7 +980,11 @@ function FeedMoveToMenu({ sub }: { sub: SubscriptionRow }) {
 /** Fetch just this feed now (#45), the same call as "Retry now" (#29). */
 function RefreshFeedItem({ subscriptionId }: { subscriptionId: string }) {
   const refresh = useRefreshFeed();
-  return <DropdownMenuItem onSelect={() => refresh.mutate(subscriptionId)}>Refresh this feed</DropdownMenuItem>;
+  return (
+    <DropdownMenuItem onSelect={() => refresh.mutate(subscriptionId)}>
+      Refresh this feed
+    </DropdownMenuItem>
+  );
 }
 
 /**
@@ -1018,4 +1058,3 @@ function MoveToMenu({
     </DropdownMenuSub>
   );
 }
-

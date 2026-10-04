@@ -2,10 +2,7 @@ import type { FolderRow } from '@/lib/folders';
 
 /** What a folder dropped on another folder's row does (#28). */
 export type FolderDrop =
-  | { kind: 'reorder' }
-  | { kind: 'nest' }
-  | { kind: 'none' }
-  | { kind: 'blocked'; message: string };
+  { kind: 'reorder' } | { kind: 'nest' } | { kind: 'none' } | { kind: 'blocked'; message: string };
 
 export const NEST_LIMIT_MESSAGE = 'Folders can only be one level deep.';
 export const HAS_CHILDREN_MESSAGE = 'A folder with subfolders cannot go inside another folder.';
