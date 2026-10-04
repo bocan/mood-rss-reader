@@ -69,6 +69,22 @@ test('the view switch and the actions wrap on a narrow screen', () => {
   expect(screen.getByRole('button', { name: 'Star' }).parentElement).toHaveClass('ml-auto');
 });
 
+// On a phone a fixed header takes half the screen: there the header scrolls
+// away with the article. From md up it stays and only the body scrolls.
+test('on a phone the header scrolls with the article; from md up only the body scrolls', () => {
+  renderPane({ defaultArticleView: 'readable' });
+  const body = screen.getByTestId('reading-column').parentElement!;
+  const pane = body.parentElement!;
+  expect(pane).toHaveClass('max-md:overflow-y-auto');
+  expect(body).toHaveClass('max-md:flex-none', 'md:overflow-y-auto');
+});
+
+test('the Web view keeps the header in place at every size', () => {
+  renderPane({ defaultArticleView: 'web' });
+  const header = screen.getByRole('heading', { level: 1 }).closest('.border-b')!;
+  expect(header.parentElement).not.toHaveClass('max-md:overflow-y-auto');
+});
+
 test('auto picks Feed for a #fragment item and says it chose', () => {
   renderPane({ defaultArticleView: 'auto' });
   expect(pressed()).toEqual(['Feed']);
