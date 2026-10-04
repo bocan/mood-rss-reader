@@ -126,6 +126,19 @@ docker buildx imagetools inspect ghcr.io/bocan/mood-rss-reader:main --format '{{
 
 For a `v*` tag, the identity ends in `@refs/tags/<tag>`.
 
+### Updating a server from cron
+
+`scripts/update-image.sh` checks the registry for a new image, verifies its
+cosign signature, and only then pulls it by digest, recreates the `api` and
+`worker` services, waits for the API, and reloads nginx. A failed check
+changes nothing. It needs `docker` with buildx and `flock`; cosign runs from
+its official image if it is not installed. The settings are at the top of the
+script.
+
+```bash
+*/30 * * * * COMPOSE_DIR=/srv/mood /srv/mood/update-image.sh >> /var/log/mood-update.log 2>&1
+```
+
 ## Useful scripts
 
 | Command             | What it does                                  |
