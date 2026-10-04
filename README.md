@@ -108,6 +108,24 @@ docker compose -f docker/docker-compose.yml up -d --build
 This starts Postgres, runs migrations once, then launches the API (serving the
 SPA on `:3000`) and the feed worker.
 
+### The published image
+
+Each push to `main` (and each `v*` tag) publishes
+`ghcr.io/bocan/mood-rss-reader` with an SBOM and full SLSA provenance
+attached, and a keyless cosign signature on its digest. To check an image
+before you run it:
+
+```bash
+cosign verify ghcr.io/bocan/mood-rss-reader:main \
+  --certificate-identity https://github.com/bocan/mood-rss-reader/.github/workflows/docker-publish.yml@refs/heads/main \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com
+
+docker buildx imagetools inspect ghcr.io/bocan/mood-rss-reader:main --format '{{ json .SBOM }}'
+docker buildx imagetools inspect ghcr.io/bocan/mood-rss-reader:main --format '{{ json .Provenance }}'
+```
+
+For a `v*` tag, the identity ends in `@refs/tags/<tag>`.
+
 ## Useful scripts
 
 | Command             | What it does                                  |
