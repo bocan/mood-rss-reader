@@ -2,10 +2,9 @@ import { Readability } from '@mozilla/readability';
 import { parseHTML } from 'linkedom';
 import { Agent, interceptors, request } from 'undici';
 import { sanitizeArticleHtml } from './sanitize.js';
+import { BROWSER_LIKE_USER_AGENT } from './user-agent.js';
 
 const FETCH_TIMEOUT_MS = 15_000; // matches rss-parser's timeout in poll.ts
-// A browser-like UA: bare/library UAs are blocked by some publishers.
-const USER_AGENT = 'Mozilla/5.0 (compatible; rss-reader/0.1; +https://github.com/your/rss-reader)';
 
 // undici's request() does not follow redirects on its own (see feed-fetch.ts);
 // article URLs frequently redirect, so opt in via the redirect interceptor.
@@ -66,7 +65,8 @@ export async function extractReadableHtml(url: string): Promise<string | null> {
       dispatcher,
       headersTimeout: FETCH_TIMEOUT_MS,
       bodyTimeout: FETCH_TIMEOUT_MS,
-      headers: { 'user-agent': USER_AGENT, accept: 'text/html,application/xhtml+xml' },
+      // The browser-like form: some publishers block a bare or library UA.
+      headers: { 'user-agent': BROWSER_LIKE_USER_AGENT, accept: 'text/html,application/xhtml+xml' },
     });
 
     if (res.statusCode >= 400) {

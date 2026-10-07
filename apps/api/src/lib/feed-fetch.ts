@@ -10,6 +10,7 @@ import { errorMessage } from './error-message.js';
 import { extractText, htmlToText, looksLikeHtml, SANITIZER_VERSION, sanitizeArticleHtml } from './sanitize.js';
 import { findRenamedEntries } from './renamed-entries.js';
 import { applyFilterRules } from './rules.js';
+import { USER_AGENT } from './user-agent.js';
 import { discoverWebSubLinks, unsubscribeFromHub } from './websub.js';
 
 export type FeedRow = typeof feeds.$inferSelect;
@@ -18,8 +19,6 @@ type NewArticleInsert = typeof articles.$inferInsert;
 // Single shared parser instance (used here and, indirectly, by the worker).
 const parser = new Parser({ timeout: 15_000 });
 type ParsedFeed = Awaited<ReturnType<typeof parser.parseString>>;
-
-const USER_AGENT = 'rss-reader/0.1 (+https://github.com/your/rss-reader)';
 
 // undici's request() does not follow redirects on its own; the redirect
 // interceptor adds that. A homepage often 301s to its canonical host, and
