@@ -2,6 +2,11 @@ packages:
   - "apps/*"
   - "packages/*"
 
+# No "Update available" box in CI and image build logs. pnpm 12 has a release
+# every few days; the version is pinned in package.json (packageManager) and
+# in docker/Dockerfile, and is raised on purpose.
+updateNotifier: false
+
 # Native/build-time deps we explicitly allow to run install scripts.
 allowBuilds:
   esbuild: true
