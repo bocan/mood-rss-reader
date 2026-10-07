@@ -12,7 +12,7 @@ env:
 
 jobs:
   docker:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
       # Push the image, its attestations and its signature.
