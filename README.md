@@ -214,3 +214,7 @@ spec in [`docs/design-specs`](docs/design-specs).
 
 Every spec in [`docs/design-specs`](docs/design-specs) is built. New work
 starts as a new spec there.
+
+## License
+
+[MIT](LICENSE). Copyright (c) 2026 Chris Funderburg.
