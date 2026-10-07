@@ -5,6 +5,7 @@ import { Agent, interceptors, request } from 'undici';
 import { db } from '../db/index.js';
 import { feeds } from '../db/schema.js';
 import { env } from '../env.js';
+import { USER_AGENT } from './user-agent.js';
 
 /**
  * W3C WebSub, subscriber side (SPEC-021): hub discovery, subscribe/renew
@@ -153,7 +154,7 @@ async function postToHub(hubUrl: string, form: Record<string, string>): Promise<
     dispatcher,
     headersTimeout: 15_000,
     bodyTimeout: 15_000,
-    headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    headers: { 'content-type': 'application/x-www-form-urlencoded', 'user-agent': USER_AGENT },
     body: new URLSearchParams(form).toString(),
   });
   await res.body.dump();
