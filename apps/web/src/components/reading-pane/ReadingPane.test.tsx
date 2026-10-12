@@ -1,6 +1,6 @@
 import { DEFAULT_SETTINGS, type ArticleDetail, type Settings } from '@rss/shared';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { expect, test, vi } from 'vitest';
 import { api, ApiRequestError } from '@/lib/api';
 import { ReadingPane } from './ReadingPane';
@@ -77,6 +77,52 @@ test('on a phone the header scrolls with the article; from md up only the body s
   const pane = body.parentElement!;
   expect(pane).toHaveClass('max-md:overflow-y-auto');
   expect(body).toHaveClass('max-md:flex-none', 'md:overflow-y-auto');
+});
+
+// Many sites forbid a frame with a response header, and the browser then shows
+// an empty frame with no reason. The server checks; the pane says so.
+function mockEmbeddable(answer: () => Promise<unknown>) {
+  vi.mocked(api).mockImplementation(((path: string) =>
+    path.endsWith('/embeddable') ? answer() : new Promise(() => {})) as typeof api);
+}
+const resetApi = () => vi.mocked(api).mockImplementation(() => new Promise(() => {}));
+const WEB = { defaultArticleView: 'web' } as const;
+const WITH_URL = { url: 'https://status.example.org/incidents/1' };
+
+test('the Web view says when the site forbids a frame, with ways on', async () => {
+  mockEmbeddable(() => Promise.resolve({ embeddable: false, reason: 'x-frame-options' }));
+  renderPane(WEB, null, WITH_URL);
+  expect(
+    await screen.findByText('This site does not let other sites show its pages.'),
+  ).toBeInTheDocument();
+  expect(document.querySelector('iframe')).toBeNull();
+  // The header has an "Open original" too; this is the one in the message.
+  const blocked = screen.getByTestId('web-view-blocked');
+  const original = blocked.querySelector('a')!;
+  expect(original).toHaveAttribute('href', WITH_URL.url);
+  expect(original).toHaveAttribute('target', '_blank');
+
+  fireEvent.click(screen.getByRole('button', { name: 'Feed view' }));
+  expect(pressed()).toEqual(['Feed']);
+  resetApi();
+});
+
+test('the Web view shows the frame when the site allows it', async () => {
+  mockEmbeddable(() => Promise.resolve({ embeddable: true, reason: null }));
+  renderPane(WEB, null, WITH_URL);
+  await act(async () => {});
+  expect(document.querySelector('iframe')).toHaveAttribute('src', WITH_URL.url);
+  expect(screen.queryByTestId('web-view-blocked')).toBeNull();
+  resetApi();
+});
+
+test('the Web view keeps the frame while the check runs, and when it fails', async () => {
+  mockEmbeddable(() => Promise.reject(new Error('network')));
+  renderPane(WEB, null, WITH_URL);
+  expect(document.querySelector('iframe')).not.toBeNull(); // before any answer
+  await act(async () => {});
+  expect(document.querySelector('iframe')).not.toBeNull();
+  resetApi();
 });
 
 test('the Web view keeps the header in place at every size', () => {

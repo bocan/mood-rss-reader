@@ -1,4 +1,10 @@
-import { ARTICLE_VIEWS, type ArticleDetail, type ArticleView, type ReadingSize } from '@rss/shared';
+import {
+  ARTICLE_VIEWS,
+  type ArticleDetail,
+  type ArticleEmbeddable,
+  type ArticleView,
+  type ReadingSize,
+} from '@rss/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Download, ExternalLink, Landmark, Mail, MailOpen, Rss, Star } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
@@ -278,7 +284,12 @@ export function ReadingPane({
         )}
       >
         {view === 'web' ? (
-          <WebView article={article} online={online} />
+          <WebView
+            article={article}
+            online={online}
+            onSwitchFeed={() => chooseView('readable')}
+            onSwitchExtracted={() => chooseView('simplified')}
+          />
         ) : (
           <div className={column} data-testid="reading-column">
             {view === 'readable' && (
@@ -463,7 +474,27 @@ function ExtractedView({
   );
 }
 
-function WebView({ article, online }: { article: ArticleDetail; online: boolean }) {
+function WebView({
+  article,
+  online,
+  onSwitchFeed,
+  onSwitchExtracted,
+}: {
+  article: ArticleDetail;
+  online: boolean;
+  onSwitchFeed: () => void;
+  onSwitchExtracted: () => void;
+}) {
+  // Ask the server if the page may show in a frame. The frame loads at once
+  // and is replaced only when the answer is no, so a page that allows it is
+  // not held up. No answer (an error, offline): the frame stays, as before.
+  const embed = useQuery({
+    queryKey: ['embeddable', article.id],
+    queryFn: () => api<ArticleEmbeddable>(`/articles/${article.id}/embeddable`),
+    enabled: online && !!article.url,
+    staleTime: 10 * 60 * 1000,
+    retry: false,
+  });
   if (!article.url) {
     return <div className="p-4 text-sm text-muted-foreground">No original URL for this item.</div>;
   }
@@ -472,6 +503,32 @@ function WebView({ article, online }: { article: ArticleDetail; online: boolean 
     return (
       <div className="p-4 text-sm text-muted-foreground">
         The web page is not available offline. Try the Feed or Extracted view.
+      </div>
+    );
+  }
+  // The site said that it must not show in a frame: say so, with ways on.
+  // An empty frame gives no reason.
+  if (embed.data && !embed.data.embeddable) {
+    return (
+      <div className="space-y-3 p-6 text-sm" data-testid="web-view-blocked">
+        <p className="font-medium">This site does not let other sites show its pages.</p>
+        <p className="text-muted-foreground">
+          That is the site&apos;s own rule, so the Web view cannot show this page. Open it in a new
+          tab, or read it in another view.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild size="sm">
+            <a href={article.url} target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="size-4" /> Open original
+            </a>
+          </Button>
+          <Button size="sm" variant="outline" onClick={onSwitchFeed}>
+            Feed view
+          </Button>
+          <Button size="sm" variant="outline" onClick={onSwitchExtracted}>
+            Extracted view
+          </Button>
+        </div>
       </div>
     );
   }
