@@ -70,6 +70,17 @@ export const articleDetailSchema = z.object({
 });
 export type ArticleDetail = z.infer<typeof articleDetailSchema>;
 
+/**
+ * GET /articles/:id/embeddable: whether the article's own page may show in
+ * the Web view's frame. `reason` names the response header that forbids it.
+ * When the page could not be checked, `embeddable` is true: the browser tries.
+ */
+export const articleEmbeddableSchema = z.object({
+  embeddable: z.boolean(),
+  reason: z.enum(['x-frame-options', 'frame-ancestors']).nullable(),
+});
+export type ArticleEmbeddable = z.infer<typeof articleEmbeddableSchema>;
+
 /** Query for GET /articles/:id/readable. */
 export const readableQuerySchema = z.object({
   refresh: z.stringbool().optional(),

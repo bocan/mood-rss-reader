@@ -5,6 +5,7 @@ import {
   newArticleCountQuerySchema,
   readableQuerySchema,
   updateArticleStateSchema,
+  type ArticleEmbeddable,
   type MarkReadResult,
   type NewArticleCountQuery,
   type Paginated,
@@ -21,6 +22,7 @@ import {
   type CursorPayload,
   type SearchCursorPayload,
 } from '../lib/cursor.js';
+import { checkEmbeddable } from '../lib/embeddable.js';
 import { folderScopeIds, resolveSubscribedFeedIds } from '../lib/feed-scope.js';
 import { ensureReadableSnapshot } from '../lib/readable-snapshot.js';
 import { pastFirehoseExpiry } from '../lib/unread-counts.js';
@@ -372,6 +374,18 @@ export async function articleRoutes(app: FastifyInstance): Promise<void> {
     // attempt, so the view shows its fallback instead of hanging.
     const snapshot = await ensureReadableSnapshot(id, { force: query.refresh });
     return { ...detail, ...snapshot };
+  });
+
+  // For the Web view: may the article's own page show in a frame here? Many
+  // sites forbid it with a response header, and the browser then shows an
+  // empty frame with no reason. The origin is the one the reader is on (the
+  // proxy's Host and scheme, trustProxy), which is what the site's rule tests.
+  app.get('/articles/:id/embeddable', auth, async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const detail = await loadArticleDetail(request.user!.id, id);
+    if (!detail) return reply.code(404).send(notFound);
+    if (!detail.url) return { embeddable: false, reason: null } satisfies ArticleEmbeddable;
+    return checkEmbeddable(detail.url, `${request.protocol}://${request.host}`);
   });
 
   // Bulk mark-as-read across a feed, a folder's feeds, a tier, or All items, optionally
