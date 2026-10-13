@@ -111,9 +111,10 @@ SPA on `:3000`) and the feed worker.
 ### The published image
 
 Each push to `main` (and each `v*` tag) publishes
-`ghcr.io/bocan/mood-rss-reader` with an SBOM and full SLSA provenance
-attached, and a keyless cosign signature on its digest. To check an image
-before you run it:
+`ghcr.io/bocan/mood-rss-reader` for `linux/amd64` and `linux/arm64`, with an
+SBOM and full SLSA provenance attached for each platform, and a keyless cosign
+signature on the digest of the multi-platform index. To check an image before
+you run it:
 
 ```bash
 cosign verify ghcr.io/bocan/mood-rss-reader:main \
