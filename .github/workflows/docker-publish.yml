@@ -139,9 +139,15 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=sha,format=short
+        env:
+          # Prefix each annotation with "index:", for imagetools create below.
+          DOCKER_METADATA_ANNOTATIONS_LEVELS: index
 
       # Join the per-platform images into one index and tag it. The
       # attestation manifests of each platform go into the index with it.
+      # GHCR reads the package description from the index annotations, not
+      # from the image labels, so the index gets the same metadata as
+      # annotations.
       - name: Create and push the multi-platform index
         working-directory: ${{ runner.temp }}/digests
         env:
@@ -151,6 +157,9 @@ jobs:
           while read -r tag; do
             args+=(--tag "$tag")
           done < <(jq -r '.tags[]' <<< "$DOCKER_METADATA_OUTPUT_JSON")
+          while read -r annotation; do
+            args+=(--annotation "$annotation")
+          done < <(jq -r '.annotations[]' <<< "$DOCKER_METADATA_OUTPUT_JSON")
           for digest in *; do
             args+=("$IMAGE@sha256:$digest")
           done
