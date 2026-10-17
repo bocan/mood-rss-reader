@@ -70,7 +70,9 @@ describe('ownerCard', () => {
       page,
       { author: false },
     );
-    expect(html).not.toMatch(/<b>|<script>|"onmouseover=|"onerror=/);
+    for (const raw of ['<b>', '<script>', '"onmouseover=', '"onerror=']) {
+      expect(html).not.toContain(raw);
+    }
     expect(html).toContain('&quot;onmouseover=&quot;x');
     expect(html).toContain('&lt;b&gt;Chris&lt;/b&gt;');
   });
