@@ -10,6 +10,11 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# The job only reads the repo. Set it here, so a change to the repo default
+# cannot give the token more access.
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-26.04
