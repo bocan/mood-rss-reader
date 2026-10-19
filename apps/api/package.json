@@ -31,17 +31,17 @@
     "@rss/shared": "workspace:*",
     "drizzle-orm": "0.45.4",
     "fast-xml-parser": "5.11.2",
-    "fastify": "5.12.5",
+    "fastify": "5.12.7",
     "linkedom": "0.18.13",
     "node-html-parser": "9.0.4",
     "postgres": "3.4.9",
     "rss-parser": "3.13.0",
-    "sanitize-html": "2.18.0",
+    "sanitize-html": "2.18.1",
     "undici": "8.11.2",
-    "zod": "4.6.5"
+    "zod": "4.6.7"
   },
   "devDependencies": {
-    "@testcontainers/postgresql": "12.2.0",
+    "@testcontainers/postgresql": "12.2.1",
     "@types/node": "26.6.5",
     "@types/sanitize-html": "2.16.2",
     "drizzle-kit": "0.31.11",
@@ -50,6 +50,6 @@
     "tsup": "8.5.1",
     "tsx": "4.23.15",
     "typescript": "6.0.3",
-    "vitest": "5.0.3"
+    "vitest": "5.0.5"
   }
 }
