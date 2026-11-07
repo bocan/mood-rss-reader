@@ -32,7 +32,7 @@
     "drizzle-orm": "0.45.4",
     "fast-xml-parser": "5.11.2",
     "fastify": "5.12.8",
-    "linkedom": "0.18.14",
+    "linkedom": "0.18.15",
     "node-html-parser": "9.0.6",
     "postgres": "3.4.9",
     "rss-parser": "3.13.0",
