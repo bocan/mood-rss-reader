@@ -37,7 +37,7 @@
     "postgres": "3.4.9",
     "rss-parser": "3.13.0",
     "sanitize-html": "2.18.1",
-    "undici": "8.12.3",
+    "undici": "8.12.4",
     "zod": "4.6.7"
   },
   "devDependencies": {
