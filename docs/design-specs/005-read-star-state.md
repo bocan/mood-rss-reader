@@ -40,7 +40,7 @@ into bulk actions, unread counts, and optimistic UI. Verified against the code:
   next to their data in `apps/web/src/lib/` (see `auth.ts`). The article list
   (keyset pagination + infinite scroll) is built in SPEC-003 and its cache is
   a `useInfiniteQuery` with data shape `{ pages: Paginated<Article>[],
-  pageParams }`.
+pageParams }`.
 
 ## Goal
 
@@ -60,7 +60,7 @@ with no polling.
 - **Keyboard shortcuts** for read/star (SPEC-008). This spec builds the exact
   mutation hooks those shortcuts will call.
 - **Nested-folder rollups.** Folders can nest (`folders.parentId`), but folder
-  scoping here means *direct* membership only (subscriptions whose `folderId`
+  scoping here means _direct_ membership only (subscriptions whose `folderId`
   equals the target). Descendant-folder aggregation is deferred to SPEC-007,
   which owns the folder UI.
 - **Materialized or cached counts** (a counts table, Redis, a trigger).
@@ -138,6 +138,7 @@ app.post('/articles/mark-read', auth, async (request, reply) => {
 ```
 
 Notes:
+
 - The `set` clause touches only `read`/`read_at`; existing `starred`/
   `starred_at` on any conflicting row survive untouched.
 - The `where article_states.read = false` on the conflict branch makes the
@@ -145,11 +146,11 @@ Notes:
   mark-read does not rewrite `read_at`. New rows and unread rows are marked.
 - Empty `feedIds` (no subscriptions, or an empty folder) returns `204`, not an
   error.
-- Prefer the raw `db.execute(sql\`...\`)` form above over Drizzle's
-  insert-from-select builder: in drizzle-orm 0.45.2 the builder's interaction
-  with `onConflictDoUpdate ... where` is fiddly, and raw SQL keeps the whole
-  set-based statement legible. Columns are snake_case in raw SQL (the app maps
-  camelCase elsewhere via `casing: 'snake_case'`).
+- Prefer the raw `db.execute(sql\`...\`)`form above over Drizzle's
+insert-from-select builder: in drizzle-orm 0.45.2 the builder's interaction
+with`onConflictDoUpdate ... where`is fiddly, and raw SQL keeps the whole
+set-based statement legible. Columns are snake_case in raw SQL (the app maps
+camelCase elsewhere via`casing: 'snake_case'`).
 
 ### 3. `GET /api/feeds` (response change)
 
@@ -178,6 +179,7 @@ export interface UnreadCounts {
 ```
 
 Implementation:
+
 1. `getUnreadCountsByFeed(userId)` -> `[{ feedId, unreadCount }]` (the same
    helper `GET /feeds` uses, so the two never drift).
 2. Fetch `{ feedId, folderId }` for the user's subscriptions (one small query).
@@ -246,16 +248,16 @@ All hooks go in `apps/web/src/lib/` beside `auth.ts`, using the same
 - Subscriptions: `['feeds']` (existing).
 - Article list: `['articles', filters]` (a `useInfiniteQuery` from SPEC-003;
   `filters` is the serialized `{ feedId?, folderId?, unread?, starred?,
-  sort }`).
+sort }`).
 - Counts: `['counts']`.
 
 ### Hooks
 
 - **`useUnreadCounts()`** - `useQuery({ queryKey: ['counts'], queryFn: () =>
-  api<UnreadCounts>('/counts') })`. No polling; kept fresh by the optimistic
+api<UnreadCounts>('/counts') })`. No polling; kept fresh by the optimistic
   writes below and `onSettled` invalidation.
 - **`useToggleArticleState(articleId)`** - `useMutation` over `PATCH
-  /articles/:id/state`, body `{ read?: boolean; starred?: boolean }`.
+/articles/:id/state`, body `{ read?: boolean; starred?: boolean }`.
 - **`useMarkRead()`** - `useMutation` over `POST /articles/mark-read`, variables
   `{ feedId?; folderId?; before? }`.
 

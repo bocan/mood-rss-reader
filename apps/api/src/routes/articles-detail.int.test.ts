@@ -38,7 +38,11 @@ async function subscribedArticle(over: Record<string, unknown> = {}) {
 
 test('detail returns the full shape with feed context and default state', async () => {
   const { article, feed, cookie } = await subscribedArticle();
-  const res = await app.inject({ method: 'GET', url: `/api/articles/${article.id}`, headers: { cookie } });
+  const res = await app.inject({
+    method: 'GET',
+    url: `/api/articles/${article.id}`,
+    headers: { cookie },
+  });
   expect(res.statusCode).toBe(200);
   const body = res.json();
   expect(body.id).toBe(article.id);
@@ -50,7 +54,11 @@ test('detail returns the full shape with feed context and default state', async 
 test('detail reflects an existing state row', async () => {
   const { user, article, cookie } = await subscribedArticle();
   await seedArticleState(user.id, article.id, { read: true, starred: true });
-  const res = await app.inject({ method: 'GET', url: `/api/articles/${article.id}`, headers: { cookie } });
+  const res = await app.inject({
+    method: 'GET',
+    url: `/api/articles/${article.id}`,
+    headers: { cookie },
+  });
   expect(res.json()).toMatchObject({ read: true, starred: true });
 });
 
@@ -64,7 +72,11 @@ test('random uuid and non-subscribed article both 404 identically', async () => 
   // An article in a feed this user does not follow.
   const otherFeed = await seedFeed();
   const otherArticle = await seedArticle(otherFeed.id, {});
-  const foreign = await app.inject({ method: 'GET', url: `/api/articles/${otherArticle.id}`, headers: { cookie } });
+  const foreign = await app.inject({
+    method: 'GET',
+    url: `/api/articles/${otherArticle.id}`,
+    headers: { cookie },
+  });
 
   expect(random.statusCode).toBe(404);
   expect(foreign.statusCode).toBe(404);
@@ -73,7 +85,11 @@ test('random uuid and non-subscribed article both 404 identically', async () => 
 
 test('malformed id returns 404, not 500', async () => {
   const { cookie } = await subscribedArticle();
-  const res = await app.inject({ method: 'GET', url: '/api/articles/not-a-uuid', headers: { cookie } });
+  const res = await app.inject({
+    method: 'GET',
+    url: '/api/articles/not-a-uuid',
+    headers: { cookie },
+  });
   expect(res.statusCode).toBe(404);
 });
 
@@ -81,15 +97,27 @@ test('readable extracts once, caches, and refresh re-extracts', async () => {
   const { article, cookie } = await subscribedArticle();
   extractMock.mockResolvedValue('<p>clean</p>');
 
-  const first = await app.inject({ method: 'GET', url: `/api/articles/${article.id}/readable`, headers: { cookie } });
+  const first = await app.inject({
+    method: 'GET',
+    url: `/api/articles/${article.id}/readable`,
+    headers: { cookie },
+  });
   expect(first.statusCode).toBe(200);
   expect(first.json().readableHtml).toBe('<p>clean</p>');
   expect(extractMock).toHaveBeenCalledTimes(1);
 
-  await app.inject({ method: 'GET', url: `/api/articles/${article.id}/readable`, headers: { cookie } });
+  await app.inject({
+    method: 'GET',
+    url: `/api/articles/${article.id}/readable`,
+    headers: { cookie },
+  });
   expect(extractMock).toHaveBeenCalledTimes(1); // cache hit, no re-extract
 
-  await app.inject({ method: 'GET', url: `/api/articles/${article.id}/readable?refresh=true`, headers: { cookie } });
+  await app.inject({
+    method: 'GET',
+    url: `/api/articles/${article.id}/readable?refresh=true`,
+    headers: { cookie },
+  });
   expect(extractMock).toHaveBeenCalledTimes(2); // refresh forces it
 });
 
@@ -97,18 +125,30 @@ test('failed extraction is a 200 with null html and stops retrying', async () =>
   const { article, cookie } = await subscribedArticle();
   extractMock.mockResolvedValue(null);
 
-  const res = await app.inject({ method: 'GET', url: `/api/articles/${article.id}/readable`, headers: { cookie } });
+  const res = await app.inject({
+    method: 'GET',
+    url: `/api/articles/${article.id}/readable`,
+    headers: { cookie },
+  });
   expect(res.statusCode).toBe(200);
   expect(res.json().readableHtml).toBeNull();
   expect(res.json().readableFetchedAt).toBeTruthy();
 
-  await app.inject({ method: 'GET', url: `/api/articles/${article.id}/readable`, headers: { cookie } });
+  await app.inject({
+    method: 'GET',
+    url: `/api/articles/${article.id}/readable`,
+    headers: { cookie },
+  });
   expect(extractMock).toHaveBeenCalledTimes(1); // failed attempt is cached; no auto-retry
 });
 
 test('readable with a null url stamps the attempt (200) without extracting', async () => {
   const { article, cookie } = await subscribedArticle({ url: null });
-  const res = await app.inject({ method: 'GET', url: `/api/articles/${article.id}/readable`, headers: { cookie } });
+  const res = await app.inject({
+    method: 'GET',
+    url: `/api/articles/${article.id}/readable`,
+    headers: { cookie },
+  });
   // Degrades gracefully: no extraction, but the attempt is stamped and cached so
   // the Simplified view shows the "could not extract" fallback instead of hanging.
   expect(res.statusCode).toBe(200);
@@ -118,7 +158,11 @@ test('readable with a null url stamps the attempt (200) without extracting', asy
 
   // Cached: a second call does not re-attempt.
   extractMock.mockClear();
-  const again = await app.inject({ method: 'GET', url: `/api/articles/${article.id}/readable`, headers: { cookie } });
+  const again = await app.inject({
+    method: 'GET',
+    url: `/api/articles/${article.id}/readable`,
+    headers: { cookie },
+  });
   expect(again.statusCode).toBe(200);
   expect(extractMock).not.toHaveBeenCalled();
 });
@@ -145,7 +189,9 @@ test('a star captures the snapshot once, in the background; a repeat star does n
   expect((await snapshotOf(article.id)).readableFetchedAt).toBeNull();
 
   release('<p>kept safe</p>');
-  await vi.waitFor(async () => expect((await snapshotOf(article.id)).readableHtml).toBe('<p>kept safe</p>'));
+  await vi.waitFor(async () =>
+    expect((await snapshotOf(article.id)).readableHtml).toBe('<p>kept safe</p>'),
+  );
 
   await patchState(article.id, cookie, { starred: false });
   await patchState(article.id, cookie, { starred: true });
@@ -163,14 +209,18 @@ test('a share captures too; a read or an unstar does not', async () => {
   expect(extractMock).not.toHaveBeenCalled();
 
   await patchState(article.id, cookie, { shared: true });
-  await vi.waitFor(async () => expect((await snapshotOf(article.id)).readableHtml).toBe('<p>shared copy</p>'));
+  await vi.waitFor(async () =>
+    expect((await snapshotOf(article.id)).readableHtml).toBe('<p>shared copy</p>'),
+  );
 });
 
 test('a failed capture on star stamps the attempt, as the view does', async () => {
   const { article, cookie } = await subscribedArticle();
   extractMock.mockResolvedValue(null);
   await patchState(article.id, cookie, { starred: true });
-  await vi.waitFor(async () => expect((await snapshotOf(article.id)).readableFetchedAt).not.toBeNull());
+  await vi.waitFor(async () =>
+    expect((await snapshotOf(article.id)).readableFetchedAt).not.toBeNull(),
+  );
   expect((await snapshotOf(article.id)).readableHtml).toBeNull();
 });
 
@@ -187,7 +237,11 @@ test('PATCH state cannot star an article of a feed the user does not follow', as
 
   // Else the star would give access to the article, and fetch its page.
   expect((await patchState(other.id, cookie, { starred: true })).statusCode).toBe(404);
-  const detail = await app.inject({ method: 'GET', url: `/api/articles/${other.id}`, headers: { cookie } });
+  const detail = await app.inject({
+    method: 'GET',
+    url: `/api/articles/${other.id}`,
+    headers: { cookie },
+  });
   expect(detail.statusCode).toBe(404);
   await new Promise((r) => setTimeout(r, 50));
   expect(extractMock).not.toHaveBeenCalled();
@@ -223,7 +277,11 @@ test('readable enforces subscription scope (404, no extract)', async () => {
   const { cookie } = await subscribedArticle();
   const otherFeed = await seedFeed();
   const otherArticle = await seedArticle(otherFeed.id, { url: 'https://x.example/p' });
-  const res = await app.inject({ method: 'GET', url: `/api/articles/${otherArticle.id}/readable`, headers: { cookie } });
+  const res = await app.inject({
+    method: 'GET',
+    url: `/api/articles/${otherArticle.id}/readable`,
+    headers: { cookie },
+  });
   expect(res.statusCode).toBe(404);
   expect(extractMock).not.toHaveBeenCalled();
 });

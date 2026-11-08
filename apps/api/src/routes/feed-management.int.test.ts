@@ -45,7 +45,11 @@ test('PATCH sets article-view, hide-from-all, and the shared feed interval', asy
     fetchIntervalSec: 1800,
   });
   expect(res.statusCode).toBe(200);
-  expect(res.json()).toMatchObject({ articleView: 'web', hideFromAll: true, fetchIntervalSec: 1800 });
+  expect(res.json()).toMatchObject({
+    articleView: 'web',
+    hideFromAll: true,
+    fetchIntervalSec: 1800,
+  });
 
   // The interval lives on the shared feed row.
   const [row] = await db.select().from(feeds).where(eq(feeds.id, feed.id));
@@ -97,7 +101,9 @@ test('hidden feeds drop out of All items but stay reachable directly', async () 
   // Before hiding: All items sees all three unread; total is 3.
   const allBefore = await app.inject({ method: 'GET', url: '/api/articles', headers: { cookie } });
   expect(allBefore.json().items).toHaveLength(3);
-  expect((await app.inject({ method: 'GET', url: '/api/counts', headers: { cookie } })).json().total).toBe(3);
+  expect(
+    (await app.inject({ method: 'GET', url: '/api/counts', headers: { cookie } })).json().total,
+  ).toBe(3);
 
   await patchFeed(cookie, subHidden.id, { hideFromAll: true });
 
@@ -114,7 +120,9 @@ test('hidden feeds drop out of All items but stay reachable directly', async () 
   });
   expect(direct.json().items).toHaveLength(2);
 
-  const counts = (await app.inject({ method: 'GET', url: '/api/counts', headers: { cookie } })).json();
+  const counts = (
+    await app.inject({ method: 'GET', url: '/api/counts', headers: { cookie } })
+  ).json();
   expect(counts.total).toBe(1); // only the shown feed
   expect(counts.feeds.find((f: { feedId: string }) => f.feedId === hidden.id).unreadCount).toBe(2);
 
@@ -142,7 +150,11 @@ test('the poller honors coalesce(feed override, app default)', async () => {
 
 test('a due early retry makes a feed due before its interval (#29)', async () => {
   const justNow = new Date(Date.now() - 60 * 1000);
-  const retryDue = await seedFeed({ fetchIntervalSec: 3600, lastFetchedAt: justNow, retryAt: justNow });
+  const retryDue = await seedFeed({
+    fetchIntervalSec: 3600,
+    lastFetchedAt: justNow,
+    retryAt: justNow,
+  });
   const retryLater = await seedFeed({
     fetchIntervalSec: 3600,
     lastFetchedAt: justNow,

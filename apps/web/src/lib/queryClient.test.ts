@@ -19,7 +19,10 @@ test('inlineError mutations do not toast (the form shows it)', () => {
 });
 
 test('with no meta, the server message is used, else a generic one', () => {
-  onMutationError(new ApiRequestError(400, { error: 'x', message: 'Name taken', statusCode: 400 }), undefined);
+  onMutationError(
+    new ApiRequestError(400, { error: 'x', message: 'Name taken', statusCode: 400 }),
+    undefined,
+  );
   expect(toast.error).toHaveBeenLastCalledWith('Name taken', {});
 
   onMutationError(new Error('boom'), undefined);
@@ -28,10 +31,7 @@ test('with no meta, the server message is used, else a generic one', () => {
 
 test('a dropped connection says so', () => {
   onMutationError(new TypeError('Failed to fetch'), undefined);
-  expect(toast.error).toHaveBeenLastCalledWith(
-    'Something went wrong. Check your connection.',
-    {},
-  );
+  expect(toast.error).toHaveBeenLastCalledWith('Something went wrong. Check your connection.', {});
 });
 
 test('a 401 says the session ended, whatever the meta', () => {

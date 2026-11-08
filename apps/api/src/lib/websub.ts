@@ -68,8 +68,7 @@ function xmlRelLinks(xmlBody: string): RelLink[] {
   }
   const feed = doc.feed as Record<string, unknown> | undefined;
   const channel = (doc.rss as Record<string, unknown> | undefined)?.channel as
-    | Record<string, unknown>
-    | undefined;
+    Record<string, unknown> | undefined;
   const nodes = [
     ...toArray(feed?.link),
     ...toArray(channel?.['atom:link']),

@@ -59,36 +59,48 @@ Two tables in `apps/api/src/db/schema.ts`:
 
 ```ts
 // A named, scoped search pinned to the sidebar (SPEC-025).
-export const savedSearches = pgTable('saved_searches', {
-  id: uuid().primaryKey().defaultRandom(),
-  userId: uuid().notNull().references(() => users.id, { onDelete: 'cascade' }),
-  name: text().notNull(),
-  q: text().notNull(),
-  // Optional scope captured at save time. feedId cascades (a vanished feed
-  // must not silently widen the search); folderId nulls out (folder
-  // deletion already promotes its contents, and the search then covers
-  // all feeds, matching what the user sees elsewhere).
-  feedId: uuid().references(() => feeds.id, { onDelete: 'cascade' }),
-  folderId: uuid().references(() => folders.id, { onDelete: 'set null' }),
-  starred: boolean().notNull().default(false),
-  unread: boolean(), // null = both, matching the tri-state filter
-  position: integer().notNull().default(0),
-  createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
-}, (t) => [index('saved_searches_user_id_idx').on(t.userId)]);
+export const savedSearches = pgTable(
+  'saved_searches',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    userId: uuid()
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    name: text().notNull(),
+    q: text().notNull(),
+    // Optional scope captured at save time. feedId cascades (a vanished feed
+    // must not silently widen the search); folderId nulls out (folder
+    // deletion already promotes its contents, and the search then covers
+    // all feeds, matching what the user sees elsewhere).
+    feedId: uuid().references(() => feeds.id, { onDelete: 'cascade' }),
+    folderId: uuid().references(() => folders.id, { onDelete: 'set null' }),
+    starred: boolean().notNull().default(false),
+    unread: boolean(), // null = both, matching the tri-state filter
+    position: integer().notNull().default(0),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('saved_searches_user_id_idx').on(t.userId)],
+);
 
 // A standing ingestion rule (SPEC-025): when <field> contains <phrase>
 // (case-insensitive) in <feed | all subscribed feeds>, do <action>.
-export const filterRules = pgTable('filter_rules', {
-  id: uuid().primaryKey().defaultRandom(),
-  userId: uuid().notNull().references(() => users.id, { onDelete: 'cascade' }),
-  // null = every feed the user is subscribed to at match time.
-  feedId: uuid().references(() => feeds.id, { onDelete: 'cascade' }),
-  field: text().notNull(),   // 'title' | 'author' | 'content'
-  phrase: text().notNull(),
-  action: text().notNull(),  // 'markRead' | 'star'
-  enabled: boolean().notNull().default(true),
-  createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
-}, (t) => [index('filter_rules_user_feed_idx').on(t.userId, t.feedId)]);
+export const filterRules = pgTable(
+  'filter_rules',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    userId: uuid()
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    // null = every feed the user is subscribed to at match time.
+    feedId: uuid().references(() => feeds.id, { onDelete: 'cascade' }),
+    field: text().notNull(), // 'title' | 'author' | 'content'
+    phrase: text().notNull(),
+    action: text().notNull(), // 'markRead' | 'star'
+    enabled: boolean().notNull().default(true),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('filter_rules_user_feed_idx').on(t.userId, t.feedId)],
+);
 ```
 
 `packages/shared/src/types.ts`:
@@ -197,16 +209,18 @@ through one function so SPEC-021 (WebSub pushes) inherits rules for free:
 
 ```ts
 // lib/feed-fetch.ts
-export async function storeNewArticles(
-  feedId: string,
-  rows: NewArticleInsert[],
-): Promise<void> {
+export async function storeNewArticles(feedId: string, rows: NewArticleInsert[]): Promise<void> {
   if (rows.length === 0) return;
-  const inserted = await db.insert(articles).values(rows)
+  const inserted = await db
+    .insert(articles)
+    .values(rows)
     .onConflictDoNothing({ target: [articles.feedId, articles.guid] })
     .returning({
-      id: articles.id, title: articles.title, author: articles.author,
-      contentText: articles.contentText, summary: articles.summary,
+      id: articles.id,
+      title: articles.title,
+      author: articles.author,
+      contentText: articles.contentText,
+      summary: articles.summary,
     });
   if (inserted.length > 0) await applyFilterRules(feedId, inserted);
 }

@@ -7,7 +7,13 @@ import { cn } from '@/lib/utils';
  * showing (the image is already in cache from that preload, so it fades in
  * immediately). There is deliberately no favicon or placeholder fallback.
  */
-export function ArticleThumbnail({ imageUrl, className }: { imageUrl: string; className?: string }) {
+export function ArticleThumbnail({
+  imageUrl,
+  className,
+}: {
+  imageUrl: string;
+  className?: string;
+}) {
   const [loaded, setLoaded] = useState(false);
   return (
     <div className={cn('overflow-hidden rounded-md bg-muted', className)}>

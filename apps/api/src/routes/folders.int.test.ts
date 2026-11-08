@@ -43,7 +43,11 @@ async function folderScope(userId: string, parentId: string | null) {
 
 async function subsInFolder(userId: string, folderId: string | null) {
   const rows = await db
-    .select({ id: subscriptions.id, position: subscriptions.position, folderId: subscriptions.folderId })
+    .select({
+      id: subscriptions.id,
+      position: subscriptions.position,
+      folderId: subscriptions.folderId,
+    })
     .from(subscriptions)
     .where(eq(subscriptions.userId, userId))
     .orderBy(asc(subscriptions.position));
@@ -302,7 +306,9 @@ test('reordering subscriptions renormalizes both the old and new scope', async (
   const cookie = await loginAs(user);
 
   // Move the middle one into a folder at index 0.
-  expect((await patchFeed(cookie, s2.id, { folderId: folder.id, position: 0 })).statusCode).toBe(200);
+  expect((await patchFeed(cookie, s2.id, { folderId: folder.id, position: 0 })).statusCode).toBe(
+    200,
+  );
 
   const root = await subsInFolder(user.id, null);
   expect(root.map((s) => s.id)).toEqual([s1.id, s3.id]);

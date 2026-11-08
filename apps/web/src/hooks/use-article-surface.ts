@@ -167,9 +167,7 @@ export function useArticleSurface(
     (delta: number, open = false) => {
       const list = itemsRef.current;
       if (list.length === 0) return;
-      const at = focusedIdRef.current
-        ? list.findIndex((a) => a.id === focusedIdRef.current)
-        : -1;
+      const at = focusedIdRef.current ? list.findIndex((a) => a.id === focusedIdRef.current) : -1;
       let next: number;
       if (at !== -1) next = at + delta;
       else if (focusedIdRef.current && lastIndexRef.current >= 0) {

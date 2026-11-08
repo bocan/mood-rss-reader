@@ -104,7 +104,11 @@ export async function opmlRoutes(app: FastifyInstance): Promise<void> {
           if (outline.xmlUrl) {
             // Canonical form so an OPML variant of an already-known feed
             // (trailing slash, host case) matches its existing row.
-            pending.push({ title: outline.title, xmlUrl: normalizeFeedUrl(outline.xmlUrl), folderId });
+            pending.push({
+              title: outline.title,
+              xmlUrl: normalizeFeedUrl(outline.xmlUrl),
+              folderId,
+            });
             continue;
           }
           // No xmlUrl but a htmlUrl and no children: a bare link we cannot
@@ -123,9 +127,11 @@ export async function opmlRoutes(app: FastifyInstance): Promise<void> {
           }
           // Folder. Only nest one level; deeper outlines reuse this folder.
           const targetId =
-            depth === 0 ? await ensureFolder(outline.title, null)
-            : depth === 1 ? await ensureFolder(outline.title, folderId)
-            : folderId;
+            depth === 0
+              ? await ensureFolder(outline.title, null)
+              : depth === 1
+                ? await ensureFolder(outline.title, folderId)
+                : folderId;
           await walk(outline.children, targetId, depth + 1);
         }
       }

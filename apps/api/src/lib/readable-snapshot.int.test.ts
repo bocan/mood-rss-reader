@@ -33,7 +33,10 @@ test('captures and stores a snapshot on the first call', async () => {
 
 test('an attempt already made, good or failed, is not fetched again', async () => {
   const feed = await seedFeed();
-  const failed = await seedArticle(feed.id, { url: 'https://site.example/a', readableFetchedAt: new Date() });
+  const failed = await seedArticle(feed.id, {
+    url: 'https://site.example/a',
+    readableFetchedAt: new Date(),
+  });
   const good = await seedArticle(feed.id, {
     url: 'https://site.example/b',
     readableHtml: '<p>kept</p>',

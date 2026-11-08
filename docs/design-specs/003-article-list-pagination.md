@@ -132,7 +132,7 @@ encode/decode helpers in a new file `apps/api/src/lib/cursor.ts`:
 import { z } from 'zod';
 
 const cursorPayloadSchema = z.object({
-  t: z.string(),   // ISO timestamp of the row's effective sort key
+  t: z.string(), // ISO timestamp of the row's effective sort key
   id: z.uuid(),
 });
 export type CursorPayload = z.infer<typeof cursorPayloadSchema>;
@@ -242,6 +242,7 @@ another entry pushed onto the same `filters` array):
   narrow together (feed within that folder) rather than erroring; the UI never
   sends both today. If the resolved feed set is empty, return
   `{ items: [], nextCursor: null }` without querying `articles`, as today.
+
 - **`unread`** - unchanged. Left join `article_states` on
   `(articleId = articles.id AND userId = caller)`; a missing row means unread:
   `coalesce(article_states.read, false) = ${!query.unread}`.
@@ -380,8 +381,8 @@ into the shared client contract.
   it directly and fetch `limit + 1` for the peek. No new schema field.
 - **Order of work** (each step is independently testable): (1) `cursor.ts` with
   unit tests (pure functions); (2) the route (feed resolution + filters + keyset
-  + the new index); (3) the web hook; (4) the `ReaderPage` list render and
-  sentinel last, since it depends on the route's real response shape.
+  - the new index); (3) the web hook; (4) the `ReaderPage` list render and
+    sentinel last, since it depends on the route's real response shape.
 - Security: the only cross-user surface is `article_states`; every other filter
   is gated by the `userId`-scoped subscription resolution. A malformed or
   forged cursor can never widen scope because it only constrains the ordering

@@ -48,7 +48,11 @@ function renderList(items: SavedSearchDto[], activeId: string | null = null) {
   const onOpen = vi.fn();
   const view = render(
     <QueryClientProvider client={qc}>
-      <SavedSearchList activeId={activeId} onOpen={onOpen} itemClass={(a) => (a ? 'active' : 'idle')} />
+      <SavedSearchList
+        activeId={activeId}
+        onOpen={onOpen}
+        itemClass={(a) => (a ? 'active' : 'idle')}
+      />
     </QueryClientProvider>,
   );
   return { onOpen, view };
@@ -61,7 +65,10 @@ const openMenu = (name: string) => {
 const sent = (method: string) =>
   fetchMock.mock.calls
     .filter(([, init]) => init?.method === method)
-    .map(([url, init]) => ({ url: String(url), body: init.body ? JSON.parse(String(init.body)) : undefined }));
+    .map(([url, init]) => ({
+      url: String(url),
+      body: init.body ? JSON.parse(String(init.body)) : undefined,
+    }));
 
 test('nothing at all when there are no saved searches', () => {
   const { view } = renderList([]);
@@ -74,7 +81,10 @@ test('a heading and one row per search; a click opens it', () => {
   expect(screen.getByRole('heading', { name: 'Saved searches' })).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: 'Postgres' }));
   expect(onOpen).toHaveBeenCalledWith(pg);
-  expect(screen.getByRole('button', { name: 'Postgres' })).toHaveAttribute('title', 'Search for "postgres"');
+  expect(screen.getByRole('button', { name: 'Postgres' })).toHaveAttribute(
+    'title',
+    'Search for "postgres"',
+  );
 });
 
 test('the open search is marked', () => {
@@ -91,7 +101,9 @@ test('Rename from the menu saves the new name', async () => {
   const input = await screen.findByDisplayValue('Postgres');
   fireEvent.change(input, { target: { value: 'PG news' } });
   fireEvent.keyDown(input, { key: 'Enter' });
-  await waitFor(() => expect(sent('PATCH')).toEqual([{ url: '/api/searches/s1', body: { name: 'PG news' } }]));
+  await waitFor(() =>
+    expect(sent('PATCH')).toEqual([{ url: '/api/searches/s1', body: { name: 'PG news' } }]),
+  );
   expect(screen.getByRole('button', { name: 'PG news' })).toBeInTheDocument();
 });
 
@@ -107,7 +119,11 @@ test('Delete asks first', async () => {
   confirmMock.mockReturnValue(true);
   openMenu('Postgres');
   fireEvent.click(screen.getByRole('menuitem', { name: 'Delete' }));
-  await waitFor(() => expect(sent('DELETE')).toEqual([{ url: '/api/searches/s1', body: undefined }]));
+  await waitFor(() =>
+    expect(sent('DELETE')).toEqual([{ url: '/api/searches/s1', body: undefined }]),
+  );
   // The reload shows the list without it.
-  await waitFor(() => expect(screen.queryByRole('button', { name: 'Postgres' })).not.toBeInTheDocument());
+  await waitFor(() =>
+    expect(screen.queryByRole('button', { name: 'Postgres' })).not.toBeInTheDocument(),
+  );
 });

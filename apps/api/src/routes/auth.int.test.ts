@@ -4,13 +4,7 @@ import { afterAll, beforeAll, beforeEach, expect, test } from 'vitest';
 import { buildApp } from '../app.js';
 import { db } from '../db/index.js';
 import { appSettings, invites, users } from '../db/schema.js';
-import {
-  loginAs,
-  resetDb,
-  seedAdmin,
-  seedInvite,
-  seedUser,
-} from '../../test/helpers.js';
+import { loginAs, resetDb, seedAdmin, seedInvite, seedUser } from '../../test/helpers.js';
 import type { RegistrationMode } from '@rss/shared';
 
 let app: FastifyInstance;
@@ -30,7 +24,13 @@ const register = (over: Record<string, string> = {}) =>
   app.inject({
     method: 'POST',
     url: '/api/auth/register',
-    payload: { email: 'a@example.com', username: 'alice', displayName: 'Alice', password: 'supersecret1', ...over },
+    payload: {
+      email: 'a@example.com',
+      username: 'alice',
+      displayName: 'Alice',
+      password: 'supersecret1',
+      ...over,
+    },
   });
 
 async function setMode(mode: RegistrationMode): Promise<void> {
@@ -95,7 +95,11 @@ test('bad credentials return 401', async () => {
 
 test('loginAs helper yields a working session cookie', async () => {
   const user = await seedUser({ username: 'carol' });
-  const me = await app.inject({ method: 'GET', url: '/api/auth/me', headers: { cookie: await loginAs(user) } });
+  const me = await app.inject({
+    method: 'GET',
+    url: '/api/auth/me',
+    headers: { cookie: await loginAs(user) },
+  });
   expect(me.statusCode).toBe(200);
   expect(me.json().id).toBe(user.id);
 });
@@ -205,12 +209,16 @@ test('a disabled user cannot log in and their session stops resolving', async ()
   const user = await seedUser({ username: 'dave', passwordHash: 'x' });
   const cookie = await loginAs(user);
   // Session works before disabling.
-  expect((await app.inject({ method: 'GET', url: '/api/auth/me', headers: { cookie } })).statusCode).toBe(200);
+  expect(
+    (await app.inject({ method: 'GET', url: '/api/auth/me', headers: { cookie } })).statusCode,
+  ).toBe(200);
 
   await db.update(users).set({ disabledAt: new Date() }).where(eq(users.id, user.id));
 
   // Existing cookie no longer resolves.
-  expect((await app.inject({ method: 'GET', url: '/api/auth/me', headers: { cookie } })).statusCode).toBe(401);
+  expect(
+    (await app.inject({ method: 'GET', url: '/api/auth/me', headers: { cookie } })).statusCode,
+  ).toBe(401);
 });
 
 // --- Account settings (SPEC-017) ----------------------------------------
@@ -227,7 +235,12 @@ const me = (cookie: string) =>
 const patchMe = (cookie: string, body: Record<string, unknown>) =>
   app.inject({ method: 'PATCH', url: '/api/auth/me', headers: { cookie }, payload: body });
 const changePassword = (cookie: string, body: Record<string, unknown>) =>
-  app.inject({ method: 'POST', url: '/api/auth/change-password', headers: { cookie }, payload: body });
+  app.inject({
+    method: 'POST',
+    url: '/api/auth/change-password',
+    headers: { cookie },
+    payload: body,
+  });
 const login = (identifier: string, password: string) =>
   app.inject({ method: 'POST', url: '/api/auth/login', payload: { identifier, password } });
 
@@ -254,12 +267,18 @@ test('PATCH /auth/me re-saving your own email succeeds', async () => {
 test('PATCH /auth/me with an empty body is 400, and anonymous is 401', async () => {
   const { cookie } = await registerAlice();
   expect((await patchMe(cookie, {})).statusCode).toBe(400);
-  expect((await app.inject({ method: 'PATCH', url: '/api/auth/me', payload: { displayName: 'X' } })).statusCode).toBe(401);
+  expect(
+    (await app.inject({ method: 'PATCH', url: '/api/auth/me', payload: { displayName: 'X' } }))
+      .statusCode,
+  ).toBe(401);
 });
 
 test('change-password: wrong current is 400 and leaves the old password working', async () => {
   const { cookie } = await registerAlice();
-  const res = await changePassword(cookie, { currentPassword: 'wrongpass', newPassword: 'brandnewpass9' });
+  const res = await changePassword(cookie, {
+    currentPassword: 'wrongpass',
+    newPassword: 'brandnewpass9',
+  });
   expect(res.statusCode).toBe(400);
   expect((await login('alice', 'supersecret1')).statusCode).toBe(200);
 });

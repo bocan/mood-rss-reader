@@ -39,3 +39,6 @@ apps/api/.test-db-url
 
 # Docker volumes (if bind-mounted locally)
 .data/
+
+# Caddy internal CA root cert, exported per machine (see docker/Caddyfile)
+caddy-root.crt

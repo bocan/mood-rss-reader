@@ -295,16 +295,20 @@ for the `err.body` cast.
   when `faviconUrl` is null:
 
   ```tsx
-  {s.faviconUrl ? (
-    <img
-      src={s.faviconUrl}
-      alt=""
-      className="size-4 shrink-0 rounded-sm"
-      onError={(e) => { e.currentTarget.style.display = 'none'; }}
-    />
-  ) : (
-    <Rss className="size-4 shrink-0 text-muted-foreground" />
-  )}
+  {
+    s.faviconUrl ? (
+      <img
+        src={s.faviconUrl}
+        alt=""
+        className="size-4 shrink-0 rounded-sm"
+        onError={(e) => {
+          e.currentTarget.style.display = 'none';
+        }}
+      />
+    ) : (
+      <Rss className="size-4 shrink-0 text-muted-foreground" />
+    );
+  }
   ```
 
   Keep the existing `title` fallback chain (`customTitle ?? title ?? feedUrl`)
@@ -417,7 +421,7 @@ Functions to export:
      `feedArticleRows(feed.id, result.parsed)` with `onConflictDoNothing({ target: [articles.feedId, articles.guid] })`.
    - Wrap the whole thing in the same try/catch `pollFeed` uses: on error, set
      `lastFetchedAt`, `lastError: message`, `failureCount: sql` + 1`. Do not
-     rethrow. This is what lets `POST /feeds` create a subscribable row for a
+rethrow. This is what lets `POST /feeds` create a subscribable row for a
      feed that is momentarily down.
 
 Then `pollFeed(feed)` becomes a thin wrapper:

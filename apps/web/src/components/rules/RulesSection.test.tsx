@@ -19,12 +19,19 @@ const rule = (over: Partial<FilterRuleDto> = {}): FilterRuleDto => ({
   createdAt: '',
   ...over,
 });
-const sub = { feedId: 'f1', subscriptionId: 's1', title: 'CSS Tricks', customTitle: null, feedUrl: 'https://x/rss' } as SubscriptionRow;
+const sub = {
+  feedId: 'f1',
+  subscriptionId: 's1',
+  title: 'CSS Tricks',
+  customTitle: null,
+  feedUrl: 'https://x/rss',
+} as SubscriptionRow;
 
 // A tiny rules server: the list reloads after each change, as in the app.
 let server: FilterRuleDto[];
 let fetchMock: ReturnType<typeof vi.fn>;
-const ok = (status: number, body: unknown) => ({ ok: true, status, json: async () => body }) as Response;
+const ok = (status: number, body: unknown) =>
+  ({ ok: true, status, json: async () => body }) as Response;
 beforeEach(() => {
   fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
     const method = init?.method ?? 'GET';
@@ -39,7 +46,10 @@ beforeEach(() => {
     }
     if (method === 'PATCH') {
       server = server.map((r) => (r.id === id ? { ...r, ...body } : r));
-      return ok(200, server.find((r) => r.id === id));
+      return ok(
+        200,
+        server.find((r) => r.id === id),
+      );
     }
     server = server.filter((r) => r.id !== id);
     return ok(204, undefined);
@@ -66,7 +76,10 @@ function renderSection(rules: FilterRuleDto[]) {
 const calls = (method: string) =>
   fetchMock.mock.calls
     .filter(([, init]) => init?.method === method)
-    .map(([url, init]) => ({ url: String(url), body: init?.body ? JSON.parse(String(init.body)) : undefined }));
+    .map(([url, init]) => ({
+      url: String(url),
+      body: init?.body ? JSON.parse(String(init.body)) : undefined,
+    }));
 
 test('each rule reads as a sentence', () => {
   renderSection([
@@ -74,10 +87,16 @@ test('each rule reads as a sentence', () => {
     rule({ id: 'r2', field: 'author', phrase: 'Simon', action: 'star', feedId: 'f1' }),
     rule({ id: 'r3', feedId: 'gone', field: 'content', phrase: 'giveaway' }),
   ]);
-  expect(screen.getByText('When the title contains "sponsored", in all feeds, mark it read.')).toBeInTheDocument();
-  expect(screen.getByText('When the author contains "Simon", in CSS Tricks, star it.')).toBeInTheDocument();
   expect(
-    screen.getByText('When the text contains "giveaway", in a feed you no longer follow, mark it read.'),
+    screen.getByText('When the title contains "sponsored", in all feeds, mark it read.'),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByText('When the author contains "Simon", in CSS Tricks, star it.'),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByText(
+      'When the text contains "giveaway", in a feed you no longer follow, mark it read.',
+    ),
   ).toBeInTheDocument();
 });
 
@@ -86,7 +105,9 @@ test('the switch turns a rule off', async () => {
   const on = screen.getByRole('checkbox', { name: 'Rule on' });
   expect(on).toBeChecked();
   fireEvent.click(on);
-  await waitFor(() => expect(calls('PATCH')).toEqual([{ url: '/api/rules/r1', body: { enabled: false } }]));
+  await waitFor(() =>
+    expect(calls('PATCH')).toEqual([{ url: '/api/rules/r1', body: { enabled: false } }]),
+  );
   expect(on).not.toBeChecked();
 });
 
@@ -102,23 +123,34 @@ test('Delete asks first', async () => {
   vi.stubGlobal('confirm', confirmMock);
   renderSection([rule()]);
   fireEvent.click(screen.getByRole('button', { name: 'Delete rule' }));
-  expect(confirmMock).toHaveBeenCalledWith(expect.stringContaining('When the title contains "sponsored"'));
+  expect(confirmMock).toHaveBeenCalledWith(
+    expect.stringContaining('When the title contains "sponsored"'),
+  );
   await waitFor(() => expect(calls('DELETE')).toEqual([{ url: '/api/rules/r1', body: undefined }]));
 });
 
 test('the add form sends the four choices, trimmed', async () => {
   renderSection([]);
-  fireEvent.change(screen.getByRole('combobox', { name: 'Field' }), { target: { value: 'author' } });
-  fireEvent.change(screen.getByRole('textbox', { name: 'Phrase' }), { target: { value: ' Simon ' } });
+  fireEvent.change(screen.getByRole('combobox', { name: 'Field' }), {
+    target: { value: 'author' },
+  });
+  fireEvent.change(screen.getByRole('textbox', { name: 'Phrase' }), {
+    target: { value: ' Simon ' },
+  });
   fireEvent.change(screen.getByRole('combobox', { name: 'Feed' }), { target: { value: 'f1' } });
   fireEvent.change(screen.getByRole('combobox', { name: 'Action' }), { target: { value: 'star' } });
   fireEvent.click(screen.getByRole('button', { name: 'Add rule' }));
   await waitFor(() =>
     expect(calls('POST')).toEqual([
-      { url: '/api/rules', body: { field: 'author', phrase: 'Simon', action: 'star', feedId: 'f1' } },
+      {
+        url: '/api/rules',
+        body: { field: 'author', phrase: 'Simon', action: 'star', feedId: 'f1' },
+      },
     ]),
   );
-  expect(await screen.findByText('When the author contains "Simon", in CSS Tricks, star it.')).toBeInTheDocument();
+  expect(
+    await screen.findByText('When the author contains "Simon", in CSS Tricks, star it.'),
+  ).toBeInTheDocument();
   expect(screen.getByRole('textbox', { name: 'Phrase' })).toHaveValue('');
 });
 
@@ -128,7 +160,11 @@ test('a refused rule shows the reason by the form', async () => {
       ({
         ok: false,
         status: 400,
-        json: async () => ({ error: 'too_many_rules', message: 'You can have up to 100 rules', statusCode: 400 }),
+        json: async () => ({
+          error: 'too_many_rules',
+          message: 'You can have up to 100 rules',
+          statusCode: 400,
+        }),
       }) as Response,
   );
   renderSection([]);

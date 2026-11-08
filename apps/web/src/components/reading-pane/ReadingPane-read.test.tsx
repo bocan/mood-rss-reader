@@ -52,9 +52,7 @@ function renderPane(read: boolean, settings: Partial<Settings> = {}) {
 }
 
 const readBodies = () =>
-  api.mock.calls
-    .filter(([path]) => path.endsWith('/state'))
-    .map(([, init]) => init?.body?.read);
+  api.mock.calls.filter(([path]) => path.endsWith('/state')).map(([, init]) => init?.body?.read);
 const isRead = () => qc.getQueryData<ArticleDetail>(['article', 'a1'])!.read;
 const flush = () => act(async () => {});
 

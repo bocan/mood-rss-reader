@@ -22,5 +22,6 @@ test.each([
   expect(screen.queryByRole('menu')).toBeNull();
   // Focus went back to "+" first, so a dialog returns it there.
   expect(trigger).toHaveFocus();
-  for (const other of Object.values(props)) if (other !== props[handler]) expect(other).not.toHaveBeenCalled();
+  for (const other of Object.values(props))
+    if (other !== props[handler]) expect(other).not.toHaveBeenCalled();
 });

@@ -33,7 +33,11 @@ const envSchema = z.object({
   FEED_POLL_CONCURRENCY: z.coerce.number().int().positive().default(8),
 
   // Largest OPML document accepted by POST /opml/import (SPEC-009).
-  OPML_MAX_BYTES: z.coerce.number().int().positive().default(5 * 1024 * 1024),
+  OPML_MAX_BYTES: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(5 * 1024 * 1024),
 
   // Public base URL of this instance (scheme + host, no trailing slash).
   // Used for absolute links on the public share pages/feeds (SPEC-019).

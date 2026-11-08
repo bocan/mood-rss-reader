@@ -16,9 +16,7 @@ export function FeedProblemsDialog({ onOpenChange }: { onOpenChange: (open: bool
 
   // One dialog at a time: Edit swaps this list for the feed's settings.
   if (editing) {
-    return (
-      <FeedSettingsDialog sub={editing} onOpenChange={(open) => !open && setEditing(null)} />
-    );
+    return <FeedSettingsDialog sub={editing} onOpenChange={(open) => !open && setEditing(null)} />;
   }
   return (
     <Dialog open onOpenChange={onOpenChange}>
@@ -32,7 +30,9 @@ export function FeedProblemsDialog({ onOpenChange }: { onOpenChange: (open: bool
           <ul className="space-y-4">
             {failing.map((sub) => (
               <li key={sub.subscriptionId} className="space-y-1">
-                <h3 className="text-sm font-semibold">{sub.customTitle ?? sub.title ?? sub.feedUrl}</h3>
+                <h3 className="text-sm font-semibold">
+                  {sub.customTitle ?? sub.title ?? sub.feedUrl}
+                </h3>
                 <FeedProblem sub={sub} onEdit={() => setEditing(sub)} />
               </li>
             ))}

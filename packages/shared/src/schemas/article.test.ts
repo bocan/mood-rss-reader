@@ -7,7 +7,9 @@ const ids = (n: number) =>
 describe('markUnreadSchema', () => {
   test('takes up to MARK_UNREAD_MAX ids, and refuses one more', () => {
     expect(markUnreadSchema.safeParse({ articleIds: ids(MARK_UNREAD_MAX) }).success).toBe(true);
-    expect(markUnreadSchema.safeParse({ articleIds: ids(MARK_UNREAD_MAX + 1) }).success).toBe(false);
+    expect(markUnreadSchema.safeParse({ articleIds: ids(MARK_UNREAD_MAX + 1) }).success).toBe(
+      false,
+    );
   });
   test('a full batch fits in the default Fastify 1 MiB body limit', () => {
     const body = JSON.stringify({ articleIds: ids(MARK_UNREAD_MAX) });

@@ -182,10 +182,7 @@ async function articleScope(
   // subscription: they survive an unsubscribe (#16). A feed, folder, or tier
   // narrowing still means "within my subscriptions".
   const isStateScope =
-    Boolean(query.starred || query.shared) &&
-    !query.feedId &&
-    !query.folderId &&
-    !query.attention;
+    Boolean(query.starred || query.shared) && !query.feedId && !query.folderId && !query.attention;
   const subs = await db
     .select({ feedId: subscriptions.feedId, attention: subscriptions.attention })
     .from(subscriptions)
@@ -513,7 +510,9 @@ export async function articleRoutes(app: FastifyInstance): Promise<void> {
       .onConflictDoUpdate({
         target: [articleStates.userId, articleStates.articleId],
         set: {
-          ...(input.read !== undefined ? { read: input.read, readAt: input.read ? now : null } : {}),
+          ...(input.read !== undefined
+            ? { read: input.read, readAt: input.read ? now : null }
+            : {}),
           ...(input.starred !== undefined
             ? { starred: input.starred, starredAt: input.starred ? now : null }
             : {}),

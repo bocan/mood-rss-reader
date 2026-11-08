@@ -140,7 +140,9 @@ export function useUpdateFolder() {
         if (!moves) return { items: d.items.map((f) => (f.id === id ? { ...f, ...patch } : f)) };
         // Mirror the server's placement, so manual order (#27) shows the drop at once.
         const parentId =
-          patch.parentId !== undefined ? patch.parentId : d.items.find((f) => f.id === id)?.parentId;
+          patch.parentId !== undefined
+            ? patch.parentId
+            : d.items.find((f) => f.id === id)?.parentId;
         return {
           items: placeAt(d.items, {
             isMoved: (f) => f.id === id,
@@ -221,7 +223,9 @@ export function useUpdateSubscription({ inlineError = false } = {}) {
         ...(patch.hideFromAll !== undefined ? { hideFromAll: patch.hideFromAll } : {}),
         ...(patch.inBlogroll !== undefined ? { inBlogroll: patch.inBlogroll } : {}),
         ...(patch.attention !== undefined ? { attention: patch.attention } : {}),
-        ...(patch.fetchIntervalSec !== undefined ? { fetchIntervalSec: patch.fetchIntervalSec } : {}),
+        ...(patch.fetchIntervalSec !== undefined
+          ? { fetchIntervalSec: patch.fetchIntervalSec }
+          : {}),
       });
       qc.setQueryData<FeedsData>(['feeds'], (d) => {
         if (!d) return d;
@@ -319,14 +323,14 @@ export function useRefreshFeed() {
         .getQueryData<FeedsData>(['feeds'])
         ?.items.find((s) => s.subscriptionId === row.subscriptionId);
       qc.setQueryData<FeedsData>(['feeds'], (d) =>
-        d
-          ? { items: d.items.map((s) => (s.subscriptionId === row.subscriptionId ? row : s)) }
-          : d,
+        d ? { items: d.items.map((s) => (s.subscriptionId === row.subscriptionId ? row : s)) } : d,
       );
       const name = row.customTitle ?? row.title ?? row.feedUrl;
       const summary = row.lastError && describeFeedError(row.lastError).summary;
       if (row.lastError) {
-        notify.error(before?.lastError ? `${name} still fails: ${summary}` : `${name} failed: ${summary}`);
+        notify.error(
+          before?.lastError ? `${name} still fails: ${summary}` : `${name} failed: ${summary}`,
+        );
       } else {
         notify.success(before?.lastError ? `${name} is working again.` : `Fetched ${name}.`);
       }

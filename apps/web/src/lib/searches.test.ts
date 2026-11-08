@@ -1,6 +1,12 @@
 import type { SavedSearchDto } from '@rss/shared';
 import { describe, expect, test } from 'vitest';
-import { canSaveSearch, captureScope, describeScope, savedSearchFilters, showsSavedSearch } from './searches';
+import {
+  canSaveSearch,
+  captureScope,
+  describeScope,
+  savedSearchFilters,
+  showsSavedSearch,
+} from './searches';
 
 // SPEC-025: a saved search opens the same list as the manual search.
 
@@ -49,7 +55,9 @@ describe('captureScope and describeScope', () => {
   test('the live scope, with the global unread switch', () => {
     const scope = captureScope({ sort: 'newest', folderId: 'd1', starred: true }, true);
     expect(scope).toEqual({ feedId: null, folderId: 'd1', starred: true, unread: true });
-    expect(describeScope(scope, { folder: 'Tech' })).toBe('in folder Tech, starred only, unread only');
+    expect(describeScope(scope, { folder: 'Tech' })).toBe(
+      'in folder Tech, starred only, unread only',
+    );
   });
   test('all feeds, read and unread', () => {
     const scope = captureScope({ sort: 'newest' }, false);
@@ -57,9 +65,9 @@ describe('captureScope and describeScope', () => {
     expect(describeScope(scope, {})).toBe('in all feeds');
   });
   test('a feed by name', () => {
-    expect(describeScope(captureScope({ sort: 'newest', feedId: 'f1' }, false), { feed: 'CSS Tricks' })).toBe(
-      'in CSS Tricks',
-    );
+    expect(
+      describeScope(captureScope({ sort: 'newest', feedId: 'f1' }, false), { feed: 'CSS Tricks' }),
+    ).toBe('in CSS Tricks');
   });
 });
 

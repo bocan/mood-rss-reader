@@ -254,12 +254,18 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
     const passwordHash = await hashPassword(input.newPassword);
     const currentToken = request.cookies[SESSION_COOKIE];
     await db.transaction(async (tx) => {
-      await tx.update(users).set({ passwordHash, updatedAt: new Date() }).where(eq(users.id, userId));
+      await tx
+        .update(users)
+        .set({ passwordHash, updatedAt: new Date() })
+        .where(eq(users.id, userId));
       // Sign out every other device; keep the caller's current session working.
       await tx
         .delete(sessions)
         .where(
-          and(eq(sessions.userId, userId), currentToken ? ne(sessions.id, currentToken) : undefined),
+          and(
+            eq(sessions.userId, userId),
+            currentToken ? ne(sessions.id, currentToken) : undefined,
+          ),
         );
     });
 

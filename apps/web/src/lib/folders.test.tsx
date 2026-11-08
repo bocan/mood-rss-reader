@@ -22,7 +22,10 @@ const never = new Promise<Response>(() => {});
 beforeEach(() => {
   qc = new QueryClient({ defaultOptions: { queries: { staleTime: Infinity } } });
   // Hold every request, so only the optimistic state is visible.
-  vi.stubGlobal('fetch', vi.fn(() => never));
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(() => never),
+  );
 });
 afterEach(() => vi.unstubAllGlobals());
 
@@ -51,7 +54,9 @@ test('a rename does not move the feed', async () => {
 
   act(() => result.current.mutate({ id: 'a', title: 'Renamed' }));
   await vi.waitFor(() =>
-    expect(qc.getQueryData<{ items: SubscriptionRow[] }>(['feeds'])!.items[0]!.customTitle).toBe('Renamed'),
+    expect(qc.getQueryData<{ items: SubscriptionRow[] }>(['feeds'])!.items[0]!.customTitle).toBe(
+      'Renamed',
+    ),
   );
   expect(order()).toEqual(['a', 'b', 'c']);
 });
@@ -63,19 +68,27 @@ test('a retry puts the new state in the list, and a toast says it still fails', 
     'fetch',
     vi.fn(async () => ({ ok: true, status: 200, json: async () => still }) as Response),
   );
-  qc.setQueryData(['feeds'], { items: [{ ...sub('a', 0), lastError: 'read ECONNRESET' }, sub('b', 1)] });
+  qc.setQueryData(['feeds'], {
+    items: [{ ...sub('a', 0), lastError: 'read ECONNRESET' }, sub('b', 1)],
+  });
   render(<Toaster />);
   const { result } = renderHook(() => useRefreshFeed(), { wrapper });
 
   act(() => result.current.mutate('a'));
-  expect(await screen.findByText('a still fails: The feed is not at this address any more.')).toBeInTheDocument();
-  expect(qc.getQueryData<{ items: SubscriptionRow[] }>(['feeds'])!.items[0]!.lastError).toBe('HTTP 404');
+  expect(
+    await screen.findByText('a still fails: The feed is not at this address any more.'),
+  ).toBeInTheDocument();
+  expect(qc.getQueryData<{ items: SubscriptionRow[] }>(['feeds'])!.items[0]!.lastError).toBe(
+    'HTTP 404',
+  );
   toast.dismiss();
 });
 
 // #45: "Refresh this feed" on a feed that was fine says so, not "working again".
 test('a refresh of a healthy feed says it fetched it, and a new failure says it failed', async () => {
-  const fetchMock = vi.fn(async () => ({ ok: true, status: 200, json: async () => sub('a', 0) }) as Response);
+  const fetchMock = vi.fn(
+    async () => ({ ok: true, status: 200, json: async () => sub('a', 0) }) as Response,
+  );
   vi.stubGlobal('fetch', fetchMock);
   qc.setQueryData(['feeds'], { items: [{ ...sub('a', 0), lastError: null }] });
   render(<Toaster />);
@@ -85,10 +98,17 @@ test('a refresh of a healthy feed says it fetched it, and a new failure says it 
   expect(await screen.findByText('Fetched a.')).toBeInTheDocument();
 
   fetchMock.mockImplementation(
-    async () => ({ ok: true, status: 200, json: async () => ({ ...sub('a', 0), lastError: 'HTTP 404' }) }) as Response,
+    async () =>
+      ({
+        ok: true,
+        status: 200,
+        json: async () => ({ ...sub('a', 0), lastError: 'HTTP 404' }),
+      }) as Response,
   );
   act(() => result.current.mutate('a'));
-  expect(await screen.findByText('a failed: The feed is not at this address any more.')).toBeInTheDocument();
+  expect(
+    await screen.findByText('a failed: The feed is not at this address any more.'),
+  ).toBeInTheDocument();
   toast.dismiss();
 });
 
@@ -128,6 +148,9 @@ test('a folder moved to index 0 takes the top of its parent scope', async () => 
   await vi.waitFor(() =>
     expect(
       qc.getQueryData<{ items: FolderRow[] }>(['folders'])!.items.map((f) => [f.id, f.position]),
-    ).toEqual([['x', 1], ['y', 0]]),
+    ).toEqual([
+      ['x', 1],
+      ['y', 0],
+    ]),
   );
 });

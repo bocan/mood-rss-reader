@@ -30,7 +30,9 @@ describe('settingsSchema', () => {
 
   test('rejects unknown keys', () => {
     // settingsSchema is a strict shape; partial() keeps that, so extras fail.
-    expect(settingsSchema.strict().safeParse({ ...DEFAULT_SETTINGS, bogus: 1 }).success).toBe(false);
+    expect(settingsSchema.strict().safeParse({ ...DEFAULT_SETTINGS, bogus: 1 }).success).toBe(
+      false,
+    );
   });
 });
 

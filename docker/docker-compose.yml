@@ -76,8 +76,10 @@ services:
   # work from other devices) and forwards to the API over the internal network.
   # SITE_ADDRESS is the hostname it serves - use the Mac's Bonjour name (e.g.
   # Chriss-MacBook-Pro.local) so Apple devices resolve it with no DNS setup.
+  # Pinned to an exact release: Caddy ships breaking changes in patch releases
+  # (2.11.8, 2.11.9). Dependabot (docker-compose ecosystem) proposes bumps.
   caddy:
-    image: caddy:2-alpine
+    image: caddy:2.11.8-alpine
     restart: unless-stopped
     environment:
       SITE_ADDRESS: ${SITE_ADDRESS:-localhost}

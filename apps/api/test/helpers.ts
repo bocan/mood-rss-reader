@@ -52,10 +52,7 @@ export async function seedAdmin(overrides: Partial<UserInsert> = {}) {
 }
 
 /** Seed a registration invite; expires in 7 days and is unredeemed by default. */
-export async function seedInvite(
-  createdByUserId: string,
-  overrides: Partial<InviteInsert> = {},
-) {
+export async function seedInvite(createdByUserId: string, overrides: Partial<InviteInsert> = {}) {
   const [row] = await db
     .insert(invites)
     .values({
@@ -119,10 +116,7 @@ export async function seedArticleState(
 type ProfileInsert = typeof profiles.$inferInsert;
 
 /** Seed a sharing profile (SPEC-019); visibility defaults to 'off'. */
-export async function seedProfile(
-  userId: string,
-  overrides: Partial<ProfileInsert> = {},
-) {
+export async function seedProfile(userId: string, overrides: Partial<ProfileInsert> = {}) {
   const [row] = await db
     .insert(profiles)
     .values({ userId, slug: `slug-${rand()}`, ...overrides })

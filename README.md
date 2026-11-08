@@ -48,16 +48,16 @@ registration, invites, or closed, your call.
 
 ## Stack
 
-| Layer      | Choice                                             |
-| ---------- | -------------------------------------------------- |
-| Language   | TypeScript everywhere                              |
-| Web        | React 19 + Vite, React Router, TanStack Query      |
-| Styling    | Tailwind CSS v4 + shadcn/ui (Radix)                |
-| API        | Fastify 5                                          |
-| Worker     | Node process polling feeds on an interval          |
-| Database   | PostgreSQL via Drizzle ORM                         |
-| Auth       | Self-rolled session cookies (argon2id hashing)     |
-| Monorepo   | pnpm workspaces + Turborepo                        |
+| Layer    | Choice                                         |
+| -------- | ---------------------------------------------- |
+| Language | TypeScript everywhere                          |
+| Web      | React 19 + Vite, React Router, TanStack Query  |
+| Styling  | Tailwind CSS v4 + shadcn/ui (Radix)            |
+| API      | Fastify 5                                      |
+| Worker   | Node process polling feeds on an interval      |
+| Database | PostgreSQL via Drizzle ORM                     |
+| Auth     | Self-rolled session cookies (argon2id hashing) |
+| Monorepo | pnpm workspaces + Turborepo                    |
 
 ## Layout
 
@@ -142,16 +142,16 @@ script.
 
 ## Useful scripts
 
-| Command             | What it does                                  |
-| ------------------- | --------------------------------------------- |
-| `pnpm dev`          | Run web + api in watch mode                   |
-| `pnpm build`        | Build all packages                            |
-| `pnpm lint`         | ESLint across the workspace                   |
-| `pnpm typecheck`    | `tsc --noEmit` across the workspace           |
-| `pnpm test`         | Run tests (Vitest)                            |
-| `pnpm db:generate`  | Generate Drizzle migrations from the schema   |
-| `pnpm db:migrate`   | Apply migrations                              |
-| `pnpm db:studio`    | Open Drizzle Studio                           |
+| Command            | What it does                                |
+| ------------------ | ------------------------------------------- |
+| `pnpm dev`         | Run web + api in watch mode                 |
+| `pnpm build`       | Build all packages                          |
+| `pnpm lint`        | ESLint across the workspace                 |
+| `pnpm typecheck`   | `tsc --noEmit` across the workspace         |
+| `pnpm test`        | Run tests (Vitest)                          |
+| `pnpm db:generate` | Generate Drizzle migrations from the schema |
+| `pnpm db:migrate`  | Apply migrations                            |
+| `pnpm db:studio`   | Open Drizzle Studio                         |
 
 ## Data model
 

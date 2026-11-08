@@ -2,7 +2,13 @@ import { useEffect, useState, type FormEvent } from 'react';
 import type { AmbiguousFeedError, FeedCandidate } from '@rss/shared';
 import { FolderOptions } from '@/components/feed/folder-options';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { notify } from '@/lib/notify';
 import { ApiRequestError } from '@/lib/api';
 import { useSubscribe } from '@/lib/feeds';
@@ -86,7 +92,9 @@ export function SubscribeDialog({ open, onOpenChange, onSubscribed }: SubscribeD
         return;
       }
       setError(
-        err instanceof ApiRequestError ? (err.body?.message ?? err.message) : 'Something went wrong',
+        err instanceof ApiRequestError
+          ? (err.body?.message ?? err.message)
+          : 'Something went wrong',
       );
     }
   }

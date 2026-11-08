@@ -32,7 +32,8 @@ const stagger = (index: number) => ({
   animationDelay: index < 12 ? `${index * 25}ms` : undefined,
 });
 
-const ENTER = 'animate-in fade-in slide-in-from-bottom-1 fill-mode-backwards motion-reduce:animate-none';
+const ENTER =
+  'animate-in fade-in slide-in-from-bottom-1 fill-mode-backwards motion-reduce:animate-none';
 
 // On the <li>, not the tile button: a dimmed read tile must not dim its ring.
 const focusRing = (focused: boolean) => focused && 'ring-2 ring-ring';
@@ -118,7 +119,11 @@ export function ListView({
               )}
             </button>
             {onToggle && (
-              <RowActions article={article} onToggle={onToggle} className="right-2 top-1/2 -translate-y-1/2" />
+              <RowActions
+                article={article}
+                onToggle={onToggle}
+                className="right-2 top-1/2 -translate-y-1/2"
+              />
             )}
           </li>
         );
@@ -238,7 +243,9 @@ function Card({
           />
         )}
       </button>
-      {onToggle && <RowActions article={article} onToggle={onToggle} className="bottom-2 right-2" />}
+      {onToggle && (
+        <RowActions article={article} onToggle={onToggle} className="bottom-2 right-2" />
+      )}
     </li>
   );
 }

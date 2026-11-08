@@ -37,8 +37,7 @@ async function seedWebsubFeed(overrides: Record<string, unknown> = {}) {
   });
 }
 
-const feedRow = async (id: string) =>
-  (await db.select().from(feeds).where(eq(feeds.id, id)))[0]!;
+const feedRow = async (id: string) => (await db.select().from(feeds).where(eq(feeds.id, id)))[0]!;
 
 const verify = (params: Record<string, string>) =>
   app.inject({
@@ -117,13 +116,21 @@ describe('subscription verification (GET)', () => {
 
   test('unsubscribe verification succeeds only when we want out', async () => {
     await seedWebsubFeed({ websubState: 'inactive' });
-    const agree = await verify({ 'hub.mode': 'unsubscribe', 'hub.topic': TOPIC, 'hub.challenge': 'bye' });
+    const agree = await verify({
+      'hub.mode': 'unsubscribe',
+      'hub.topic': TOPIC,
+      'hub.challenge': 'bye',
+    });
     expect(agree.statusCode).toBe(200);
     expect(agree.body).toBe('bye');
 
     await resetDb();
     await seedWebsubFeed({ websubState: 'active' });
-    const refuse = await verify({ 'hub.mode': 'unsubscribe', 'hub.topic': TOPIC, 'hub.challenge': 'bye' });
+    const refuse = await verify({
+      'hub.mode': 'unsubscribe',
+      'hub.topic': TOPIC,
+      'hub.challenge': 'bye',
+    });
     expect(refuse.statusCode).toBe(404);
   });
 });

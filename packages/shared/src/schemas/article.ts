@@ -27,7 +27,14 @@ export type ArticleQuery = z.infer<typeof articleQuerySchema>;
  * the "N new articles" bar (#30). Search has no such bar.
  */
 export const newArticleCountQuerySchema = articleQuerySchema
-  .pick({ feedId: true, folderId: true, unread: true, starred: true, shared: true, attention: true })
+  .pick({
+    feedId: true,
+    folderId: true,
+    unread: true,
+    starred: true,
+    shared: true,
+    attention: true,
+  })
   .extend({ since: z.iso.datetime({ offset: true }) });
 export type NewArticleCountQuery = z.infer<typeof newArticleCountQuerySchema>;
 

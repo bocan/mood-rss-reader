@@ -25,7 +25,10 @@ export function App() {
       <Route path="/login" element={user ? <Navigate to="/" replace /> : <LoginPage />} />
       <Route path="/register" element={user ? <Navigate to="/" replace /> : <LoginPage />} />
       <Route path="/" element={user ? <ReaderPage /> : <Navigate to="/login" replace />} />
-      <Route path="/settings" element={user ? <SettingsPage /> : <Navigate to="/login" replace />} />
+      <Route
+        path="/settings"
+        element={user ? <SettingsPage /> : <Navigate to="/login" replace />}
+      />
       <Route
         path="/admin"
         element={

@@ -92,20 +92,24 @@ settings, like `user_settings`):
 // Public sharing profile (SPEC-019). Row exists only once the user has
 // configured sharing; visibility 'off' keeps the slug reserved but nothing
 // exposed. SPEC-020 adds blogroll columns here.
-export const profiles = pgTable('profiles', {
-  userId: uuid()
-    .primaryKey()
-    .references(() => users.id, { onDelete: 'cascade' }),
-  // Lowercase, url-safe handle for /u/<slug>. Unique across the instance.
-  slug: text().notNull(),
-  // Page title; null renders as "<displayName>'s shared items".
-  title: text(),
-  bio: text(),
-  // 'off' | 'instance' | 'public' - see SHARE_VISIBILITIES in @rss/shared.
-  visibility: text().notNull().default('instance'),
-  createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
-}, (t) => [uniqueIndex('profiles_slug_key').on(t.slug)]);
+export const profiles = pgTable(
+  'profiles',
+  {
+    userId: uuid()
+      .primaryKey()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    // Lowercase, url-safe handle for /u/<slug>. Unique across the instance.
+    slug: text().notNull(),
+    // Page title; null renders as "<displayName>'s shared items".
+    title: text(),
+    bio: text(),
+    // 'off' | 'instance' | 'public' - see SHARE_VISIBILITIES in @rss/shared.
+    visibility: text().notNull().default('instance'),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex('profiles_slug_key').on(t.slug)],
+);
 ```
 
 Semantics of `visibility`:
@@ -204,7 +208,7 @@ and widen the All-items escape hatch:
 - `GET /api/profile` (auth): the caller's `ProfileDto`. When no row exists,
   return a suggestion without creating one:
   `{ slug: <username lowercased, filtered to slug charset, padded to 3+>,
-  title: null, bio: null, visibility: 'off', shareUrl: null }`.
+title: null, bio: null, visibility: 'off', shareUrl: null }`.
 - `PUT /api/profile` (auth): parse `updateProfileSchema`, upsert the row
   (first PUT must include a valid slug or the suggestion is used). On slug
   unique violation return
@@ -287,7 +291,7 @@ Shared items are loaded newest-first, capped at 100, via the partial index
    `version`, `title`, `home_page_url` (the HTML page), `feed_url`,
    `authors: [{ name: displayName }]`, items
    `{ id: articleId, url: article.url, title, content_text: note ?? summary
-   ?? '', date_published: sharedAt }`.
+?? '', date_published: sharedAt }`.
 
 Security: every interpolation into HTML/XML goes through `esc()`; notes and
 titles are attacker-ish input (feed titles come from remote feeds). The pages
@@ -390,7 +394,7 @@ popover -> sidebar nodes + community pane -> settings card -> shortcut.
 
 - [ ] `article_states.shared/sharedAt/shareNote` and the partial index, plus
       the `profiles` table, exist via a committed migration; `pnpm
-      db:generate` reports no drift.
+    db:generate` reports no drift.
 - [ ] PATCHing `{ shared: true }` stamps `sharedAt`; `{ shared: false }`
       clears `sharedAt` and `shareNote`; `{ shareNote }` updates the note
       without touching read/starred; all reflected in `GET /articles/:id`.

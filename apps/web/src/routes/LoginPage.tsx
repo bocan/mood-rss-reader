@@ -118,14 +118,17 @@ export function LoginPage() {
               <p className="mt-4 text-center text-sm text-muted-foreground">
                 Registration is by invite. Ask an admin for a link.
               </p>
-            ) : !inviteToken && !(mode === 'login' && registrationMode === 'closed') && (
-              <button
-                type="button"
-                className="mt-4 w-full text-center text-sm text-muted-foreground hover:text-foreground"
-                onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
-              >
-                {mode === 'login' ? 'Need an account? Register' : 'Have an account? Sign in'}
-              </button>
+            ) : (
+              !inviteToken &&
+              !(mode === 'login' && registrationMode === 'closed') && (
+                <button
+                  type="button"
+                  className="mt-4 w-full text-center text-sm text-muted-foreground hover:text-foreground"
+                  onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
+                >
+                  {mode === 'login' ? 'Need an account? Register' : 'Have an account? Sign in'}
+                </button>
+              )
             )}
           </>
         )}

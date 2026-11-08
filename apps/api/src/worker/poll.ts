@@ -4,11 +4,7 @@ import { feeds } from '../db/schema.js';
 import { env } from '../env.js';
 import { getAppSettings } from '../lib/app-settings.js';
 import { fetchAndStoreFeed, type FeedRow } from '../lib/feed-fetch.js';
-import {
-  RENEW_WINDOW_SEC,
-  subscribeToHub,
-  WEBSUB_ACTIVE_POLL_FLOOR_SEC,
-} from '../lib/websub.js';
+import { RENEW_WINDOW_SEC, subscribeToHub, WEBSUB_ACTIVE_POLL_FLOOR_SEC } from '../lib/websub.js';
 
 /**
  * Feeds whose lastFetchedAt is null or older than their effective interval:

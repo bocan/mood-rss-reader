@@ -54,7 +54,9 @@ describe('matchRules', () => {
   });
 
   test('pattern characters are literal', () => {
-    expect(matchRules([rule({ phrase: '100%_\\' })], [article({ title: 'We gave 100%_\\ today' })])).toHaveLength(1);
+    expect(
+      matchRules([rule({ phrase: '100%_\\' })], [article({ title: 'We gave 100%_\\ today' })]),
+    ).toHaveLength(1);
     expect(matchRules([rule({ phrase: '100%' })], [article({ title: '1000 things' })])).toEqual([]);
   });
 

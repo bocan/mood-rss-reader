@@ -38,7 +38,8 @@ export function identityInput(form: IdentityForm): { input: IdentityInput } | { 
   for (const [i, line] of lines.entries()) {
     const link = line.trim();
     if (!link) continue;
-    if (!webUrlSchema.safeParse(link).success) return { error: `Line ${i + 1} is not a web address.` };
+    if (!webUrlSchema.safeParse(link).success)
+      return { error: `Line ${i + 1} is not a web address.` };
     if (!links.includes(link)) links.push(link);
   }
   if (links.length > MAX_ME_LINKS) return { error: `Up to ${MAX_ME_LINKS} other profiles.` };

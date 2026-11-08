@@ -10,7 +10,12 @@ const filters = { sort: 'newest' as const };
 let qc: QueryClient;
 
 const page = (ids: string[]) => ({
-  pages: [{ items: ids.map((id) => ({ id, feedId: 'f1', read: false, starred: false })), nextCursor: null }],
+  pages: [
+    {
+      items: ids.map((id) => ({ id, feedId: 'f1', read: false, starred: false })),
+      nextCursor: null,
+    },
+  ],
   pageParams: [null],
 });
 
@@ -92,7 +97,10 @@ test('adjacency says where the ends are; Next stays on while pages remain', asyn
 
 test('stepping near the end of a page loads the next page, and j continues', async () => {
   const onOpen = vi.fn();
-  const more = { items: [{ id: 'a6', feedId: 'f1', read: false, starred: false }], nextCursor: null };
+  const more = {
+    items: [{ id: 'a6', feedId: 'f1', read: false, starred: false }],
+    nextCursor: null,
+  };
   const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => more });
   vi.stubGlobal('fetch', fetchMock);
   qc.setQueryData(['articles', filters], {

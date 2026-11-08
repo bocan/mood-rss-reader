@@ -314,15 +314,19 @@ function VerifyHint({ pageUrl }: { pageUrl: string | null }) {
   if (!pageUrl) {
     return (
       <p className="text-xs text-muted-foreground">
-        These links show only on a public page. Turn on public shares or the public blogroll
-        first.
+        These links show only on a public page. Turn on public shares or the public blogroll first.
       </p>
     );
   }
   return (
     <p className="text-xs text-muted-foreground">
       To show this page as verified on Mastodon, add its address,{' '}
-      <a href={pageUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+      <a
+        href={pageUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-primary hover:underline"
+      >
         {pageUrl.replace(/^https?:\/\//, '')}
       </a>
       , to your Mastodon profile, and add your Mastodon profile to Other profiles.
@@ -362,7 +366,11 @@ export function SharingSection() {
   }, [profile]);
 
   // Show the new value at once. If the save fails, go back to the old one.
-  function saveNow(patch: Pick<UpdateProfileInput, 'visibility' | 'blogrollEnabled'>, done: string, revert: () => void) {
+  function saveNow(
+    patch: Pick<UpdateProfileInput, 'visibility' | 'blogrollEnabled'>,
+    done: string,
+    revert: () => void,
+  ) {
     setError(null);
     updateSwitch.mutate(patch, {
       onSuccess: () => notify.success(done),
@@ -383,10 +391,8 @@ export function SharingSection() {
 
   function onBlogroll(next: boolean) {
     setBlogrollEnabled(next);
-    saveNow(
-      { blogrollEnabled: next },
-      next ? 'Public blogroll on.' : 'Public blogroll off.',
-      () => setBlogrollEnabled(!next),
+    saveNow({ blogrollEnabled: next }, next ? 'Public blogroll on.' : 'Public blogroll off.', () =>
+      setBlogrollEnabled(!next),
     );
   }
 
@@ -537,14 +543,14 @@ export function SharingSection() {
             />
           </label>
           <p id="links-hint" className="text-xs text-muted-foreground">
-            Mastodon, GitHub, or any profile that is you. One address per line, up to{' '}
-            {MAX_ME_LINKS}.
+            Mastodon, GitHub, or any profile that is you. One address per line, up to {MAX_ME_LINKS}
+            .
           </p>
         </div>
 
         <VerifyHint pageUrl={profile?.shareUrl ?? profile?.blogrollUrl ?? null} />
 
-        {error &&<p className="text-sm text-destructive">{error}</p>}
+        {error && <p className="text-sm text-destructive">{error}</p>}
 
         <div className="flex items-center gap-3">
           <Button type="submit" disabled={update.isPending}>
@@ -563,8 +569,8 @@ export function SharingSection() {
         </div>
         {profile?.shareUrl && (
           <p className="text-xs text-muted-foreground">
-            Your page is also an Atom and JSON feed, so other readers can subscribe to your
-            shares at {profile.shareUrl}/feed.xml
+            Your page is also an Atom and JSON feed, so other readers can subscribe to your shares
+            at {profile.shareUrl}/feed.xml
           </p>
         )}
       </form>
@@ -668,8 +674,8 @@ export function SettingsPage() {
           <section className="rounded-lg border p-4">
             <h2 className="font-medium">Install app</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Add Reader to your home screen to launch it full-screen and keep already-read
-              articles available offline.
+              Add Reader to your home screen to launch it full-screen and keep already-read articles
+              available offline.
             </p>
             <Button className="mt-3" onClick={promptInstall}>
               <Smartphone className="size-4" /> Install Mood Reader

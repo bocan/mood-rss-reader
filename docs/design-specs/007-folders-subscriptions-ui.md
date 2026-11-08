@@ -76,16 +76,16 @@ deletes the feeds inside it.
 sufficient. No migration is required.
 
 Note the two on-delete behaviors already baked into the FKs, because the delete
-policy below has to work *with* them:
+policy below has to work _with_ them:
 
 - `subscriptions.folderId` is `ON DELETE set null`: if a folder row is deleted,
   the database silently moves its subscriptions to root. This is a safe
-  fallback, not the desired behavior (we want them at the *parent*, which the
+  fallback, not the desired behavior (we want them at the _parent_, which the
   DB cannot express), so the app must reparent explicitly before deleting.
 - `folders.parentId` is `ON DELETE cascade`: if a folder row is deleted, the
   database **deletes its child folders too** (and, transitively, their
-  subscriptions get set to null). This is *not* what we want. The delete
-  handler must reparent child folders in-app *before* removing the folder row,
+  subscriptions get set to null). This is _not_ what we want. The delete
+  handler must reparent child folders in-app _before_ removing the folder row,
   so the cascade never fires on real data.
 
 If you would rather not rely on ordering the writes correctly, changing
@@ -163,7 +163,7 @@ Load and scope to the user; `404` if not found. Inside a single
 2. Reparent its child folders:
    `UPDATE folders SET parentId = :grandparentId WHERE parentId = :id AND userId = :userId`.
    Given one-level nesting the folder being deleted has at most children, never
-   grandchildren, so this is a single flat update. Doing it *before* the delete
+   grandchildren, so this is a single flat update. Doing it _before_ the delete
    is what prevents the `ON DELETE cascade` on `folders.parentId` from deleting
    those children.
 3. Delete the folder row.

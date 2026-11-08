@@ -30,7 +30,9 @@ const article = {
 } as ArticleDetail;
 
 function renderPane(articleView: ArticleView, settings: Partial<Settings> = {}) {
-  const qc = new QueryClient({ defaultOptions: { queries: { staleTime: Infinity, retry: false } } });
+  const qc = new QueryClient({
+    defaultOptions: { queries: { staleTime: Infinity, retry: false } },
+  });
   qc.setQueryData(['article', 'a1'], article);
   qc.setQueryData(['feeds'], { items: [{ feedId: 'f1', articleView }] });
   qc.setQueryData(['settings'], { ...DEFAULT_SETTINGS, ...settings });

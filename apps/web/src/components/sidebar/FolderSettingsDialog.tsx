@@ -34,7 +34,9 @@ export function FolderSettingsDialog({
 
   // One level only, as the API allows (#28).
   const hasChildren = folders.some((f) => f.parentId === folder.id);
-  const parents = folders.filter((f) => f.parentId === null && f.id !== folder.id).sort(byFolderName);
+  const parents = folders
+    .filter((f) => f.parentId === null && f.id !== folder.id)
+    .sort(byFolderName);
 
   function submit(e: FormEvent) {
     e.preventDefault();
@@ -44,7 +46,9 @@ export function FolderSettingsDialog({
     const patch = {
       ...(trimmed !== folder.name ? { name: trimmed } : {}),
       ...((parentId || null) !== folder.parentId ? { parentId: parentId || null } : {}),
-      ...((viewMode || null) !== folder.viewMode ? { viewMode: (viewMode || null) as ViewMode | null } : {}),
+      ...((viewMode || null) !== folder.viewMode
+        ? { viewMode: (viewMode || null) as ViewMode | null }
+        : {}),
     };
     if (Object.keys(patch).length === 0) {
       onOpenChange(false);
@@ -106,7 +110,11 @@ export function FolderSettingsDialog({
 
           <label className="block space-y-1">
             <span className="text-sm">List view</span>
-            <select className={inputClass} value={viewMode} onChange={(e) => setViewMode(e.target.value)}>
+            <select
+              className={inputClass}
+              value={viewMode}
+              onChange={(e) => setViewMode(e.target.value)}
+            >
               <option value="">Use default ({VIEW_LABELS[settings.defaultViewMode]})</option>
               {VIEW_MODES.map((v) => (
                 <option key={v} value={v}>

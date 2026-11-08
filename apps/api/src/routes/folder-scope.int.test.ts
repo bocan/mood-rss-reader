@@ -65,7 +65,12 @@ test("a parent folder's count includes its child folders; firehose never counts"
 test("a parent folder's list shows its child folders' articles", async () => {
   const { parent, child, cookie } = await setup();
   const titles = (r: { items: { title: string }[] }) => r.items.map((a) => a.title).sort();
-  expect(titles(await get(cookie, `/articles?folderId=${parent.id}`))).toEqual(['c1', 'c2', 'h1', 'p1']);
+  expect(titles(await get(cookie, `/articles?folderId=${parent.id}`))).toEqual([
+    'c1',
+    'c2',
+    'h1',
+    'p1',
+  ]);
   expect(titles(await get(cookie, `/articles?folderId=${child.id}`))).toEqual(['c1', 'c2', 'h1']);
 });
 

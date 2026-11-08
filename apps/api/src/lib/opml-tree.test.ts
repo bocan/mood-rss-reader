@@ -7,7 +7,11 @@ const folder = (id: string, name: string, parentId: string | null = null): TreeF
   parentId,
 });
 
-const sub = (feedUrl: string, folderId: string | null, extra: Partial<TreeSubRow> = {}): TreeSubRow => ({
+const sub = (
+  feedUrl: string,
+  folderId: string | null,
+  extra: Partial<TreeSubRow> = {},
+): TreeSubRow => ({
   folderId,
   customTitle: null,
   title: `Feed ${feedUrl}`,
@@ -21,13 +25,19 @@ describe('assembleFeedTree', () => {
   test('nests one level and keeps root feeds at the top level', () => {
     const tree = assembleFeedTree(
       [folder('f1', 'Tech'), folder('f2', 'Deep', 'f1')],
-      [sub('https://a.example/rss', 'f1'), sub('https://b.example/rss', 'f2'), sub('https://c.example/rss', null)],
+      [
+        sub('https://a.example/rss', 'f1'),
+        sub('https://b.example/rss', 'f2'),
+        sub('https://c.example/rss', null),
+      ],
     );
     expect(tree.folders).toHaveLength(1);
     expect(tree.folders[0]!.title).toBe('Tech');
     expect(tree.folders[0]!.feeds.map((f) => f.xmlUrl)).toEqual(['https://a.example/rss']);
     expect(tree.folders[0]!.folders[0]!.title).toBe('Deep');
-    expect(tree.folders[0]!.folders[0]!.feeds.map((f) => f.xmlUrl)).toEqual(['https://b.example/rss']);
+    expect(tree.folders[0]!.folders[0]!.feeds.map((f) => f.xmlUrl)).toEqual([
+      'https://b.example/rss',
+    ]);
     expect(tree.feeds.map((f) => f.xmlUrl)).toEqual(['https://c.example/rss']);
   });
 

@@ -27,7 +27,7 @@ const VIEW_TITLES: Record<ArticleView, string> = {
   web: 'Web view: the original page',
 };
 
-const dateFmt =new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+const dateFmt = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 
 function formatDate(iso: string | null): string {
   if (!iso) return '';
@@ -67,12 +67,13 @@ export function ReadingPane({
   // so it lapses on its own when another article opens.
   const [picked, setPicked] = useState<{ articleId: string; view: ArticleView } | null>(null);
   const manual = picked?.articleId === articleId ? picked.view : null;
-  const override =
-    feedsData?.items.find((s) => s.feedId === article?.feed.id)?.articleView ?? null;
+  const override = feedsData?.items.find((s) => s.feedId === article?.feed.id)?.articleView ?? null;
   const fallback = settings.defaultArticleView;
   const isAuto = !manual && !override && fallback === 'auto';
   const view: ArticleView =
-    manual ?? override ?? (fallback !== 'auto' ? fallback : article ? resolveAutoView(article) : 'readable');
+    manual ??
+    override ??
+    (fallback !== 'auto' ? fallback : article ? resolveAutoView(article) : 'readable');
   const chooseView = (v: ArticleView) => setPicked({ articleId, view: v });
 
   // Extracted view: lazily extract once, only when never attempted before.
@@ -127,7 +128,10 @@ export function ReadingPane({
   useEffect(() => {
     if (!loaded) return;
     const active = document.activeElement;
-    if (active instanceof HTMLElement && active.matches('input, textarea, select, [contenteditable="true"]')) {
+    if (
+      active instanceof HTMLElement &&
+      active.matches('input, textarea, select, [contenteditable="true"]')
+    ) {
       return;
     }
     bodyRef.current?.focus({ preventScroll: true });
@@ -209,7 +213,11 @@ export function ReadingPane({
               one row there, and a row that does not wrap widens the page. */}
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <div className="inline-flex rounded-md border p-0.5" role="group" aria-label="Article view">
+              <div
+                className="inline-flex rounded-md border p-0.5"
+                role="group"
+                aria-label="Article view"
+              >
                 {ARTICLE_VIEWS.map((v) => (
                   <button
                     key={v}
@@ -245,7 +253,11 @@ export function ReadingPane({
                 title={article.read ? 'Read. Mark unread (u)' : 'Unread. Mark read (m)'}
                 onClick={toggleRead}
               >
-                {article.read ? <MailOpen className="size-4" /> : <Mail className="size-4 text-primary" />}
+                {article.read ? (
+                  <MailOpen className="size-4" />
+                ) : (
+                  <Mail className="size-4 text-primary" />
+                )}
               </Button>
               <SharePopover key={article.id} article={article} />
               <Button
@@ -458,9 +470,7 @@ function ExtractedView({
   }
   return (
     <div className="space-y-3 text-sm">
-      <p className="text-muted-foreground">
-        Could not extract a clean version of this article.
-      </p>
+      <p className="text-muted-foreground">Could not extract a clean version of this article.</p>
       {article.url && <WaybackHint url={article.url} />}
       <div className="flex gap-2">
         <Button size="sm" onClick={onRetry} disabled={retrying}>

@@ -142,9 +142,7 @@ export async function feedRoutes(app: FastifyInstance): Promise<void> {
     const inputUrl = normalizeFeedUrl(input.url);
 
     // Fast path: an existing feed for the pasted URL. Skip discovery + fetch.
-    let feedRow = (
-      await db.select().from(feeds).where(eq(feeds.feedUrl, inputUrl)).limit(1)
-    )[0];
+    let feedRow = (await db.select().from(feeds).where(eq(feeds.feedUrl, inputUrl)).limit(1))[0];
 
     if (!feedRow) {
       const candidates = await discoverFeedCandidates(inputUrl);
@@ -455,7 +453,10 @@ export async function feedRoutes(app: FastifyInstance): Promise<void> {
       }
     }
     const folder = await db.transaction(async (tx) => {
-      const [row] = await tx.insert(folders).values({ userId, name: input.name, parentId }).returning();
+      const [row] = await tx
+        .insert(folders)
+        .values({ userId, name: input.name, parentId })
+        .returning();
       // Last in its scope, not tied at 0 with the first folder (manual order, #27).
       await placeFolder(tx, userId, row!.id, parentId);
       const [placed] = await tx.select().from(folders).where(eq(folders.id, row!.id)).limit(1);

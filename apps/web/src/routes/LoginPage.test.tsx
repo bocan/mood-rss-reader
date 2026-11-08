@@ -42,18 +42,14 @@ describe('LoginPage registration adaptation', () => {
   test('closed mode hides the register form on /register', async () => {
     fetchMock.mockResolvedValue(jsonResponse({ mode: 'closed' }));
     renderAt('/register');
-    await waitFor(() =>
-      expect(screen.getByText(/Registration is closed/i)).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText(/Registration is closed/i)).toBeInTheDocument());
     expect(screen.queryByLabelText('Username')).not.toBeInTheDocument();
   });
 
   test('invite mode without a token asks for an invite link', async () => {
     fetchMock.mockResolvedValue(jsonResponse({ mode: 'invite' }));
     renderAt('/register');
-    await waitFor(() =>
-      expect(screen.getByText(/need an invite link/i)).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText(/need an invite link/i)).toBeInTheDocument());
     expect(screen.queryByLabelText('Username')).not.toBeInTheDocument();
   });
 
@@ -74,7 +70,9 @@ describe('LoginPage register link and password rule', () => {
   test('open mode offers Register on sign in', async () => {
     fetchMock.mockResolvedValue(jsonResponse({ mode: 'open' }));
     renderAt('/login');
-    expect(await screen.findByRole('button', { name: 'Need an account? Register' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('button', { name: 'Need an account? Register' }),
+    ).toBeInTheDocument();
   });
 
   test('closed mode shows no Register link', async () => {
@@ -87,7 +85,9 @@ describe('LoginPage register link and password rule', () => {
   test('invite mode says registration is by invite, with no link', async () => {
     fetchMock.mockResolvedValue(jsonResponse({ mode: 'invite' }));
     renderAt('/login');
-    expect(await screen.findByText('Registration is by invite. Ask an admin for a link.')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Registration is by invite. Ask an admin for a link.'),
+    ).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Register/ })).not.toBeInTheDocument();
   });
 

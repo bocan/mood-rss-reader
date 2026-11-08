@@ -23,8 +23,10 @@ export function useCreateRule() {
   return useMutation({
     // The form shows the error next to itself.
     meta: { inlineError: true },
-    mutationFn: (input: CreateRuleInput) => api<FilterRuleDto>('/rules', { method: 'POST', body: input }),
-    onSuccess: (rule) => qc.setQueryData<RulesData>(KEY, (d) => (d ? { items: [...d.items, rule] } : d)),
+    mutationFn: (input: CreateRuleInput) =>
+      api<FilterRuleDto>('/rules', { method: 'POST', body: input }),
+    onSuccess: (rule) =>
+      qc.setQueryData<RulesData>(KEY, (d) => (d ? { items: [...d.items, rule] } : d)),
     onSettled: () => void qc.invalidateQueries({ queryKey: KEY }),
   });
 }
@@ -51,7 +53,9 @@ export function useDeleteRule() {
     meta: { errorMessage: 'Could not delete the rule.' },
     mutationFn: (id: string) => api<void>(`/rules/${id}`, { method: 'DELETE' }),
     onMutate: (id) => {
-      qc.setQueryData<RulesData>(KEY, (d) => (d ? { items: d.items.filter((r) => r.id !== id) } : d));
+      qc.setQueryData<RulesData>(KEY, (d) =>
+        d ? { items: d.items.filter((r) => r.id !== id) } : d,
+      );
     },
     onSettled: () => void qc.invalidateQueries({ queryKey: KEY }),
   });

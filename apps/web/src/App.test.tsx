@@ -18,7 +18,10 @@ function Where() {
 afterEach(() => vi.unstubAllGlobals());
 
 test('no redirect to /login while the cache is still restoring', () => {
-  vi.stubGlobal('fetch', vi.fn(() => new Promise(() => {})));
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(() => new Promise(() => {})),
+  );
   render(
     <QueryClientProvider client={new QueryClient()}>
       <IsRestoringProvider value={true}>

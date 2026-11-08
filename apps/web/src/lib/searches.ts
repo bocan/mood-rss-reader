@@ -72,7 +72,11 @@ export function savedSearchFilters(s: SavedSearchDto): ArticleFilters {
  * the same scope. Editing the query, or picking another scope, makes it
  * false, so the sidebar node deselects by itself.
  */
-export function showsSavedSearch(s: SavedSearchDto, filters: ArticleFilters, query: string): boolean {
+export function showsSavedSearch(
+  s: SavedSearchDto,
+  filters: ArticleFilters,
+  query: string,
+): boolean {
   return (
     query.trim() === s.q &&
     (filters.feedId ?? null) === s.feedId &&
@@ -112,7 +116,11 @@ export function describeScope(
   names: { feed?: string; folder?: string },
 ): string {
   const parts = [
-    scope.feedId ? `in ${names.feed ?? 'one feed'}` : scope.folderId ? `in folder ${names.folder ?? ''}`.trim() : 'in all feeds',
+    scope.feedId
+      ? `in ${names.feed ?? 'one feed'}`
+      : scope.folderId
+        ? `in folder ${names.folder ?? ''}`.trim()
+        : 'in all feeds',
     ...(scope.starred ? ['starred only'] : []),
     ...(scope.unread ? ['unread only'] : []),
   ];

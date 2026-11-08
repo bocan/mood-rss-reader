@@ -12,8 +12,12 @@ import {
 } from './feed-order';
 import type { FolderRow, SubscriptionRow } from './folders';
 
-const folder = (id: string, name: string, parentId: string | null = null, position = 0): FolderRow =>
-  ({ id, name, parentId, position, createdAt: '2026-01-01T00:00:00Z' }) as FolderRow;
+const folder = (
+  id: string,
+  name: string,
+  parentId: string | null = null,
+  position = 0,
+): FolderRow => ({ id, name, parentId, position, createdAt: '2026-01-01T00:00:00Z' }) as FolderRow;
 
 const sub = (
   feedId: string,
@@ -21,7 +25,15 @@ const sub = (
   folderId: string | null = null,
   position = 0,
 ): SubscriptionRow =>
-  ({ subscriptionId: `sub-${feedId}`, feedId, title, customTitle: null, feedUrl: '', folderId, position }) as SubscriptionRow;
+  ({
+    subscriptionId: `sub-${feedId}`,
+    feedId,
+    title,
+    customTitle: null,
+    feedUrl: '',
+    folderId,
+    position,
+  }) as SubscriptionRow;
 
 describe('orderedVisibleFeedIds', () => {
   test('folders alphabetical, feeds alphabetical within, unfoldered last', () => {
@@ -118,16 +130,28 @@ describe('orderedVisibleFeedIds', () => {
 describe('manual order comparators', () => {
   test('feeds: position first, the name only breaks a tie', () => {
     const cmp = makeFeedComparator('manual', new Map());
-    const rows = [sub('b', 'bravo', null, 1), sub('z', 'zulu', null, 0), sub('a', 'alpha', null, 1)];
+    const rows = [
+      sub('b', 'bravo', null, 1),
+      sub('z', 'zulu', null, 0),
+      sub('a', 'alpha', null, 1),
+    ];
     expect(rows.sort(cmp).map((s) => s.feedId)).toEqual(['z', 'a', 'b']);
   });
 
   test('folders: position, then age, as the server orders them', () => {
     const older = { ...folder('old', 'Zeta', null, 0), createdAt: '2025-01-01T00:00:00Z' };
     const rows = [folder('new', 'Alpha', null, 0), older, folder('last', 'Beta', null, 2)];
-    expect(rows.sort(makeFolderComparator('manual')).map((f) => f.id)).toEqual(['old', 'new', 'last']);
+    expect(rows.sort(makeFolderComparator('manual')).map((f) => f.id)).toEqual([
+      'old',
+      'new',
+      'last',
+    ]);
     // Other modes stay alphabetical.
-    expect(rows.sort(makeFolderComparator('unread')).map((f) => f.name)).toEqual(['Alpha', 'Beta', 'Zeta']);
+    expect(rows.sort(makeFolderComparator('unread')).map((f) => f.name)).toEqual([
+      'Alpha',
+      'Beta',
+      'Zeta',
+    ]);
   });
 
   test('only manual mode offers reorder, and saved values are checked', () => {
@@ -171,7 +195,11 @@ describe('placeAt (the optimistic copy of the server placement)', () => {
       move: (r) => r,
     });
     const order = out.filter((r) => r.scope === 's').sort((p, q) => p.position - q.position);
-    expect(order.map((r) => [r.id, r.position])).toEqual([['c', 0], ['a', 1], ['b', 2]]);
+    expect(order.map((r) => [r.id, r.position])).toEqual([
+      ['c', 0],
+      ['a', 1],
+      ['b', 2],
+    ]);
     expect(out.find((r) => r.id === 'x')!.position).toBe(0); // other scopes untouched
     expect(out.map((r) => r.id)).toEqual(['a', 'b', 'c', 'x']); // array order kept
   });
@@ -189,7 +217,11 @@ describe('placeAt (the optimistic copy of the server placement)', () => {
 
 // #46: the sidebar filter.
 describe('feedMatches', () => {
-  const s = { title: 'Dave Rupert', customTitle: 'Dave', feedUrl: 'https://daverupert.com/atom.xml' };
+  const s = {
+    title: 'Dave Rupert',
+    customTitle: 'Dave',
+    feedUrl: 'https://daverupert.com/atom.xml',
+  };
   test('matches the title, the custom title or the URL, in any case', () => {
     expect(feedMatches(s, 'rupert')).toBe(true);
     expect(feedMatches({ ...s, title: null }, 'dave')).toBe(true);

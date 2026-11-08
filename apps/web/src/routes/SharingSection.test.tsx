@@ -22,11 +22,14 @@ const profile: ProfileDto = {
 
 let fetchMock: ReturnType<typeof vi.fn>;
 beforeEach(() => {
-  fetchMock = vi.fn(async (_url: string, init?: RequestInit) => ({
-    ok: true,
-    status: 200,
-    json: async () => ({ ...profile, ...JSON.parse(String(init?.body ?? '{}')) }),
-  }) as Response);
+  fetchMock = vi.fn(
+    async (_url: string, init?: RequestInit) =>
+      ({
+        ok: true,
+        status: 200,
+        json: async () => ({ ...profile, ...JSON.parse(String(init?.body ?? '{}')) }),
+      }) as Response,
+  );
   vi.stubGlobal('fetch', fetchMock);
 });
 afterEach(() => vi.unstubAllGlobals());
@@ -49,7 +52,10 @@ test('a visibility change saves at once, with only that field', async () => {
   renderSection();
   fireEvent.click(screen.getByRole('button', { name: 'This instance' }));
   await waitFor(() => expect(puts()).toEqual([{ visibility: 'instance' }]));
-  expect(screen.getByRole('button', { name: 'This instance' })).toHaveAttribute('aria-pressed', 'true');
+  expect(screen.getByRole('button', { name: 'This instance' })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
 });
 
 test('the blogroll switch saves at once', async () => {
@@ -59,8 +65,13 @@ test('the blogroll switch saves at once', async () => {
 });
 
 test('a failed save puts the old visibility back and says why', async () => {
-  fetchMock.mockImplementation(async () =>
-    ({ ok: false, status: 500, json: async () => ({ error: 'boom', message: 'Server down' }) }) as Response,
+  fetchMock.mockImplementation(
+    async () =>
+      ({
+        ok: false,
+        status: 500,
+        json: async () => ({ error: 'boom', message: 'Server down' }),
+      }) as Response,
   );
   renderSection();
   fireEvent.click(screen.getByRole('button', { name: 'Public web' }));
@@ -96,8 +107,12 @@ function renderWith(over: Partial<ProfileDto>) {
 
 test('the identity fields show the saved values and save with the page details', async () => {
   renderWith({ websiteUrl: 'https://chris.example', meLinks: ['https://mastodon.example/@chris'] });
-  expect(screen.getByRole('textbox', { name: 'Your website' })).toHaveValue('https://chris.example');
-  expect(screen.getByRole('textbox', { name: 'Other profiles' })).toHaveValue('https://mastodon.example/@chris');
+  expect(screen.getByRole('textbox', { name: 'Your website' })).toHaveValue(
+    'https://chris.example',
+  );
+  expect(screen.getByRole('textbox', { name: 'Other profiles' })).toHaveValue(
+    'https://mastodon.example/@chris',
+  );
 
   fireEvent.change(screen.getByRole('textbox', { name: 'Photo' }), {
     target: { value: 'https://chris.example/me.jpg' },
@@ -146,7 +161,9 @@ test('the fields carry their hints as descriptions, not in their names', () => {
 
 test('with no public page, the hint says to turn one on', () => {
   renderSection();
-  expect(screen.getByText(/Turn on public shares or the public blogroll first/)).toBeInTheDocument();
+  expect(
+    screen.getByText(/Turn on public shares or the public blogroll first/),
+  ).toBeInTheDocument();
 });
 
 test('the share page wins over the blogroll in the hint', () => {
@@ -154,5 +171,8 @@ test('the share page wins over the blogroll in the hint', () => {
     shareUrl: 'https://reader.example/u/chris',
     blogrollUrl: 'https://reader.example/u/chris/blogroll',
   });
-  expect(within(verifyHint()).getByRole('link')).toHaveAttribute('href', 'https://reader.example/u/chris');
+  expect(within(verifyHint()).getByRole('link')).toHaveAttribute(
+    'href',
+    'https://reader.example/u/chris',
+  );
 });

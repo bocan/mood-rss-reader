@@ -34,7 +34,9 @@ export function CommunityPane() {
     return <div className="p-6 text-sm text-muted-foreground">Loading…</div>;
   }
   if (query.isError) {
-    return <div className="p-6 text-sm text-muted-foreground">Could not load community shares.</div>;
+    return (
+      <div className="p-6 text-sm text-muted-foreground">Could not load community shares.</div>
+    );
   }
   if (items.length === 0) {
     return (
@@ -85,7 +87,9 @@ function ShareRow({ share }: { share: CommunityShare }) {
         <span className="font-medium text-foreground">{share.user.displayName}</span>{' '}
         {formatWhen(share.sharedAt)}
       </p>
-      {share.note && <p className="mt-1.5 font-serif text-[1.05rem] leading-relaxed">{share.note}</p>}
+      {share.note && (
+        <p className="mt-1.5 font-serif text-[1.05rem] leading-relaxed">{share.note}</p>
+      )}
       <h3 className="mt-1.5 text-sm font-semibold">
         {share.article.url ? (
           <a

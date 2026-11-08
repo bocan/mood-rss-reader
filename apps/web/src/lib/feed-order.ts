@@ -67,7 +67,9 @@ export function feedMatches(
   return [s.title, s.customTitle, s.feedUrl].some((v) => v?.toLowerCase().includes(query));
 }
 
-export function folderChoices(folders: readonly FolderRow[]): { folder: FolderRow; depth: 0 | 1 }[] {
+export function folderChoices(
+  folders: readonly FolderRow[],
+): { folder: FolderRow; depth: 0 | 1 }[] {
   const roots = folders.filter((f) => f.parentId === null).sort(byFolderName);
   return roots.flatMap((root) => [
     { folder: root, depth: 0 as const },
@@ -103,7 +105,12 @@ export function dropIndex(scope: readonly string[], activeId: string, overId: st
  */
 export function placeAt<T extends { position: number }>(
   items: readonly T[],
-  opts: { isMoved: (x: T) => boolean; inScope: (x: T) => boolean; index?: number; move: (x: T) => T },
+  opts: {
+    isMoved: (x: T) => boolean;
+    inScope: (x: T) => boolean;
+    index?: number;
+    move: (x: T) => T;
+  },
 ): T[] {
   const moved = items.find(opts.isMoved);
   if (!moved) return [...items];

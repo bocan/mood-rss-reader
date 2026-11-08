@@ -20,7 +20,9 @@ let fetchMock: ReturnType<typeof vi.fn>;
 const AS_OF = '2026-09-28T08:00:00.000Z';
 
 beforeEach(() => {
-  qc = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
+  qc = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
   registerMutationDefaults(qc);
   qc.setQueryData(['feeds'], { items: feeds });
   qc.setQueryData<UnreadCounts>(['counts'], {

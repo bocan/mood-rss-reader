@@ -39,11 +39,17 @@ const all = [folder('d1', 'Tech'), folder('d2', 'CSS', 'd1'), news];
 
 test('Save sends only what changed', async () => {
   const onOpenChange = renderDialog(news, all);
-  fireEvent.change(screen.getByRole('combobox', { name: 'Inside folder' }), { target: { value: 'd1' } });
-  fireEvent.change(screen.getByRole('combobox', { name: 'List view' }), { target: { value: 'cards' } });
+  fireEvent.change(screen.getByRole('combobox', { name: 'Inside folder' }), {
+    target: { value: 'd1' },
+  });
+  fireEvent.change(screen.getByRole('combobox', { name: 'List view' }), {
+    target: { value: 'cards' },
+  });
   fireEvent.click(screen.getByRole('button', { name: 'Save' }));
   await waitFor(() => expect(onOpenChange).toHaveBeenCalledWith(false));
-  expect(patches()).toEqual([{ url: '/api/folders/d3', body: { parentId: 'd1', viewMode: 'cards' } }]);
+  expect(patches()).toEqual([
+    { url: '/api/folders/d3', body: { parentId: 'd1', viewMode: 'cards' } },
+  ]);
 });
 
 test('a rename alone sends only the name', async () => {
@@ -64,12 +70,19 @@ test('no change sends nothing, and closes', () => {
 test('parents are top-level folders other than itself, and the view names its default', () => {
   renderDialog(news, all);
   const parent = screen.getByRole('combobox', { name: 'Inside folder' });
-  expect([...parent.querySelectorAll('option')].map((o) => o.textContent)).toEqual(['None (top level)', 'Tech']);
-  expect(screen.getByRole('combobox', { name: 'List view' })).toHaveDisplayValue('Use default (Magazine)');
+  expect([...parent.querySelectorAll('option')].map((o) => o.textContent)).toEqual([
+    'None (top level)',
+    'Tech',
+  ]);
+  expect(screen.getByRole('combobox', { name: 'List view' })).toHaveDisplayValue(
+    'Use default (Magazine)',
+  );
 });
 
 test('a folder with subfolders cannot move inside another, and says why', () => {
   renderDialog(all[0]!, all);
   expect(screen.getByRole('combobox', { name: 'Inside folder' })).toBeDisabled();
-  expect(screen.getByText('A folder with subfolders cannot go inside another folder.')).toBeInTheDocument();
+  expect(
+    screen.getByText('A folder with subfolders cannot go inside another folder.'),
+  ).toBeInTheDocument();
 });

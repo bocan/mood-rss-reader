@@ -136,13 +136,13 @@ export function discoverWebSubLinks(
   linkHeader: string | string[] | undefined,
   xmlBody: string,
   feedUrl: string,
-): { hubUrl: string | null; topicUrl: string } 
+): { hubUrl: string | null; topicUrl: string };
 ```
 
 Two sources, header wins on conflict:
 
 1. **HTTP `Link` header.** Format: `<https://hub.example>; rel="hub",
-   <https://blog.example/feed>; rel="self"`. Write a small parser (split on
+<https://blog.example/feed>; rel="self"`. Write a small parser (split on
    commas outside `<>`, match `<(.*?)>` and `rel="?([^";]+)"?`, rel is a
    space-separated token list). No new dependency.
 2. **In-document links.** Parse the raw XML with `fast-xml-parser` (already a
@@ -196,8 +196,13 @@ keys: `z.object({ 'hub.mode': z.enum([...]), ... })`).
 
   ```ts
   app.addContentTypeParser(
-    ['application/rss+xml', 'application/atom+xml', 'application/xml',
-     'text/xml', 'application/rdf+xml'],
+    [
+      'application/rss+xml',
+      'application/atom+xml',
+      'application/xml',
+      'text/xml',
+      'application/rdf+xml',
+    ],
     { parseAs: 'buffer', bodyLimit: 5 * 1024 * 1024 },
     (req, body, done) => done(null, body),
   );
@@ -303,7 +308,7 @@ Work order:
 Security notes:
 
 - The callback token is an unguessable capability; the HMAC secret
-  additionally authenticates *content* so a leaked callback URL alone cannot
+  additionally authenticates _content_ so a leaked callback URL alone cannot
   inject articles. Both live only server-side (never returned by any API).
 - `hub.topic` echo-check on verification prevents a malicious hub from
   binding our callback to a topic we never asked for.

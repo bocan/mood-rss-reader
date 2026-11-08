@@ -62,15 +62,19 @@ camelCase and mapped to snake_case by the `casing: 'snake_case'` setting, so
 these become `sanitized_at` and `sanitizer_version` in SQL):
 
 ```ts
-export const articles = pgTable('articles', {
-  // ...existing columns: id, feedId, guid, url, title, author,
-  // contentHtml, summary, publishedAt, fetchedAt...
-  sanitizedAt: timestamp({ withTimezone: true }),
-  sanitizerVersion: integer(),
-}, (t) => [
-  uniqueIndex('articles_feed_guid_key').on(t.feedId, t.guid),
-  index('articles_feed_published_idx').on(t.feedId, t.publishedAt),
-]);
+export const articles = pgTable(
+  'articles',
+  {
+    // ...existing columns: id, feedId, guid, url, title, author,
+    // contentHtml, summary, publishedAt, fetchedAt...
+    sanitizedAt: timestamp({ withTimezone: true }),
+    sanitizerVersion: integer(),
+  },
+  (t) => [
+    uniqueIndex('articles_feed_guid_key').on(t.feedId, t.guid),
+    index('articles_feed_published_idx').on(t.feedId, t.publishedAt),
+  ],
+);
 ```
 
 - `sanitizedAt` (nullable `timestamptz`): set to the current time whenever the
@@ -185,19 +189,65 @@ export function sanitizeArticleHtml(html: string, baseUrl: string | null): strin
   return sanitizeHtml(html, {
     allowedTags: [
       // Text + structure
-      'p', 'a', 'blockquote', 'cite', 'q',
-      'code', 'pre', 'kbd', 'samp', 'var',
-      'ul', 'ol', 'li', 'dl', 'dt', 'dd',
-      'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-      'em', 'strong', 'b', 'i', 'u', 's', 'sub', 'sup',
-      'small', 'mark', 'abbr', 'time', 'span', 'div',
-      'hr', 'br', 'wbr',
+      'p',
+      'a',
+      'blockquote',
+      'cite',
+      'q',
+      'code',
+      'pre',
+      'kbd',
+      'samp',
+      'var',
+      'ul',
+      'ol',
+      'li',
+      'dl',
+      'dt',
+      'dd',
+      'h1',
+      'h2',
+      'h3',
+      'h4',
+      'h5',
+      'h6',
+      'em',
+      'strong',
+      'b',
+      'i',
+      'u',
+      's',
+      'sub',
+      'sup',
+      'small',
+      'mark',
+      'abbr',
+      'time',
+      'span',
+      'div',
+      'hr',
+      'br',
+      'wbr',
       // Tables
-      'table', 'caption', 'colgroup', 'col',
-      'thead', 'tbody', 'tfoot', 'tr', 'td', 'th',
+      'table',
+      'caption',
+      'colgroup',
+      'col',
+      'thead',
+      'tbody',
+      'tfoot',
+      'tr',
+      'td',
+      'th',
       // Media
-      'img', 'figure', 'figcaption', 'picture',
-      'video', 'audio', 'source', 'track',
+      'img',
+      'figure',
+      'figcaption',
+      'picture',
+      'video',
+      'audio',
+      'source',
+      'track',
       // Embeds (only when ALLOW_EMBEDS; hosts are restricted below)
       ...(ALLOW_EMBEDS ? ['iframe'] : []),
     ],
@@ -394,10 +444,7 @@ async function main(): Promise<void> {
       .where(
         and(
           isNotNull(articles.contentHtml),
-          or(
-            isNull(articles.sanitizerVersion),
-            lt(articles.sanitizerVersion, SANITIZER_VERSION),
-          ),
+          or(isNull(articles.sanitizerVersion), lt(articles.sanitizerVersion, SANITIZER_VERSION)),
           cursor ? gt(articles.id, cursor) : undefined,
         ),
       )

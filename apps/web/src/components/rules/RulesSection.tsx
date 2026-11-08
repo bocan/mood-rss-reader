@@ -14,7 +14,11 @@ import { notify } from '@/lib/notify';
 import { useApplyRule, useCreateRule, useDeleteRule, useRules, useUpdateRule } from '@/lib/rules';
 import { cn } from '@/lib/utils';
 
-const FIELD_LABEL: Record<RuleField, string> = { title: 'title', author: 'author', content: 'text' };
+const FIELD_LABEL: Record<RuleField, string> = {
+  title: 'title',
+  author: 'author',
+  content: 'text',
+};
 const ACTION_LABEL: Record<RuleAction, string> = { markRead: 'mark it read', star: 'star it' };
 
 const control =
@@ -48,8 +52,8 @@ export function RulesSection() {
           Rules
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Mark read or star new articles as they arrive. A phrase matches anywhere in the field,
-          in upper or lower case, letter for letter.
+          Mark read or star new articles as they arrive. A phrase matches anywhere in the field, in
+          upper or lower case, letter for letter.
         </p>
       </div>
 
@@ -87,7 +91,10 @@ function RuleItem({ rule, scope }: { rule: FilterRuleDto; scope: string }) {
         />
         <span
           id={`rule-${rule.id}`}
-          className={cn('min-w-0 break-words', !rule.enabled && 'text-muted-foreground line-through')}
+          className={cn(
+            'min-w-0 break-words',
+            !rule.enabled && 'text-muted-foreground line-through',
+          )}
         >
           {sentence}
         </span>
@@ -141,7 +148,11 @@ function AddRuleForm({ subs }: { subs: SubscriptionRow[] }) {
           notify.success('Rule added. It applies to new articles as they arrive.');
         },
         onError: (err) =>
-          setError(err instanceof ApiRequestError ? (err.body?.message ?? err.message) : 'Could not add the rule.'),
+          setError(
+            err instanceof ApiRequestError
+              ? (err.body?.message ?? err.message)
+              : 'Could not add the rule.',
+          ),
       },
     );
   }
@@ -150,7 +161,12 @@ function AddRuleForm({ subs }: { subs: SubscriptionRow[] }) {
     <form onSubmit={add} className="space-y-2" aria-label="Add a rule">
       <div className="flex flex-wrap items-center gap-2 text-sm">
         <span>When the</span>
-        <select aria-label="Field" className={control} value={field} onChange={(e) => setField(e.target.value as RuleField)}>
+        <select
+          aria-label="Field"
+          className={control}
+          value={field}
+          onChange={(e) => setField(e.target.value as RuleField)}
+        >
           {RULE_FIELDS.map((f) => (
             <option key={f} value={f}>
               {FIELD_LABEL[f]}
@@ -168,7 +184,12 @@ function AddRuleForm({ subs }: { subs: SubscriptionRow[] }) {
           placeholder="sponsored"
           className={`${control} w-40`}
         />
-        <select aria-label="Feed" className={`${control} max-w-48`} value={feedId} onChange={(e) => setFeedId(e.target.value)}>
+        <select
+          aria-label="Feed"
+          className={`${control} max-w-48`}
+          value={feedId}
+          onChange={(e) => setFeedId(e.target.value)}
+        >
           <option value="">in all feeds</option>
           {subs.map((s) => (
             <option key={s.feedId} value={s.feedId}>
@@ -176,7 +197,12 @@ function AddRuleForm({ subs }: { subs: SubscriptionRow[] }) {
             </option>
           ))}
         </select>
-        <select aria-label="Action" className={control} value={action} onChange={(e) => setAction(e.target.value as RuleAction)}>
+        <select
+          aria-label="Action"
+          className={control}
+          value={action}
+          onChange={(e) => setAction(e.target.value as RuleAction)}
+        >
           {RULE_ACTIONS.map((a) => (
             <option key={a} value={a}>
               {ACTION_LABEL[a]}

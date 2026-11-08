@@ -87,7 +87,7 @@ Migration: additive `ALTER TABLE`s via `pnpm db:generate`, inspect, commit.
 ### Subscription plumbing (`routes/feeds.ts`)
 
 - `GET /api/feeds` and `subscriptionRow()` add `inBlogroll:
-  subscriptions.inBlogroll` to their selects.
+subscriptions.inBlogroll` to their selects.
 - `PATCH /api/feeds/:id` copies `input.inBlogroll` into `changes` alongside
   `hideFromAll`.
 
@@ -102,7 +102,7 @@ shared helper so the blogroll cannot drift from the real exporter:
 export async function buildUserFeedTree(
   userId: string,
   opts: { blogrollOnly?: boolean } = {},
-): Promise<{ folders: OpmlFolderNode[]; feeds: OpmlFeedNode[] }>
+): Promise<{ folders: OpmlFolderNode[]; feeds: OpmlFeedNode[] }>;
 ```
 
 `blogrollOnly: true` adds `eq(subscriptions.inBlogroll, true)` to the
@@ -135,7 +135,7 @@ Both 404 unless the slug resolves to a profile with
      visible "Download OPML" link in the page body.
 2. **`GET /u/:slug/blogroll.opml`** -
    `buildOpml(await buildUserFeedTree(userId, { blogrollOnly: true }),
-   '<name>'s blogroll')` with
+'<name>'s blogroll')` with
    `content-type: text/x-opml; charset=utf-8` and an inline (not attachment)
    disposition so browsers render it and readers fetch it.
 

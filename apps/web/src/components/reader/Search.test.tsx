@@ -60,7 +60,9 @@ describe('SearchScope', () => {
 
   test('states the query and the scope', () => {
     render(<SearchScope {...base} />);
-    expect(screen.getByText(/Results for/).textContent).toBe('Results for "rust" in Kubernetes Blog');
+    expect(screen.getByText(/Results for/).textContent).toBe(
+      'Results for "rust" in Kubernetes Blog',
+    );
   });
 
   test('says when only unread articles are searched', () => {

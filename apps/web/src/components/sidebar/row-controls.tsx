@@ -1,7 +1,11 @@
 import { MoreHorizontal } from 'lucide-react';
 import { useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { stopDrag } from './stop-drag';
 
 /**

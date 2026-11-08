@@ -173,7 +173,13 @@ describe('inline rename', () => {
 // #45: Move to, Open website and Refresh this feed in the feed menu.
 describe('feed menu actions', () => {
   const folder = (id: string, name: string, parentId: string | null = null) => ({
-    id, userId: 'u1', name, parentId, position: 0, viewMode: null, createdAt: '',
+    id,
+    userId: 'u1',
+    name,
+    parentId,
+    position: 0,
+    viewMode: null,
+    createdAt: '',
   });
   let fetchMock: ReturnType<typeof vi.fn>;
   beforeEach(() => {
@@ -190,7 +196,12 @@ describe('feed menu actions', () => {
     qc.setQueryData(['feeds'], { items: [row] });
     render(
       <QueryClientProvider client={qc}>
-        <FolderTree onSelectFeed={vi.fn()} onSelectFolder={vi.fn()} countByFeed={new Map()} sort="name" />
+        <FolderTree
+          onSelectFeed={vi.fn()}
+          onSelectFolder={vi.fn()}
+          countByFeed={new Map()}
+          sort="name"
+        />
       </QueryClientProvider>,
     );
     const trigger = screen.getByRole('button', { name: 'Feed actions for Dave Rupert' });
@@ -211,10 +222,15 @@ describe('feed menu actions', () => {
     expect(names.indexOf('CSS')).toBe(names.indexOf('Tech') + 1);
     expect(screen.getByRole('menuitem', { name: 'CSS' })).toHaveClass('pl-6');
     // The feed is not in a folder yet, so "No folder" is where it is now.
-    expect(screen.getByRole('menuitem', { name: 'No folder' })).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByRole('menuitem', { name: 'No folder' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
 
     fireEvent.click(screen.getByRole('menuitem', { name: 'CSS' }));
-    await waitFor(() => expect(call('PATCH')).toEqual({ url: '/api/feeds/s1', body: { folderId: 'd2' } }));
+    await waitFor(() =>
+      expect(call('PATCH')).toEqual({ url: '/api/feeds/s1', body: { folderId: 'd2' } }),
+    );
   });
 
   test('"Open website" opens the site in a new tab, and is absent with no site', () => {
@@ -240,7 +256,13 @@ describe('feed menu actions', () => {
 // #46: a feed filter, and collapse or expand all folders.
 describe('feed filter and collapse all', () => {
   const folder = (id: string, name: string, parentId: string | null = null) => ({
-    id, userId: 'u1', name, parentId, position: 0, viewMode: null, createdAt: '',
+    id,
+    userId: 'u1',
+    name,
+    parentId,
+    position: 0,
+    viewMode: null,
+    createdAt: '',
   });
   const many = (n: number): SubscriptionRow[] =>
     Array.from({ length: n }, (_, i) => ({
@@ -252,7 +274,13 @@ describe('feed filter and collapse all', () => {
       // Two feeds in the Tech folder, the rest at the top level.
       folderId: i < 2 ? 'd1' : null,
     }));
-  const tech = { ...many(1)[0]!, subscriptionId: 'sx', feedId: 'fx', title: 'Simon Willison', folderId: 'd2' };
+  const tech = {
+    ...many(1)[0]!,
+    subscriptionId: 'sx',
+    feedId: 'fx',
+    title: 'Simon Willison',
+    folderId: 'd2',
+  };
   // The expanded set is a module store that outlives each test.
   beforeEach(() => setFoldersExpanded(['d1', 'd2'], false));
   afterEach(() => setFoldersExpanded(['d1', 'd2'], false));
@@ -318,14 +346,19 @@ describe('feed filter and collapse all', () => {
 
   test('Alt-click on a chevron expands, then collapses, every folder', () => {
     renderMany([...many(10), tech]);
-    const chevron = within(screen.getByRole('button', { name: 'Tech' }).parentElement!).getByRole('button', {
-      name: 'Expand folder',
-    });
+    const chevron = within(screen.getByRole('button', { name: 'Tech' }).parentElement!).getByRole(
+      'button',
+      {
+        name: 'Expand folder',
+      },
+    );
     expect(chevron).toHaveAttribute('title', 'Expand folder (Alt-click: expand all folders)');
     fireEvent.click(chevron, { altKey: true });
     // Python, a subfolder, opened too.
     expect(screen.getByRole('button', { name: 'Simon Willison' })).toBeInTheDocument();
-    fireEvent.click(screen.getAllByRole('button', { name: 'Collapse folder' })[0]!, { altKey: true });
+    fireEvent.click(screen.getAllByRole('button', { name: 'Collapse folder' })[0]!, {
+      altKey: true,
+    });
     expect(screen.queryByRole('button', { name: 'Python' })).toBeNull();
     expect(screen.queryAllByRole('button', { name: 'Collapse folder' })).toHaveLength(0);
   });
@@ -336,7 +369,10 @@ describe('feed filter and collapse all', () => {
     act(() => trigger.focus());
     fireEvent.keyDown(trigger, { key: 'Enter' });
     // All are collapsed, so only Expand all does something.
-    expect(screen.getByRole('menuitem', { name: 'Collapse all folders' })).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByRole('menuitem', { name: 'Collapse all folders' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
     fireEvent.click(screen.getByRole('menuitem', { name: 'Expand all folders' }));
     expect(screen.getByRole('button', { name: 'Simon Willison' })).toBeInTheDocument();
   });
@@ -354,7 +390,13 @@ test('double-click on a feed starts a rename', () => {
 test('folders show their unread count, collapsed or not, and hide a zero', () => {
   const qc = new QueryClient({ defaultOptions: { queries: { staleTime: Infinity } } });
   const folder = (id: string, name: string, parentId: string | null = null) => ({
-    id, userId: 'u1', name, parentId, position: 0, viewMode: null, createdAt: '',
+    id,
+    userId: 'u1',
+    name,
+    parentId,
+    position: 0,
+    viewMode: null,
+    createdAt: '',
   });
   qc.setQueryData(['folders'], {
     items: [folder('d1', 'Tech'), folder('d2', 'CSS', 'd1'), folder('d3', 'Quiet')],
@@ -367,7 +409,13 @@ test('folders show their unread count, collapsed or not, and hide a zero', () =>
         onSelectFolder={vi.fn()}
         countByFeed={new Map([['f1', 3]])}
         // The server's rollup: the parent includes its child folder.
-        countByFolder={new Map([['d1', 3], ['d2', 3], ['d3', 0]])}
+        countByFolder={
+          new Map([
+            ['d1', 3],
+            ['d2', 3],
+            ['d3', 0],
+          ])
+        }
         sort="name"
       />
     </QueryClientProvider>,
@@ -382,7 +430,13 @@ test('folders show their unread count, collapsed or not, and hide a zero', () =>
 
 describe('subfolders', () => {
   const folder = (id: string, name: string, parentId: string | null = null) => ({
-    id, userId: 'u1', name, parentId, position: 0, viewMode: null, createdAt: '',
+    id,
+    userId: 'u1',
+    name,
+    parentId,
+    position: 0,
+    viewMode: null,
+    createdAt: '',
   });
   let fetchMock: ReturnType<typeof vi.fn>;
   beforeEach(() => {
@@ -399,11 +453,17 @@ describe('subfolders', () => {
     qc.setQueryData(['feeds'], { items: [] });
     render(
       <QueryClientProvider client={qc}>
-        <FolderTree onSelectFeed={vi.fn()} onSelectFolder={vi.fn()} countByFeed={new Map()} sort="name" />
+        <FolderTree
+          onSelectFeed={vi.fn()}
+          onSelectFolder={vi.fn()}
+          countByFeed={new Map()}
+          sort="name"
+        />
       </QueryClientProvider>,
     );
     // The expanded set is a module store that outlives each test: start collapsed.
-    for (const b of screen.queryAllByRole('button', { name: 'Collapse folder' })) fireEvent.click(b);
+    for (const b of screen.queryAllByRole('button', { name: 'Collapse folder' }))
+      fireEvent.click(b);
   }
   // Focus first, as a keyboard user would. With nothing focused, jsdom fires a
   // window blur when the menu takes focus, and Radix closes a menu on that.
@@ -458,7 +518,10 @@ describe('subfolders', () => {
     renderFolders();
     expand('Tech');
     openMenu('CSS');
-    expect(screen.getByRole('menuitem', { name: 'New subfolder' })).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByRole('menuitem', { name: 'New subfolder' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
   });
 
   test('"Move to" puts a top-level folder inside another', async () => {
@@ -466,7 +529,9 @@ describe('subfolders', () => {
     openMenu('News');
     fireEvent.keyDown(screen.getByRole('menuitem', { name: 'Move to' }), { key: 'ArrowRight' });
     fireEvent.click(await screen.findByRole('menuitem', { name: 'Tech' }));
-    await waitFor(() => expect(sent('PATCH')).toEqual({ url: '/api/folders/d3', body: { parentId: 'd1' } }));
+    await waitFor(() =>
+      expect(sent('PATCH')).toEqual({ url: '/api/folders/d3', body: { parentId: 'd1' } }),
+    );
   });
 
   test('a folder with subfolders is told why it cannot move', async () => {
@@ -474,12 +539,17 @@ describe('subfolders', () => {
     openMenu('Tech');
     fireEvent.keyDown(screen.getByRole('menuitem', { name: 'Move to' }), { key: 'ArrowRight' });
     expect(
-      await screen.findByRole('menuitem', { name: 'A folder with subfolders cannot go inside another folder.' }),
+      await screen.findByRole('menuitem', {
+        name: 'A folder with subfolders cannot go inside another folder.',
+      }),
     ).toHaveAttribute('aria-disabled', 'true');
   });
 
   test("a subfolder's own menu acts on the subfolder, not its parent", async () => {
-    vi.stubGlobal('confirm', vi.fn(() => true));
+    vi.stubGlobal(
+      'confirm',
+      vi.fn(() => true),
+    );
     renderFolders();
     expand('Tech');
     openMenu('CSS');
@@ -495,7 +565,9 @@ describe('a failing feed', () => {
   const broken = { ...sub, lastError: 'getaddrinfo EAI_AGAIN daverupert.com' };
   let fetchMock: ReturnType<typeof vi.fn>;
   beforeEach(() => {
-    fetchMock = vi.fn(async () => ({ ok: true, status: 200, json: async () => broken }) as Response);
+    fetchMock = vi.fn(
+      async () => ({ ok: true, status: 200, json: async () => broken }) as Response,
+    );
     vi.stubGlobal('fetch', fetchMock);
   });
   afterEach(() => vi.unstubAllGlobals());
@@ -534,7 +606,10 @@ describe('a failing feed', () => {
     expect(screen.getByText('Last tried never. Last worked never.')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Retry now' }));
     await waitFor(() =>
-      expect(fetchMock).toHaveBeenCalledWith('/api/feeds/s1/refresh', expect.objectContaining({ method: 'POST' })),
+      expect(fetchMock).toHaveBeenCalledWith(
+        '/api/feeds/s1/refresh',
+        expect.objectContaining({ method: 'POST' }),
+      ),
     );
   });
 });

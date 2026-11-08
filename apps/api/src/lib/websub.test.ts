@@ -91,7 +91,15 @@ describe('verifySignature', () => {
   });
 
   test('never throws on malformed headers', () => {
-    for (const header of [undefined, '', 'sha256=', 'md5=abcd', 'sha256', 'sha256=zzzz', 'sha256=abc']) {
+    for (const header of [
+      undefined,
+      '',
+      'sha256=',
+      'md5=abcd',
+      'sha256',
+      'sha256=zzzz',
+      'sha256=abc',
+    ]) {
       expect(verifySignature(secret, header, body)).toBe(false);
     }
   });

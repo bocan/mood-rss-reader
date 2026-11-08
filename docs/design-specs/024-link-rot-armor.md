@@ -120,7 +120,7 @@ New `apps/api/src/worker/prune.ts`, called from the worker `tick()` in
 tick, which is idempotent and cheap):
 
 ```ts
-export async function pruneOldArticles(): Promise<number>
+export async function pruneOldArticles(): Promise<number>;
 ```
 
 Reads `getAppSettings()`; returns 0 when `articleRetentionDays` is null.

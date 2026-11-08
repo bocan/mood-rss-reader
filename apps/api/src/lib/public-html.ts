@@ -63,7 +63,10 @@ export function ownerCard(
     owner.bio ? `<p class="p-note">${escMultiline(owner.bio)}</p>` : '',
     owner.meLinks.length > 0
       ? `<ul class="me-links">\n${owner.meLinks
-          .map((link) => `    <li><a rel="me noopener" href="${esc(link)}">${esc(linkLabel(link))}</a></li>`)
+          .map(
+            (link) =>
+              `    <li><a rel="me noopener" href="${esc(link)}">${esc(linkLabel(link))}</a></li>`,
+          )
           .join('\n')}\n  </ul>`
       : '',
   ].filter(Boolean);
