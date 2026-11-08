@@ -41,7 +41,7 @@ overrides:
   # the declared ranges (~0.18.20, ^0.27.0); db:generate and the tsup build
   # were checked with them. The first is scoped to its one parent, so it does
   # not also rewrite other packages' esbuild peer ranges.
-  '@esbuild-kit/core-utils>esbuild': ^0.25.12
+  '@esbuild-kit/core-utils>esbuild': ^0.28.0
   esbuild@>=0.27.3 <0.28.1: ^0.28.1
   # GHSA-rj75-hqrm-r3gf: @tailwindcss/typography pins 6.0.10 exactly. The fix
   # is in the same major version, and it only parses our own CSS at build time.
