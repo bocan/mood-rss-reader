@@ -2,4 +2,5 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "reviewers": ["bocan"],
   "extends": ["config:recommended"]
+  "minimumReleaseAge": "1 day",
 }

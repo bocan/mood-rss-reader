@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@fastify/cookie": "11.1.5",
-    "@fastify/cors": "11.3.1",
+    "@fastify/cors": "11.4.1",
     "@fastify/helmet": "13.2.0",
     "@fastify/rate-limit": "11.2.2",
     "@fastify/static": "10.1.10",
@@ -30,14 +30,14 @@
     "@node-rs/argon2": "2.2.2",
     "@rss/shared": "workspace:*",
     "drizzle-orm": "0.45.4",
-    "fast-xml-parser": "5.11.2",
+    "fast-xml-parser": "5.12.0",
     "fastify": "5.12.8",
     "linkedom": "0.18.15",
-    "node-html-parser": "9.0.6",
+    "node-html-parser": "9.0.7",
     "postgres": "3.4.9",
     "rss-parser": "3.13.0",
     "sanitize-html": "2.18.1",
-    "undici": "8.12.3",
+    "undici": "8.12.4",
     "zod": "4.6.7"
   },
   "devDependencies": {
@@ -50,6 +50,6 @@
     "tsup": "8.5.1",
     "tsx": "4.23.15",
     "typescript": "6.0.3",
-    "vitest": "5.0.5"
+    "vitest": "5.1.0"
   }
 }
