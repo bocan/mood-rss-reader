@@ -37,7 +37,9 @@ test('the dialog imports the picked file and reports the result', async () => {
 
   pick(new File(['<opml/>'], 'feeds.opml', { type: 'text/xml' }));
 
-  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Added 2 feeds in 1 new folder'));
+  await waitFor(() =>
+    expect(screen.getByRole('status')).toHaveTextContent('Added 2 feeds in 1 new folder'),
+  );
   const [url, init] = fetchMock.mock.calls[0]!;
   expect(String(url)).toContain('/opml/import');
   expect(JSON.parse(init.body)).toEqual({ opml: '<opml/>' });

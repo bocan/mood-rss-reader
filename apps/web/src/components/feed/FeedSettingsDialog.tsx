@@ -262,9 +262,9 @@ export function FeedSettingsDialog({
             <span>
               <span className="block text-sm">Show in All items</span>
               <span className="block text-xs text-muted-foreground">
-                Off: this feed's articles are not in the All items list. The feed still updates,
-                and you read it from the sidebar. This is not the same as Skim, which keeps the
-                articles in All items but removes the count.
+                Off: this feed's articles are not in the All items list. The feed still updates, and
+                you read it from the sidebar. This is not the same as Skim, which keeps the articles
+                in All items but removes the count.
               </span>
             </span>
             <input
@@ -317,8 +317,8 @@ export function FeedSettingsDialog({
           {sub.lastError ? (
             <p className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
               <span className="font-medium">{describeFeedError(sub.lastError).summary}</span> Last
-              tried {relativeTime(sub.lastFetchedAt)}, last worked {relativeTime(sub.lastSuccessAt)}:{' '}
-              {sub.lastError}
+              tried {relativeTime(sub.lastFetchedAt)}, last worked {relativeTime(sub.lastSuccessAt)}
+              : {sub.lastError}
             </p>
           ) : (
             <p className="rounded-md bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
@@ -326,9 +326,7 @@ export function FeedSettingsDialog({
             </p>
           )}
 
-          {update.isError && (
-            <p className="text-sm text-destructive">Could not save. Try again.</p>
-          )}
+          {update.isError && <p className="text-sm text-destructive">Could not save. Try again.</p>}
 
           <div className="flex justify-end gap-2 pt-1">
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>

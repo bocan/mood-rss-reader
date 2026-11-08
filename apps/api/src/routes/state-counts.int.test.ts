@@ -29,7 +29,12 @@ beforeEach(async () => {
 });
 
 const markRead = (cookie: string, body: Record<string, unknown>) =>
-  app.inject({ method: 'POST', url: '/api/articles/mark-read', headers: { cookie }, payload: body });
+  app.inject({
+    method: 'POST',
+    url: '/api/articles/mark-read',
+    headers: { cookie },
+    payload: body,
+  });
 const counts = (cookie: string) =>
   app.inject({ method: 'GET', url: '/api/counts', headers: { cookie } }).then((r) => r.json());
 const feedUnread = (c: { feeds: { feedId: string; unreadCount: number }[] }, id: string) =>
@@ -178,10 +183,7 @@ test('articleIds never reaches a feed the user does not follow', async () => {
   const cookie = await loginAs(user);
 
   expect((await markRead(cookie, { articleIds: [a.id] })).json()).toEqual({ markedIds: [] });
-  const [row] = await db
-    .select()
-    .from(articleStates)
-    .where(eq(articleStates.articleId, a.id));
+  const [row] = await db.select().from(articleStates).where(eq(articleStates.articleId, a.id));
   expect(row).toBeUndefined();
 });
 
@@ -198,9 +200,12 @@ test('articleIds reaches a starred or shared article from a feed the user left (
   const res = await markRead(cookie, { articleIds: [starred.id, shared.id, neither.id] });
   expect(res.json().markedIds.sort()).toEqual([starred.id, shared.id].sort());
   const rows = await db.select().from(articleStates).where(eq(articleStates.userId, user.id));
-  expect(rows.filter((r) => r.read).map((r) => r.articleId).sort()).toEqual(
-    [starred.id, shared.id].sort(),
-  );
+  expect(
+    rows
+      .filter((r) => r.read)
+      .map((r) => r.articleId)
+      .sort(),
+  ).toEqual([starred.id, shared.id].sort());
 });
 
 test('articleIds rejects an empty or oversized batch', async () => {
@@ -331,7 +336,12 @@ test("mark-unread touches only the caller's own rows and rejects bad input", asy
   await seedArticleState(owner.id, a.id, { read: true, readAt: new Date() });
   const cookie = await loginAs(other);
   const unread = (body: Record<string, unknown>) =>
-    app.inject({ method: 'POST', url: '/api/articles/mark-unread', headers: { cookie }, payload: body });
+    app.inject({
+      method: 'POST',
+      url: '/api/articles/mark-unread',
+      headers: { cookie },
+      payload: body,
+    });
 
   expect((await unread({ articleIds: [a.id] })).statusCode).toBe(204);
   const [row] = await db.select().from(articleStates).where(eq(articleStates.articleId, a.id));
@@ -348,7 +358,12 @@ test('PATCH state toggles one half without touching the other, idempotently', as
   const cookie = await loginAs(user);
 
   const patch = (body: Record<string, boolean>) =>
-    app.inject({ method: 'PATCH', url: `/api/articles/${article.id}/state`, headers: { cookie }, payload: body });
+    app.inject({
+      method: 'PATCH',
+      url: `/api/articles/${article.id}/state`,
+      headers: { cookie },
+      payload: body,
+    });
 
   await patch({ starred: true });
   await patch({ read: true }); // must not clear starred
@@ -380,10 +395,13 @@ test('counts: /feeds and /counts agree and no-state-row counts as unread', async
   const c = await counts(cookie);
   expect(feedUnread(c, f1.id)).toBe(2);
   expect(feedUnread(c, f2.id)).toBe(1);
-  expect(c.folders.find((f: { folderId: string }) => f.folderId === folder.id)?.unreadCount).toBe(2);
+  expect(c.folders.find((f: { folderId: string }) => f.folderId === folder.id)?.unreadCount).toBe(
+    2,
+  );
   expect(c.total).toBe(3);
 
-  const feeds = (await app.inject({ method: 'GET', url: '/api/feeds', headers: { cookie } })).json().items;
+  const feeds = (await app.inject({ method: 'GET', url: '/api/feeds', headers: { cookie } })).json()
+    .items;
   for (const item of feeds) {
     expect(item.unreadCount).toBe(feedUnread(c, item.feedId)); // the two endpoints agree
   }

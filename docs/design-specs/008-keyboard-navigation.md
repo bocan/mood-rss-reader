@@ -49,22 +49,22 @@ None. Every shortcut dispatches to an existing hook/mutation.
 Context `list` = list focused, no reader open (or open but list still active on
 `lg+`). Context `reader` = a reader is open. `global` = both.
 
-| Key | Context | Action |
-| --- | --- | --- |
-| `j` | list | select next article (open in place if reader already open) |
-| `k` | list | select previous article |
-| `o` / `Enter` | list | open selected article in reader |
-| `Esc` | reader/overlay | close reader (mobile) or dismiss the topmost overlay |
-| `m` | global | toggle read on selected/open article |
-| `u` | global | mark selected/open article unread |
-| `s` | global | toggle star on selected/open article |
-| `n` | global | next feed/folder in sidebar |
-| `p` | global | previous feed/folder in sidebar |
-| `a` | global | mark all read in current view (SPEC-005 `useMarkRead` scope) |
-| `r` | global | refresh (invalidate `['articles']` + `['counts']`) |
-| `/` | global | focus search input (SPEC-006); no-op if absent |
-| `g` then `g` | global | jump list to top and select first article (chord) |
-| `?` | global | toggle the shortcuts overlay |
+| Key           | Context        | Action                                                       |
+| ------------- | -------------- | ------------------------------------------------------------ |
+| `j`           | list           | select next article (open in place if reader already open)   |
+| `k`           | list           | select previous article                                      |
+| `o` / `Enter` | list           | open selected article in reader                              |
+| `Esc`         | reader/overlay | close reader (mobile) or dismiss the topmost overlay         |
+| `m`           | global         | toggle read on selected/open article                         |
+| `u`           | global         | mark selected/open article unread                            |
+| `s`           | global         | toggle star on selected/open article                         |
+| `n`           | global         | next feed/folder in sidebar                                  |
+| `p`           | global         | previous feed/folder in sidebar                              |
+| `a`           | global         | mark all read in current view (SPEC-005 `useMarkRead` scope) |
+| `r`           | global         | refresh (invalidate `['articles']` + `['counts']`)           |
+| `/`           | global         | focus search input (SPEC-006); no-op if absent               |
+| `g` then `g`  | global         | jump list to top and select first article (chord)            |
+| `?`           | global         | toggle the shortcuts overlay                                 |
 
 Selection target: `m`/`u`/`s` act on the open article when a reader is open,
 otherwise on the selected list row. `a` uses the active list filter's
@@ -74,12 +74,12 @@ otherwise on the selected list row. `a` uses the active list filter's
 
 - `apps/web/src/lib/shortcuts/registry.ts` - a plain data array of
   `Shortcut { keys: string[]; chord?: string[]; contexts: Context[]; group:
-  string; label: string; run: (ctx: ShortcutContext) => void }`. `keys` are
+string; label: string; run: (ctx: ShortcutContext) => void }`. `keys` are
   normalized event descriptors (e.g. `'j'`, `'Enter'`, `'Escape'`, `'?'`).
   `ShortcutContext` is the live handle actions need: `{ selectedId, articles,
-  select, open, close, toggleRead, markUnread, toggleStar, markAllRead,
-  refresh, focusSearch, nextFeed, prevFeed, gotoTop, toggleOverlay,
-  activeContext }`. The overlay is generated from this one array, so the help
+select, open, close, toggleRead, markUnread, toggleStar, markAllRead,
+refresh, focusSearch, nextFeed, prevFeed, gotoTop, toggleOverlay,
+activeContext }`. The overlay is generated from this one array, so the help
   and the behavior can never drift.
 - `apps/web/src/hooks/use-shortcuts.ts` - `useShortcuts(ctx)` mounted once at
   the app root (in `ReaderPage`, or `App` wrapping it). It attaches a single
@@ -100,7 +100,7 @@ otherwise on the selected list row. `a` uses the active list filter's
 - Selected-article state: lift `selectedId` (already introduced by SPEC-004 for
   open) plus a distinct `focusedId` for keyboard selection into `ReaderPage`.
   `j`/`k` move `focusedId` across the flattened `data.pages.flatMap(p =>
-  p.items)`; `o`/`Enter` set `selectedId = focusedId` to open. On `lg+` where
+p.items)`; `o`/`Enter` set `selectedId = focusedId` to open. On `lg+` where
   the reader is a persistent column, `j`/`k` open in place (selection and open
   move together) so navigation always shows content. When `focusedId` reaches
   the last loaded row and `hasNextPage`, call `fetchNextPage()` so `j` keeps
@@ -108,7 +108,7 @@ otherwise on the selected list row. `a` uses the active list filter's
 - Row rendering (SPEC-003's list): the focused row gets an
   `aria-selected`/`data-focused` state and a visible ring
   (`ring-2 ring-ring`), and is scrolled into view via `ref.scrollIntoView({
-  block: 'nearest' })`. Use the list `<ul>` with `role="listbox"` and rows
+block: 'nearest' })`. Use the list `<ul>` with `role="listbox"` and rows
   `role="option"` so selection is exposed to assistive tech.
 - Shortcuts overlay: `apps/web/src/components/shortcuts/ShortcutsOverlay.tsx`,
   a shadcn `Dialog` opened by `?` (and a `?` affordance in the header). It maps

@@ -16,7 +16,12 @@
 import { and, asc, eq, gt, isNull, lt, or } from 'drizzle-orm';
 import { client, db } from '../db/index.js';
 import { articles, feeds } from '../db/schema.js';
-import { htmlToText, looksLikeHtml, SANITIZER_VERSION, sanitizeArticleHtml } from '../lib/sanitize.js';
+import {
+  htmlToText,
+  looksLikeHtml,
+  SANITIZER_VERSION,
+  sanitizeArticleHtml,
+} from '../lib/sanitize.js';
 
 const BATCH = 500;
 
@@ -39,10 +44,7 @@ async function main(): Promise<void> {
       .innerJoin(feeds, eq(articles.feedId, feeds.id))
       .where(
         and(
-          or(
-            isNull(articles.sanitizerVersion),
-            lt(articles.sanitizerVersion, SANITIZER_VERSION),
-          ),
+          or(isNull(articles.sanitizerVersion), lt(articles.sanitizerVersion, SANITIZER_VERSION)),
           cursor ? gt(articles.id, cursor) : undefined,
         ),
       )

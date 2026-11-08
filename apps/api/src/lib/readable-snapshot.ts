@@ -57,6 +57,9 @@ async function capture(articleId: string, force: boolean): Promise<ReadableSnaps
   const clean = row.url ? await extractReadableHtml(row.url) : null;
   const readableHtml = clean ?? row.readableHtml;
   const readableFetchedAt = new Date();
-  await db.update(articles).set({ readableHtml, readableFetchedAt }).where(eq(articles.id, articleId));
+  await db
+    .update(articles)
+    .set({ readableHtml, readableFetchedAt })
+    .where(eq(articles.id, articleId));
   return { readableHtml, readableFetchedAt };
 }

@@ -154,6 +154,7 @@ Two additions to `GET /api/articles`:
    (Same array-literal binding trick as the mark-read route.) The plain
    list (`unread` unset) still shows old firehose items: expiry means "no
    longer owed", not "erased". They render as read (see next line).
+
 3. **Read presentation of expired items.** So rows agree with counts, the
    list select's `read` field becomes, for firehose feeds only,
    `read OR expired`:

@@ -39,11 +39,17 @@ describe('createRuleSchema', () => {
     expect(createRuleSchema.parse({ ...base, phrase: ' ad ' }).phrase).toBe('ad');
   });
   test('only the known fields and actions', () => {
-    expect(createRuleSchema.safeParse({ field: 'url', phrase: 'xx', action: 'star' }).success).toBe(false);
-    expect(createRuleSchema.safeParse({ field: 'title', phrase: 'xx', action: 'delete' }).success).toBe(false);
+    expect(createRuleSchema.safeParse({ field: 'url', phrase: 'xx', action: 'star' }).success).toBe(
+      false,
+    );
+    expect(
+      createRuleSchema.safeParse({ field: 'title', phrase: 'xx', action: 'delete' }).success,
+    ).toBe(false);
   });
   test('a phrase with pattern characters is fine: it is a literal', () => {
-    expect(createRuleSchema.safeParse({ field: 'title', phrase: '100%_\\', action: 'star' }).success).toBe(true);
+    expect(
+      createRuleSchema.safeParse({ field: 'title', phrase: '100%_\\', action: 'star' }).success,
+    ).toBe(true);
   });
 });
 

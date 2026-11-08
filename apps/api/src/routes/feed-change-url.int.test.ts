@@ -14,9 +14,8 @@ vi.mock('../lib/feed-fetch.js', async (importOriginal) => {
 const { buildApp } = await import('../app.js');
 const { db } = await import('../db/index.js');
 const { feeds, subscriptions } = await import('../db/schema.js');
-const { loginAs, resetDb, seedFeed, seedSubscription, seedUser } = await import(
-  '../../test/helpers.js'
-);
+const { loginAs, resetDb, seedFeed, seedSubscription, seedUser } =
+  await import('../../test/helpers.js');
 
 let app: FastifyInstance;
 beforeAll(async () => {
@@ -33,7 +32,12 @@ beforeEach(async () => {
 });
 
 const changeUrl = (cookie: string, subId: string, feedUrl: string) =>
-  app.inject({ method: 'PATCH', url: `/api/feeds/${subId}/url`, headers: { cookie }, payload: { feedUrl } });
+  app.inject({
+    method: 'PATCH',
+    url: `/api/feeds/${subId}/url`,
+    headers: { cookie },
+    payload: { feedUrl },
+  });
 
 test('re-points the subscription to a feed at the new URL and drops the orphan', async () => {
   const user = await seedUser();

@@ -9,11 +9,18 @@ import { RetentionSection } from './AdminPage';
 let fetchMock: ReturnType<typeof vi.fn>;
 let confirmMock: ReturnType<typeof vi.fn>;
 beforeEach(() => {
-  fetchMock = vi.fn(async (_url: string, init?: RequestInit) => ({
-    ok: true,
-    status: 200,
-    json: async () => ({ registrationMode: 'open', defaultPollIntervalSec: 900, ...JSON.parse(String(init?.body ?? '{}')) }),
-  }) as Response);
+  fetchMock = vi.fn(
+    async (_url: string, init?: RequestInit) =>
+      ({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          registrationMode: 'open',
+          defaultPollIntervalSec: 900,
+          ...JSON.parse(String(init?.body ?? '{}')),
+        }),
+      }) as Response,
+  );
   vi.stubGlobal('fetch', fetchMock);
   confirmMock = vi.fn(() => true);
   vi.stubGlobal('confirm', confirmMock);
@@ -43,7 +50,9 @@ test('forever shows as blank, and says so', () => {
   renderSection(null);
   expect(field()).toHaveValue(null);
   expect(screen.getByText('Currently kept forever')).toBeInTheDocument();
-  expect(field()).toHaveAccessibleDescription(/Starred and shared articles, and each feed's newest 100 items/);
+  expect(field()).toHaveAccessibleDescription(
+    /Starred and shared articles, and each feed's newest 100 items/,
+  );
   expect(screen.queryByRole('button', { name: 'Keep forever' })).toBeNull();
 });
 

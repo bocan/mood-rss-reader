@@ -83,14 +83,19 @@ describe('public blogroll', () => {
       method: 'PUT',
       url: '/api/profile',
       headers: { cookie: await loginAs(user) },
-      payload: { websiteUrl: 'https://roller.example', meLinks: ['https://mastodon.example/@roller'] },
+      payload: {
+        websiteUrl: 'https://roller.example',
+        meLinks: ['https://mastodon.example/@roller'],
+      },
     });
 
     const res = await app.inject({ method: 'GET', url: '/u/roller/blogroll' });
     expect(res.statusCode).toBe(200); // shares are off; the blogroll is on
     const { items, rels } = mf2(res.body, { baseUrl: 'http://localhost/' });
     const cards = items.filter((i) => i.type?.includes('h-card'));
-    const owner = cards.find((c) => String(c.properties.uid?.[0] ?? '').endsWith('/u/roller/blogroll'));
+    const owner = cards.find((c) =>
+      String(c.properties.uid?.[0] ?? '').endsWith('/u/roller/blogroll'),
+    );
     expect(owner?.properties).toMatchObject({ name: ['Roller'] });
     expect(owner?.properties.url).toContain('https://roller.example');
     expect(rels.me).toEqual(['https://roller.example', 'https://mastodon.example/@roller']);

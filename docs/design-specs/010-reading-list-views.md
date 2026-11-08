@@ -36,7 +36,7 @@ no image). Cards and magazine reflow to a single column on mobile.
   spec persists to `localStorage` only and leaves a note where SPEC-011 takes
   over.
 - The reading pane and article body view modes (`ARTICLE_VIEWS`) - SPEC-004.
-  "Views" here means only how the *list* renders, not the article body.
+  "Views" here means only how the _list_ renders, not the article body.
 - Any change to `GET /articles` ordering, filtering, or the cursor - SPEC-003
   owns that. This spec only adds a field to each item's shape.
 - Backfilling `imageUrl` for already-stored articles - the column is populated
@@ -125,7 +125,7 @@ the single SPEC-003 `useInfiniteQuery`; these are presentational only.
 - **`ReaderPage.tsx` wiring**: keep the existing scroll container, sentinel,
   spinner row, empty state, and end-of-list marker from SPEC-003; swap the
   hard-coded row map for `<CurrentView />` chosen by `view`. The
-  `IntersectionObserver` sentinel and the SPEC-008 selection index sit *outside*
+  `IntersectionObserver` sentinel and the SPEC-008 selection index sit _outside_
   the switched view so both survive a view change with no refetch and no scroll
   jump.
 

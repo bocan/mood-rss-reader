@@ -73,7 +73,11 @@ Introduce a small matcher table that runs **before** the generic fetch:
  *  parsing before it is offered. */
 export function socialFeedProbes(url: string): string[] {
   let u: URL;
-  try { u = new URL(url); } catch { return []; }
+  try {
+    u = new URL(url);
+  } catch {
+    return [];
+  }
 
   // Bluesky: https://bsky.app/profile/<handle or did> -> .../rss
   if (u.hostname === 'bsky.app') {
@@ -122,7 +126,7 @@ All in `subscribe-dialog.tsx`:
    ```ts
    /** '@user@instance.tld' or 'user@instance.tld' -> 'https://instance.tld/@user'.
     *  Anything else returns the input unchanged. */
-   export function normalizeSubscribeInput(raw: string): string
+   export function normalizeSubscribeInput(raw: string): string;
    ```
 
    Rules: trim; if it matches
@@ -137,6 +141,7 @@ All in `subscribe-dialog.tsx`:
 
    Put the helper in `apps/web/src/lib/` (pure, unit-tested) and call it in
    the dialog's submit and discover paths.
+
 2. **Placeholder + helper text.** Input placeholder becomes
    `"Site, feed, or profile URL"`; the hint line below mentions
    "Works with blogs, podcasts, YouTube channels, Mastodon and Bluesky

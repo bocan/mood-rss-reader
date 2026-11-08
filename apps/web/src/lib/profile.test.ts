@@ -11,7 +11,9 @@ const form = (over: Partial<Parameters<typeof identityInput>[0]> = {}) => ({
 });
 
 test('empty fields clear: null for the addresses, [] for the links', () => {
-  expect(identityInput(form())).toEqual({ input: { websiteUrl: null, photoUrl: null, meLinks: [] } });
+  expect(identityInput(form())).toEqual({
+    input: { websiteUrl: null, photoUrl: null, meLinks: [] },
+  });
 });
 
 test('trims, skips blank lines, drops exact duplicates, and keeps the order', () => {
@@ -47,7 +49,8 @@ test('refuses a bad website and a photo that is not https', () => {
 });
 
 test('at most 8 profiles', () => {
-  const links = (n: number) => Array.from({ length: n }, (_, i) => `https://s${i}.example.com`).join('\n');
+  const links = (n: number) =>
+    Array.from({ length: n }, (_, i) => `https://s${i}.example.com`).join('\n');
   expect(identityInput(form({ links: links(8) }))).toHaveProperty('input');
   expect(identityInput(form({ links: links(9) }))).toEqual({ error: 'Up to 8 other profiles.' });
 });

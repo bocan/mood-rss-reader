@@ -61,7 +61,10 @@ export async function settingsRoutes(app: FastifyInstance): Promise<void> {
   app.post('/settings/reset-views', auth, async (request, reply) => {
     const userId = request.user!.id;
     await db.transaction(async (tx) => {
-      await tx.update(subscriptions).set({ viewMode: null }).where(eq(subscriptions.userId, userId));
+      await tx
+        .update(subscriptions)
+        .set({ viewMode: null })
+        .where(eq(subscriptions.userId, userId));
       await tx.update(folders).set({ viewMode: null }).where(eq(folders.userId, userId));
     });
     return reply.code(204).send();

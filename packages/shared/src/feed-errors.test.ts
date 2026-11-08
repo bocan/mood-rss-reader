@@ -3,14 +3,26 @@ import { describeFeedError, transientRetryDelaySec } from './feed-errors.js';
 
 describe('describeFeedError', () => {
   test.each([
-    ['getaddrinfo EAI_AGAIN daverupert.com', 'Could not look up the site. This is often a short network problem.', true],
+    [
+      'getaddrinfo EAI_AGAIN daverupert.com',
+      'Could not look up the site. This is often a short network problem.',
+      true,
+    ],
     ['getaddrinfo ENOTFOUND nowhere.invalid', 'The site address does not exist.', false],
     ['connect ECONNREFUSED 10.0.0.1:443', 'The site refused the connection.', true],
     ['read ECONNRESET', 'The connection dropped.', true],
     ['other side closed', 'The connection dropped.', true],
-    ['Connect Timeout Error (attempted address: x:443, timeout: 10000ms)', 'The site took too long to answer.', true],
+    [
+      'Connect Timeout Error (attempted address: x:443, timeout: 10000ms)',
+      'The site took too long to answer.',
+      true,
+    ],
     ['Headers Timeout Error', 'The site took too long to answer.', true],
-    ['unable to verify the first certificate', 'The site has a security certificate problem.', false],
+    [
+      'unable to verify the first certificate',
+      'The site has a security certificate problem.',
+      false,
+    ],
     ['HTTP 404', 'The feed is not at this address any more.', false],
     ['HTTP 410', 'The feed is not at this address any more.', false],
     ['HTTP 403', 'The site does not allow access to the feed.', false],
@@ -24,7 +36,11 @@ describe('describeFeedError', () => {
       'The server is out of disk space, so it could not store the feed.',
       false,
     ],
-    ['Failed query: insert into "articles" values ($1)\nparams: <p>', 'The server could not store the feed.', false],
+    [
+      'Failed query: insert into "articles" values ($1)\nparams: <p>',
+      'The server could not store the feed.',
+      false,
+    ],
     ['something odd', 'The feed could not be updated.', false],
   ])('%s', (message, summary, transient) => {
     expect(describeFeedError(message)).toEqual({ summary, transient });

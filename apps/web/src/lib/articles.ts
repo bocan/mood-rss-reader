@@ -116,7 +116,10 @@ function zeroCounts(
 }
 
 /** Current read state + feed id for an article, from the list or detail cache. */
-function currentState(qc: QueryClient, articleId: string): { read: boolean; feedId: string } | undefined {
+function currentState(
+  qc: QueryClient,
+  articleId: string,
+): { read: boolean; feedId: string } | undefined {
   for (const [, data] of qc.getQueriesData<ArticlesData>({ queryKey: ['articles'] })) {
     const found = data?.pages.flatMap((p) => p.items).find((a) => a.id === articleId);
     if (found) return { read: found.read, feedId: found.feedId };
@@ -193,7 +196,9 @@ function adjustCounts(qc: QueryClient, feedId: string, delta: number) {
             f.feedId === feedId ? { ...f, unreadCount: clamp(f.unreadCount + delta) } : f,
           ),
           folders: c.folders.map((f) =>
-            folderIds.includes(f.folderId) ? { ...f, unreadCount: clamp(f.unreadCount + delta) } : f,
+            folderIds.includes(f.folderId)
+              ? { ...f, unreadCount: clamp(f.unreadCount + delta) }
+              : f,
           ),
           total: inTotal ? clamp(c.total + delta) : c.total,
         }

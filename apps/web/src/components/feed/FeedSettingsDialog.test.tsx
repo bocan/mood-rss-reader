@@ -202,7 +202,11 @@ test('the view selects say which default they use', () => {
   qc.setQueryData(['auth', 'me'], { id: 'u1', role: 'user' });
   qc.setQueryData(['folders'], { items: [] });
   qc.setQueryData(['profile'], { blogrollEnabled: false });
-  qc.setQueryData(['settings'], { ...DEFAULT_SETTINGS, defaultArticleView: 'web', defaultViewMode: 'cards' });
+  qc.setQueryData(['settings'], {
+    ...DEFAULT_SETTINGS,
+    defaultArticleView: 'web',
+    defaultViewMode: 'cards',
+  });
   render(
     <QueryClientProvider client={qc}>
       <FeedSettingsDialog sub={sub} onOpenChange={vi.fn()} />
@@ -210,7 +214,9 @@ test('the view selects say which default they use', () => {
   );
   const articleView = screen.getByRole('combobox', { name: 'Article view' });
   expect(articleView).toHaveDisplayValue('Use default (Web)');
-  expect(screen.getByRole('combobox', { name: 'List view' })).toHaveDisplayValue('Use default (Cards)');
+  expect(screen.getByRole('combobox', { name: 'List view' })).toHaveDisplayValue(
+    'Use default (Cards)',
+  );
   expect(screen.queryByText('Opens in')).toBeNull();
 });
 

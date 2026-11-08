@@ -43,7 +43,9 @@ async function userWithArticles(n: number) {
 }
 
 const list = (app: FastifyInstance, cookie: string, query = '') =>
-  app.inject({ method: 'GET', url: `/api/articles${query}`, headers: { cookie } }).then((r) => r.json());
+  app
+    .inject({ method: 'GET', url: `/api/articles${query}`, headers: { cookie } })
+    .then((r) => r.json());
 
 test('keyset walk concatenates to the single-page result with no dupes or gaps', async () => {
   const { cookie } = await userWithArticles(5);
@@ -55,7 +57,11 @@ test('keyset walk concatenates to the single-page result with no dupes or gaps',
   let cursor: string | null = null;
   let pages = 0;
   do {
-    const page = await list(app, cookie, `?limit=2${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`);
+    const page = await list(
+      app,
+      cookie,
+      `?limit=2${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`,
+    );
     walked.push(...page.items.map((a: { id: string }) => a.id));
     cursor = page.nextCursor;
     pages++;
@@ -68,8 +74,12 @@ test('keyset walk concatenates to the single-page result with no dupes or gaps',
 
 test('oldest sort is the reverse of newest', async () => {
   const { cookie } = await userWithArticles(4);
-  const newest = (await list(app, cookie, '?sort=newest&limit=100')).items.map((a: { id: string }) => a.id);
-  const oldest = (await list(app, cookie, '?sort=oldest&limit=100')).items.map((a: { id: string }) => a.id);
+  const newest = (await list(app, cookie, '?sort=newest&limit=100')).items.map(
+    (a: { id: string }) => a.id,
+  );
+  const oldest = (await list(app, cookie, '?sort=oldest&limit=100')).items.map(
+    (a: { id: string }) => a.id,
+  );
   expect(oldest).toEqual([...newest].reverse());
 });
 

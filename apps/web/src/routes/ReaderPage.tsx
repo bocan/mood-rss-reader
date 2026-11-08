@@ -176,7 +176,10 @@ export function ReaderPage() {
   const feedMeta = useMemo(
     () =>
       Object.fromEntries(
-        subs.map((s) => [s.feedId, { name: s.customTitle ?? s.title ?? s.feedUrl, faviconUrl: s.faviconUrl }]),
+        subs.map((s) => [
+          s.feedId,
+          { name: s.customTitle ?? s.title ?? s.feedUrl, faviconUrl: s.faviconUrl },
+        ]),
       ),
     [subs],
   );
@@ -214,7 +217,11 @@ export function ReaderPage() {
     : undefined;
   const scopeKey = `${filters.feedId ?? ''}|${filters.folderId ?? ''}|${filters.starred ?? ''}|${filters.shared ?? ''}|${filters.attention ?? ''}`;
   const isAllItems =
-    !filters.feedId && !filters.folderId && !filters.starred && !filters.shared && !filters.attention;
+    !filters.feedId &&
+    !filters.folderId &&
+    !filters.starred &&
+    !filters.shared &&
+    !filters.attention;
   const viewScope: ViewScope = currentSub
     ? { kind: 'feed', subscriptionId: currentSub.subscriptionId, saved: currentSub.viewMode }
     : currentFolder
@@ -232,7 +239,11 @@ export function ReaderPage() {
   // Article order (#31): the same model as the layout. A feed or folder shows
   // its saved order, else the default, which a pick on All items sets.
   const sortScope: SortScope = currentSub
-    ? { kind: 'feed', subscriptionId: currentSub.subscriptionId, saved: currentSub.sortOrder ?? null }
+    ? {
+        kind: 'feed',
+        subscriptionId: currentSub.subscriptionId,
+        saved: currentSub.sortOrder ?? null,
+      }
     : currentFolder
       ? { kind: 'folder', folderId: currentFolder.id, saved: currentFolder.sortOrder ?? null }
       : isAllItems
@@ -415,10 +426,10 @@ export function ReaderPage() {
         : filters.attention === 'precious'
           ? ATTENTION_LABELS.precious
           : filters.feedId
-          ? (feedMeta[filters.feedId]?.name ?? 'Feed')
-          : filters.folderId
-            ? (foldersData?.items.find((f) => f.id === filters.folderId)?.name ?? 'Folder')
-            : 'All items';
+            ? (feedMeta[filters.feedId]?.name ?? 'Feed')
+            : filters.folderId
+              ? (foldersData?.items.find((f) => f.id === filters.folderId)?.name ?? 'Folder')
+              : 'All items';
   const searchStrip = isSearching ? (
     <SearchScope
       query={debouncedQ}
@@ -605,9 +616,7 @@ export function ReaderPage() {
           <li>
             <button
               className={navItem(filters.attention === 'precious' && !communityOpen)}
-              onClick={() =>
-                pickScope(() => setFilters({ attention: 'precious', sort: 'newest' }))
-              }
+              onClick={() => pickScope(() => setFilters({ attention: 'precious', sort: 'newest' }))}
             >
               <Gem className="size-4 text-primary" />
               <span className="flex-1">{ATTENTION_LABELS.precious}</span>
@@ -641,7 +650,11 @@ export function ReaderPage() {
       </ul>
       {problemsOpen && <FeedProblemsDialog onOpenChange={setProblemsOpen} />}
 
-      <SavedSearchList activeId={activeSaved?.id ?? null} onOpen={openSavedSearch} itemClass={navItem} />
+      <SavedSearchList
+        activeId={activeSaved?.id ?? null}
+        onOpen={openSavedSearch}
+        itemClass={navItem}
+      />
 
       <div className="mt-4 flex items-center justify-between px-2">
         <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -759,7 +772,9 @@ export function ReaderPage() {
           <span className="ml-2 text-xs font-normal text-muted-foreground">· unread only</span>
         )}
       </span>
-      <div className={cn('ml-auto flex items-center gap-2', phoneSearchShown && 'flex-1 sm:flex-none')}>
+      <div
+        className={cn('ml-auto flex items-center gap-2', phoneSearchShown && 'flex-1 sm:flex-none')}
+      >
         <Button
           variant="ghost"
           size="icon"
@@ -768,9 +783,7 @@ export function ReaderPage() {
           disabled={fetchingFeeds}
           onClick={fetchFeeds}
         >
-          <RefreshCw
-            className={cn(fetchingFeeds && 'animate-spin motion-reduce:animate-none')}
-          />
+          <RefreshCw className={cn(fetchingFeeds && 'animate-spin motion-reduce:animate-none')} />
         </Button>
         <SearchField
           ref={searchRef}
@@ -796,7 +809,12 @@ export function ReaderPage() {
         )}
         {canMarkAll && (
           <div className="hidden items-center sm:flex">
-            <Button variant="ghost" size="sm" className="rounded-r-none pr-2" onClick={() => markAllRead()}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="rounded-r-none pr-2"
+              onClick={() => markAllRead()}
+            >
               Mark all read
             </Button>
             <DropdownMenu>
@@ -850,10 +868,7 @@ export function ReaderPage() {
           ))}
         </>
       )}
-      <DropdownMenuCheckboxItem
-        checked={unreadOnly}
-        onCheckedChange={changeUnreadOnly}
-      >
+      <DropdownMenuCheckboxItem checked={unreadOnly} onCheckedChange={changeUnreadOnly}>
         Unread only
       </DropdownMenuCheckboxItem>
       {!isSearching && (
@@ -986,8 +1001,8 @@ export function ReaderPage() {
                     title="Select an article"
                     hint={
                       <>
-                        Pick one from the list, or press <Kbd>j</Kbd> and <Kbd>k</Kbd> to move
-                        and <Kbd>Enter</Kbd> to open. <Kbd>?</Kbd> shows every shortcut.
+                        Pick one from the list, or press <Kbd>j</Kbd> and <Kbd>k</Kbd> to move and{' '}
+                        <Kbd>Enter</Kbd> to open. <Kbd>?</Kbd> shows every shortcut.
                       </>
                     }
                   />

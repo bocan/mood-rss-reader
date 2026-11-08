@@ -155,11 +155,11 @@ unauthenticated and read the new columns through `loadProfileForSlug()`.
 
 ### Field rules
 
-| Field | Accepts | Refuses | Stored as |
-| --- | --- | --- | --- |
-| `websiteUrl` | http or https URL with a real domain, 300 chars max | `javascript:`, `mailto:`, `data:`, `localhost`, bare IPs, anything else | trimmed text, as typed |
-| `photoUrl` | https URL with a real domain, 300 chars max | http, and everything `websiteUrl` refuses | trimmed text, as typed |
-| `meLinks` | 0 to 8 URLs, each like `websiteUrl` | a 9th link, any bad link (the whole PUT is a 400) | trimmed, duplicates removed, order kept |
+| Field        | Accepts                                             | Refuses                                                                 | Stored as                               |
+| ------------ | --------------------------------------------------- | ----------------------------------------------------------------------- | --------------------------------------- |
+| `websiteUrl` | http or https URL with a real domain, 300 chars max | `javascript:`, `mailto:`, `data:`, `localhost`, bare IPs, anything else | trimmed text, as typed                  |
+| `photoUrl`   | https URL with a real domain, 300 chars max         | http, and everything `websiteUrl` refuses                               | trimmed text, as typed                  |
+| `meLinks`    | 0 to 8 URLs, each like `websiteUrl`                 | a 9th link, any bad link (the whole PUT is a 400)                       | trimmed, duplicates removed, order kept |
 
 URLs are stored as typed (after trimming), not normalized. Mastodon matches
 the `rel="me"` address against the exact profile URL, so the user's own
@@ -172,13 +172,25 @@ markup. Every value is escaped. Optional parts are left out entirely, not
 rendered empty.
 
 ```html
-<div class="h-card p-author">            <!-- "p-author" only when author is true -->
-  <img class="u-photo" src="PHOTO" alt="" width="48" height="48"
-       loading="lazy" referrerpolicy="no-referrer">          <!-- if photoUrl -->
+<div class="h-card p-author">
+  <!-- "p-author" only when author is true -->
+  <img
+    class="u-photo"
+    src="PHOTO"
+    alt=""
+    width="48"
+    height="48"
+    loading="lazy"
+    referrerpolicy="no-referrer"
+  />
+  <!-- if photoUrl -->
   <a class="p-name u-url u-uid" href="PAGE_URL">DISPLAY_NAME</a>
-  <a class="u-url" rel="me noopener" href="WEBSITE">LABEL</a>  <!-- if websiteUrl -->
-  <p class="p-note">BIO</p>                                    <!-- if bio, via escMultiline -->
-  <ul class="me-links">                                        <!-- if meLinks is not empty -->
+  <a class="u-url" rel="me noopener" href="WEBSITE">LABEL</a>
+  <!-- if websiteUrl -->
+  <p class="p-note">BIO</p>
+  <!-- if bio, via escMultiline -->
+  <ul class="me-links">
+    <!-- if meLinks is not empty -->
     <li><a rel="me noopener" href="LINK">LABEL</a></li>
   </ul>
 </div>
@@ -207,19 +219,26 @@ rendered empty.
 
 ```html
 <article class="h-entry" id="s-ARTICLE_ID">
-  <div class="note e-content">NOTE</div>                          <!-- if note -->
-  <h2 class="p-name"><a class="u-bookmark-of" href="LINK"
-      rel="noopener noreferrer">TITLE</a></h2>                    <!-- if link -->
-  <h2 class="p-name">TITLE</h2>                                   <!-- if no link -->
-  <p class="meta">FEED · <a class="u-url u-uid" href="PAGE_URL#s-ARTICLE_ID"><time
-      class="dt-published" datetime="ISO">DATE</time></a></p>
+  <div class="note e-content">NOTE</div>
+  <!-- if note -->
+  <h2 class="p-name"><a class="u-bookmark-of" href="LINK" rel="noopener noreferrer">TITLE</a></h2>
+  <!-- if link -->
+  <h2 class="p-name">TITLE</h2>
+  <!-- if no link -->
+  <p class="meta">
+    FEED ·
+    <a class="u-url u-uid" href="PAGE_URL#s-ARTICLE_ID"
+      ><time class="dt-published" datetime="ISO">DATE</time></a
+    >
+  </p>
 </article>
 ```
 
-  `LINK` stays `item.url ?? item.feedSiteUrl`, as today. The note becomes a
-  `div` with `e-content`, because `escMultiline` produces `<br>`.
+`LINK` stays `item.url ?? item.feedSiteUrl`, as today. The note becomes a
+`div` with `e-content`, because `escMultiline` produces `<br>`.
+
 - The `<head>` gains `<link rel="blogroll" type="text/x-opml" title="..."
-  href="PAGE_URL/blogroll.opml">` when `blogrollEnabled` is true, beside
+href="PAGE_URL/blogroll.opml">` when `blogrollEnabled` is true, beside
   the existing Atom and JSON Feed alternates.
 
 ### The blogroll page (`/u/<slug>/blogroll`)
@@ -273,7 +292,7 @@ One commit per step, Conventional Commits, `make check` after each.
    the schema unit tests and the profile integration tests.
 2. **`feat(api)`: h-card and bookmark markup.** Add `microformats-parser`
    as an exact-pinned devDependency of `apps/api` (`pnpm --filter @rss/api
-   add -D -E microformats-parser`). Add `linkLabel()` and `ownerCard()` with
+add -D -E microformats-parser`). Add `linkLabel()` and `ownerCard()` with
    their CSS, then the new markup on both pages. Tests: helper unit tests
    and the parse-based integration tests.
 3. **`feat(settings)`: identity fields in Sharing.** The three inputs, the
@@ -285,7 +304,7 @@ One commit per step, Conventional Commits, `make check` after each.
 ## Context7 lookups
 
 - **Zod 4 (`/websites/zod_dev`):** `z.httpUrl()`, `z.url({ protocol,
-  hostname })` and `z.regexes.domain`. Already checked while writing this
+hostname })` and `z.regexes.domain`. Already checked while writing this
   spec: `z.url()` alone accepts `mailto:` and other schemes, so it is not
   enough. Also look up the current way to trim before a string format check.
 - **Drizzle ORM (pg-core):** a `text().array()` column with a `notNull()`
@@ -395,7 +414,7 @@ One commit per step, Conventional Commits, `make check` after each.
   verified. Mastodon checks again when the user saves their Mastodon
   profile, not by itself.
 - **The page is cached for 5 minutes** (`cache-control: public,
-  max-age=300`). A browser can show the old page just after a save.
+max-age=300`). A browser can show the old page just after a save.
 - **Representative h-card.** `u-uid` and `u-url` must equal the URL of the
   page the card is on. Build it with `publicBase(request)`, and in tests read
   the base from the same request, not from a hard-coded host.

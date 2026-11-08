@@ -21,7 +21,9 @@ beforeEach(() => {
     defaultOptions: { queries: { retry: false, staleTime: Infinity }, mutations: { retry: false } },
   });
   registerMutationDefaults(qc);
-  qc.setQueryData(['feeds'], { items: [{ feedId: 'f1', folderId: null, hideFromAll: false, attention: 'normal' }] });
+  qc.setQueryData(['feeds'], {
+    items: [{ feedId: 'f1', folderId: null, hideFromAll: false, attention: 'normal' }],
+  });
   qc.setQueryData(['counts'], { feeds: [{ feedId: 'f1', unreadCount: 2 }], folders: [], total: 2 });
   qc.setQueryData(['articles', filters], {
     pages: [
@@ -50,8 +52,11 @@ const wrapper = ({ children }: { children: ReactNode }) => (
   <QueryClientProvider client={qc}>{children}</QueryClientProvider>
 );
 const listIds = () =>
-  (qc.getQueryData(['articles', filters]) as { pages: { items: { id: string; read: boolean }[] }[] })
-    .pages[0]!.items;
+  (
+    qc.getQueryData(['articles', filters]) as {
+      pages: { items: { id: string; read: boolean }[] }[];
+    }
+  ).pages[0]!.items;
 
 test('marking the open article read keeps it in the unread-only list, shown as read', async () => {
   // The list on screen: an active observer on its query.
@@ -70,7 +75,9 @@ test('marking the open article read keeps it in the unread-only list, shown as r
   expect(fetchMock.mock.calls.every(([url]) => !String(url).includes('/api/articles?'))).toBe(true);
   // Every list is marked stale, the one on screen too, so each refetches when shown.
   expect(qc.getQueryState(['articles', filters])!.isInvalidated).toBe(true);
-  expect(qc.getQueryState(['articles', { sort: 'newest', starred: true }])!.isInvalidated).toBe(true);
+  expect(qc.getQueryState(['articles', { sort: 'newest', starred: true }])!.isInvalidated).toBe(
+    true,
+  );
   expect(qc.getQueryState(['counts'])!.isInvalidated).toBe(true);
 });
 

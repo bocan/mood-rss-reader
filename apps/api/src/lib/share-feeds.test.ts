@@ -45,7 +45,9 @@ describe('buildShareAtom', () => {
 
   test('has feed-level metadata and stable entry ids', () => {
     expect(xml).toContain('<id>https://reader.example/u/chris</id>');
-    expect(xml).toContain('rel="self" type="application/atom+xml" href="https://reader.example/u/chris/feed.xml"');
+    expect(xml).toContain(
+      'rel="self" type="application/atom+xml" href="https://reader.example/u/chris/feed.xml"',
+    );
     expect(xml).toContain('<id>urn:reader:share:user-1:a1</id>');
     expect(xml).toContain('<updated>2026-07-30T12:00:00.000Z</updated>');
   });
@@ -68,7 +70,13 @@ describe('buildShareJsonFeed', () => {
     title: string;
     home_page_url: string;
     feed_url: string;
-    items: { id: string; url?: string; title: string; content_text: string; date_published: string }[];
+    items: {
+      id: string;
+      url?: string;
+      title: string;
+      content_text: string;
+      date_published: string;
+    }[];
   };
 
   test('is valid JSON Feed 1.1 with intact (unescaped) strings', () => {

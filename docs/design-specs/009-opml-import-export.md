@@ -105,11 +105,13 @@ export const importOpmlResultSchema = z.object({
   foldersCreated: z.number().int(),
   feedsAdded: z.number().int(),
   skipped: z.number().int(),
-  failed: z.array(z.object({
-    title: z.string().nullable(),
-    xmlUrl: z.string().nullable(),
-    reason: z.string(),
-  })),
+  failed: z.array(
+    z.object({
+      title: z.string().nullable(),
+      xmlUrl: z.string().nullable(),
+      reason: z.string(),
+    }),
+  ),
 });
 export type ImportOpmlResult = z.infer<typeof importOpmlResultSchema>;
 ```
@@ -141,7 +143,7 @@ export type ImportOpmlResult = z.infer<typeof importOpmlResultSchema>;
   dependency, no separate serializer). Configure the parser with
   `ignoreAttributes: false`, `attributeNamePrefix: '@_'`, and
   `processEntities: true`; the builder with `format: true`, `suppressEmptyNode:
-  true`, and `cdataPropName` for CDATA text. Keep both configs in a small
+true`, and `cdataPropName` for CDATA text. Keep both configs in a small
   `apps/api/src/lib/opml.ts` module (`parseOpml(xml) -> tree`,
   `buildOpml(folders, feeds) -> xml`) so the routes stay thin and the parse/build
   logic is unit-testable without HTTP.

@@ -35,7 +35,9 @@ afterEach(() => {
 function renderInvites() {
   // The app's own error rule (lib/queryClient.ts), on a fresh client.
   const qc = new QueryClient({
-    mutationCache: new MutationCache({ onError: (e, _v, _c, m) => onMutationError(e, m.options.meta) }),
+    mutationCache: new MutationCache({
+      onError: (e, _v, _c, m) => onMutationError(e, m.options.meta),
+    }),
     defaultOptions: { queries: { staleTime: Infinity } },
   });
   qc.setQueryData(['admin', 'invites'], [invite]);

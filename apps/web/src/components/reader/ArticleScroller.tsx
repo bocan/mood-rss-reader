@@ -31,7 +31,10 @@ export function ArticleScroller({
   return (
     <div ref={surface.rootRef} className={cn('min-h-0 flex-1 overflow-y-auto', className)}>
       {/* #30: new articles wait for a click, so the list never moves under the reader. */}
-      <div role="status" className="pointer-events-none sticky top-0 z-10 flex h-0 justify-center overflow-visible">
+      <div
+        role="status"
+        className="pointer-events-none sticky top-0 z-10 flex h-0 justify-center overflow-visible"
+      >
         {surface.newCount > 0 && (
           <Button
             size="sm"
@@ -56,9 +59,7 @@ export function ArticleScroller({
 
       {isError && (
         <div className="flex flex-col items-center gap-3 p-6 text-center text-sm">
-          <p className="text-destructive">
-            {errorText(error, 'Could not load the articles.')}
-          </p>
+          <p className="text-destructive">{errorText(error, 'Could not load the articles.')}</p>
           <Button size="sm" variant="outline" onClick={surface.retry}>
             Try again
           </Button>

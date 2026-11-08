@@ -62,7 +62,9 @@ describe('shared article state', () => {
   test('sharing stamps sharedAt; unsharing clears it and the note', async () => {
     const { user, article, cookie } = await seedReader();
 
-    expect((await patchState(cookie, article.id, { shared: true, shareNote: 'gold' })).statusCode).toBe(204);
+    expect(
+      (await patchState(cookie, article.id, { shared: true, shareNote: 'gold' })).statusCode,
+    ).toBe(204);
     let row = await stateRow(user.id, article.id);
     expect(row!.shared).toBe(true);
     expect(row!.sharedAt).not.toBeNull();
@@ -80,7 +82,12 @@ describe('shared article state', () => {
     await patchState(cookie, article.id, { read: true, starred: true, shared: true });
     await patchState(cookie, article.id, { shareNote: 'updated note' });
     const row = await stateRow(user.id, article.id);
-    expect(row).toMatchObject({ read: true, starred: true, shared: true, shareNote: 'updated note' });
+    expect(row).toMatchObject({
+      read: true,
+      starred: true,
+      shared: true,
+      shareNote: 'updated note',
+    });
   });
 
   test('shared state and note ride the article detail', async () => {
@@ -127,7 +134,12 @@ describe('profile', () => {
         payload: { slug: 'chris', visibility: 'instance', bio: 'hi' },
       })
       .then((r) => r.json());
-    expect(created).toMatchObject({ slug: 'chris', visibility: 'instance', bio: 'hi', shareUrl: null });
+    expect(created).toMatchObject({
+      slug: 'chris',
+      visibility: 'instance',
+      bio: 'hi',
+      shareUrl: null,
+    });
 
     const updated = await app
       .inject({
@@ -206,12 +218,18 @@ describe('profile', () => {
     const profile = await app
       .inject({ method: 'GET', url: '/api/profile', headers: { cookie } })
       .then((r) => r.json());
-    expect(profile).toMatchObject({ websiteUrl: 'https://chris.example', photoUrl: null, meLinks: [] });
+    expect(profile).toMatchObject({
+      websiteUrl: 'https://chris.example',
+      photoUrl: null,
+      meLinks: [],
+    });
   });
 
   test('profile routes require auth', async () => {
     expect((await app.inject({ method: 'GET', url: '/api/profile' })).statusCode).toBe(401);
-    expect((await app.inject({ method: 'GET', url: '/api/shares/community' })).statusCode).toBe(401);
+    expect((await app.inject({ method: 'GET', url: '/api/shares/community' })).statusCode).toBe(
+      401,
+    );
   });
 });
 
@@ -241,12 +259,17 @@ describe('public share pages', () => {
 
     const user = await seedUser();
     await seedProfile(user.id, { slug: 'instance-only', visibility: 'instance' });
-    for (const url of ['/u/instance-only', '/u/instance-only/feed.xml', '/u/instance-only/feed.json', '/u/nobody']) {
+    for (const url of [
+      '/u/instance-only',
+      '/u/instance-only/feed.xml',
+      '/u/instance-only/feed.json',
+      '/u/nobody',
+    ]) {
       expect((await app.inject({ method: 'GET', url })).statusCode).toBe(404);
     }
   });
 
-  test('a disabled user\'s public page vanishes', async () => {
+  test("a disabled user's public page vanishes", async () => {
     const { user } = await seedPublicSharer();
     await db.execute(sql`update users set disabled_at = now() where id = ${user.id}::uuid`);
     expect((await app.inject({ method: 'GET', url: '/u/sharer' })).statusCode).toBe(404);
@@ -327,14 +350,20 @@ describe('public share pages', () => {
     const bare = await seedFeed({ title: 'Bare' });
     await seedSubscription(user.id, bare.id);
     const noLink = await seedArticle(bare.id, { title: 'No link' });
-    await seedArticleState(user.id, noLink.id, { shared: true, sharedAt: new Date('2026-07-29T10:00:00Z') });
+    await seedArticleState(user.id, noLink.id, {
+      shared: true,
+      sharedAt: new Date('2026-07-29T10:00:00Z'),
+    });
 
     const { items, rels } = await parsePage('/u/sharer');
     expect(items).toHaveLength(1);
     const feed = items[0]!;
     expect(feed.type).toEqual(['h-feed']);
 
-    const author = feed.properties.author![0] as { type: string[]; properties: Record<string, unknown[]> };
+    const author = feed.properties.author![0] as {
+      type: string[];
+      properties: Record<string, unknown[]>;
+    };
     expect(author.type).toEqual(['h-card']);
     const pageUrl = author.properties.uid![0] as string;
     expect(pageUrl).toMatch(/\/u\/sharer$/);
@@ -347,7 +376,10 @@ describe('public share pages', () => {
     expect(rels.me).toEqual(['https://sharer.example/', ...identity.meLinks]);
     expect(rels.blogroll).toBeUndefined(); // the blogroll is off
 
-    const entries = (feed.children ?? []) as { type: string[]; properties: Record<string, unknown[]> }[];
+    const entries = (feed.children ?? []) as {
+      type: string[];
+      properties: Record<string, unknown[]>;
+    }[];
     expect(entries.map((e) => e.type)).toEqual([['h-entry'], ['h-entry']]);
     const [shared, bareEntry] = entries;
     expect(shared!.properties).toMatchObject({
@@ -357,7 +389,9 @@ describe('public share pages', () => {
       uid: [`${pageUrl}#s-${article.id}`],
       published: ['2026-07-30T10:00:00.000Z'],
     });
-    expect((shared!.properties.content![0] as { value: string }).value).toBe('A "note" with <angles> & lines');
+    expect((shared!.properties.content![0] as { value: string }).value).toBe(
+      'A "note" with <angles> & lines',
+    );
     expect(bareEntry!.properties['bookmark-of']).toBeUndefined();
     expect(bareEntry!.properties.url).toEqual([`${pageUrl}#s-${noLink.id}`]);
   });
@@ -401,7 +435,11 @@ describe('community', () => {
     await seedSubscription(alice.id, sharedFeed.id);
     await seedSubscription(caller.id, sharedFeed.id);
     const a1 = await seedArticle(sharedFeed.id, { title: 'From Alice' });
-    await seedArticleState(alice.id, a1.id, { shared: true, sharedAt: new Date(), shareNote: 'read this' });
+    await seedArticleState(alice.id, a1.id, {
+      shared: true,
+      sharedAt: new Date(),
+      shareNote: 'read this',
+    });
 
     // Visible sharer on a feed the caller does not follow.
     const bob = await seedUser({ displayName: 'Bob' });
@@ -434,9 +472,7 @@ describe('community', () => {
     expect(titles).not.toContain('From Carol');
     expect(titles).not.toContain('From Dave');
 
-    const alicesShare = res.items.find(
-      (i: { user: { slug: string } }) => i.user.slug === 'alice',
-    );
+    const alicesShare = res.items.find((i: { user: { slug: string } }) => i.user.slug === 'alice');
     expect(alicesShare).toMatchObject({ note: 'read this', subscribed: true });
     const bobsShare = res.items.find((i: { user: { slug: string } }) => i.user.slug === 'bob');
     expect(bobsShare.subscribed).toBe(false);

@@ -17,12 +17,18 @@ const feed = (saved: ViewMode | null): ViewScope => ({ kind: 'feed', subscriptio
 const folder = (saved: ViewMode | null): ViewScope => ({ kind: 'folder', folderId: 'd1', saved });
 
 test('each scope shows its saved layout, else the default', () => {
-  expect(setup({ scope: feed('list'), scopeKey: 'f', defaultView: 'cards' }).result.current[0]).toBe('list');
-  expect(setup({ scope: feed(null), scopeKey: 'f', defaultView: 'cards' }).result.current[0]).toBe('cards');
-  expect(setup({ scope: folder('magazine'), scopeKey: 'd', defaultView: 'cards' }).result.current[0]).toBe(
-    'magazine',
+  expect(
+    setup({ scope: feed('list'), scopeKey: 'f', defaultView: 'cards' }).result.current[0],
+  ).toBe('list');
+  expect(setup({ scope: feed(null), scopeKey: 'f', defaultView: 'cards' }).result.current[0]).toBe(
+    'cards',
   );
-  expect(setup({ scope: { kind: 'all' }, scopeKey: '', defaultView: 'list' }).result.current[0]).toBe('list');
+  expect(
+    setup({ scope: folder('magazine'), scopeKey: 'd', defaultView: 'cards' }).result.current[0],
+  ).toBe('magazine');
+  expect(
+    setup({ scope: { kind: 'all' }, scopeKey: '', defaultView: 'list' }).result.current[0],
+  ).toBe('list');
 });
 
 test('a pick on a feed saves that feed only, never the default', () => {
@@ -46,7 +52,11 @@ test('a pick on All items changes the default', () => {
 });
 
 test('Starred and friends: a pick lasts for this visit only and saves nothing', () => {
-  const { result, rerender, save } = setup({ scope: { kind: 'other' }, scopeKey: 'starred', defaultView: 'cards' });
+  const { result, rerender, save } = setup({
+    scope: { kind: 'other' },
+    scopeKey: 'starred',
+    defaultView: 'cards',
+  });
   act(() => result.current[1]('list'));
   expect(result.current[0]).toBe('list');
   expect(save.feed).not.toHaveBeenCalled();
@@ -77,7 +87,9 @@ test('sort order: saved per feed, else the default, and All items sets the defau
   const run = (scope: SortScope, fallback: SortOrder) =>
     renderHook(() => useSortOrder(scope, 'k', fallback, save)).result;
 
-  expect(run({ kind: 'feed', subscriptionId: 's1', saved: 'oldest' }, 'newest').current[0]).toBe('oldest');
+  expect(run({ kind: 'feed', subscriptionId: 's1', saved: 'oldest' }, 'newest').current[0]).toBe(
+    'oldest',
+  );
   const unsaved = run({ kind: 'folder', folderId: 'd1', saved: null }, 'oldest');
   expect(unsaved.current[0]).toBe('oldest');
   act(() => unsaved.current[1]('newest'));

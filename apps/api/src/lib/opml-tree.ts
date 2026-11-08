@@ -59,9 +59,7 @@ export function assembleFeedTree(
 
   if (opts.pruneEmptyFolders) {
     const prune = (folder: OpmlFolderNode): OpmlFolderNode | null => {
-      const children = folder.folders
-        .map(prune)
-        .filter((f): f is OpmlFolderNode => f !== null);
+      const children = folder.folders.map(prune).filter((f): f is OpmlFolderNode => f !== null);
       if (children.length === 0 && folder.feeds.length === 0) return null;
       return { ...folder, folders: children };
     };

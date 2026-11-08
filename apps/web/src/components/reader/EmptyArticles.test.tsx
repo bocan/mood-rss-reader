@@ -41,7 +41,13 @@ test('no search hits: names the scope, and offers every feed', () => {
 });
 
 test('no search hits in every feed: nothing wider to offer', () => {
-  renderReason({ kind: 'search', query: 'rust', scope: 'All items', allFeeds: true, unreadOnly: false });
+  renderReason({
+    kind: 'search',
+    query: 'rust',
+    scope: 'All items',
+    allFeeds: true,
+    unreadOnly: false,
+  });
   expect(screen.getByText('Searched all feeds.')).toBeInTheDocument();
   expect(screen.queryByRole('button', { name: 'Search all feeds' })).toBeNull();
 });

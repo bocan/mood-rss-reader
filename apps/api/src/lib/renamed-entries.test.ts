@@ -50,7 +50,10 @@ describe('findRenamedEntries', () => {
   });
 
   test('one stored article matches only one incoming entry', () => {
-    const map = findRenamedEntries([entry(NEW), entry(`${NEW}?v=2`)], [{ id: 'a1', ...entry(OLD) }]);
+    const map = findRenamedEntries(
+      [entry(NEW), entry(`${NEW}?v=2`)],
+      [{ id: 'a1', ...entry(OLD) }],
+    );
     expect([...map.values()]).toEqual(['a1']);
   });
 });

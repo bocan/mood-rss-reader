@@ -75,7 +75,11 @@ export async function searchRoutes(app: FastifyInstance): Promise<void> {
       .from(savedSearches)
       .where(eq(savedSearches.userId, userId));
     if ((stats?.n ?? 0) >= MAX_SAVED_SEARCHES) {
-      return badRequest(reply, 'too_many_searches', `You can save up to ${MAX_SAVED_SEARCHES} searches`);
+      return badRequest(
+        reply,
+        'too_many_searches',
+        `You can save up to ${MAX_SAVED_SEARCHES} searches`,
+      );
     }
 
     const [row] = await db

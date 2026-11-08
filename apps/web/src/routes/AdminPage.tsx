@@ -127,7 +127,7 @@ export function RetentionSection() {
       (current === null || next < current) &&
       !confirm(
         `Delete articles older than ${next} days in the next daily clean-up? ` +
-          'Starred and shared articles, and each feed\'s newest 100, are kept. This cannot be undone.',
+          "Starred and shared articles, and each feed's newest 100, are kept. This cannot be undone.",
       )
     ) {
       return;
@@ -168,7 +168,9 @@ export function RetentionSection() {
             type="button"
             variant="ghost"
             disabled={update.isPending}
-            onClick={() => update.mutate({ articleRetentionDays: null }, { onSuccess: () => setDays(null) })}
+            onClick={() =>
+              update.mutate({ articleRetentionDays: null }, { onSuccess: () => setDays(null) })
+            }
           >
             Keep forever
           </Button>
@@ -208,9 +210,7 @@ function RegistrationSection() {
             onClick={() => update.mutate({ registrationMode: m })}
             className={cn(
               'flex-1 rounded-md border p-3 text-left transition-colors duration-150 motion-reduce:transition-none',
-              mode === m
-                ? 'border-primary bg-primary/10 ring-1 ring-primary'
-                : 'hover:bg-accent',
+              mode === m ? 'border-primary bg-primary/10 ring-1 ring-primary' : 'hover:bg-accent',
             )}
           >
             <span className="block text-sm font-medium">{MODE_LABEL[m]}</span>
@@ -233,7 +233,9 @@ function UsersSection() {
       <h2 className="font-medium">Users</h2>
       {isLoading && <p className="text-sm text-muted-foreground">Loading…</p>}
       <div className="space-y-2">
-        {users?.map((u) => <UserRow key={u.id} user={u} isSelf={u.id === me?.id} />)}
+        {users?.map((u) => (
+          <UserRow key={u.id} user={u} isSelf={u.id === me?.id} />
+        ))}
       </div>
     </section>
   );
@@ -383,9 +385,7 @@ export function InvitesSection() {
       </div>
 
       <div className="space-y-2">
-        {invites?.length === 0 && (
-          <p className="text-sm text-muted-foreground">No invites yet.</p>
-        )}
+        {invites?.length === 0 && <p className="text-sm text-muted-foreground">No invites yet.</p>}
         {invites?.map((inv) => {
           const status = inviteStatus(inv);
           const active = status.label === 'Active';

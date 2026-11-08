@@ -181,7 +181,7 @@ The GET default response and the DB column defaults must both equal
   this in one small helper so both the list and any settings UI agree.
 - No-flash contract: the synchronous `localStorage` read in `initTheme()` must
   run before first paint (it already does, called at startup). The server value
-  only ever *reconciles* after hydration; it never gates the first paint. If
+  only ever _reconciles_ after hydration; it never gates the first paint. If
   `localStorage` and the server disagree, the server wins and overwrites the
   local cache for next time.
 - Keep the enum members and the Zod `VIEW_MODES`/`ARTICLE_VIEWS` arrays as the

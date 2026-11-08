@@ -55,16 +55,16 @@ Half light, half dark; two high-contrast. Each has a distinct neutral
 temperature and accent (not hue-rotations of one theme). Neutrals are tinted a
 hair toward the accent hue rather than pure gray.
 
-| id | name | mode | mood | accent |
-| --- | --- | --- | --- | --- |
-| `daylight` | Daylight | light | cool clean white *(default light)* | azure |
-| `paper` | Paper | light | warm ivory/sepia, ink-brown text | clay |
-| `meadow` | Meadow | light | soft light, botanical | green |
-| `beacon` | Beacon | light | **high-contrast** white/near-black, bold rings | vivid blue |
-| `midnight` | Midnight | dark | cool slate near-black *(default dark)* | azure |
-| `ember` | Ember | dark | warm charcoal, cozy | amber |
-| `pine` | Pine | dark | deep green-black | teal |
-| `void` | Void | dark | **high-contrast** true black (OLED), pure white | high-vis |
+| id         | name     | mode  | mood                                            | accent     |
+| ---------- | -------- | ----- | ----------------------------------------------- | ---------- |
+| `daylight` | Daylight | light | cool clean white _(default light)_              | azure      |
+| `paper`    | Paper    | light | warm ivory/sepia, ink-brown text                | clay       |
+| `meadow`   | Meadow   | light | soft light, botanical                           | green      |
+| `beacon`   | Beacon   | light | **high-contrast** white/near-black, bold rings  | vivid blue |
+| `midnight` | Midnight | dark  | cool slate near-black _(default dark)_          | azure      |
+| `ember`    | Ember    | dark  | warm charcoal, cozy                             | amber      |
+| `pine`     | Pine     | dark  | deep green-black                                | teal       |
+| `void`     | Void     | dark  | **high-contrast** true black (OLED), pure white | high-vis   |
 
 ## Data model changes
 
@@ -165,6 +165,7 @@ Build and verify in phases (each independently shippable and gated):
    drop `compact` view (migration), density control in Settings.
 
 Notes:
+
 - The no-flash contract (SPEC-011) must survive: `initTheme` resolves and applies
   before paint; the `localStorage` mirror now stores a theme setting.
 - Keep the accent system honest: unread dot, star, active nav, selected row,

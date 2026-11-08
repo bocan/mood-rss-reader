@@ -57,7 +57,18 @@ async function seedTiers() {
     publishedAt: daysAgo(1),
   });
 
-  return { user, cookie, firehose, normal, precious, folder, fhFresh, fhStale, normalOld, preciousFresh };
+  return {
+    user,
+    cookie,
+    firehose,
+    normal,
+    precious,
+    folder,
+    fhFresh,
+    fhStale,
+    normalOld,
+    preciousFresh,
+  };
 }
 
 describe('attention tiers', () => {
@@ -154,9 +165,13 @@ describe('attention tiers', () => {
     const { cookie, firehose, fhStale } = await seedTiers();
     expect((await patchState(cookie, fhStale.id, { read: false })).statusCode).toBe(204);
 
-    expect((await listed(cookie, `/api/articles?feedId=${firehose.id}`, fhStale.id)).read).toBe(false);
+    expect((await listed(cookie, `/api/articles?feedId=${firehose.id}`, fhStale.id)).read).toBe(
+      false,
+    );
     expect((await getJson(cookie, `/api/articles/${fhStale.id}`)).read).toBe(false);
-    expect(await listed(cookie, `/api/articles?feedId=${firehose.id}&unread=true`, fhStale.id)).toBeDefined();
+    expect(
+      await listed(cookie, `/api/articles?feedId=${firehose.id}&unread=true`, fhStale.id),
+    ).toBeDefined();
     const counts = await getJson(cookie, '/api/counts');
     const fh = counts.feeds.find((f: { feedId: string }) => f.feedId === firehose.id);
     expect(fh.unreadCount).toBe(2); // the fresh one and the kept one

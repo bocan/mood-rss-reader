@@ -35,7 +35,9 @@ function renderPane(
   articleView: string | null = null,
   article: Partial<ArticleDetail> = {},
 ) {
-  const qc = new QueryClient({ defaultOptions: { queries: { staleTime: Infinity, retry: false } } });
+  const qc = new QueryClient({
+    defaultOptions: { queries: { staleTime: Infinity, retry: false } },
+  });
   qc.setQueryData(['article', 'a1'], { ...changelogItem, ...article });
   qc.setQueryData(['feeds'], { items: [{ feedId: 'f1', articleView }] });
   qc.setQueryData(['settings'], { ...DEFAULT_SETTINGS, ...settings });
@@ -46,8 +48,7 @@ function renderPane(
   );
 }
 
-const pressed = () =>
-  screen.getAllByRole('button', { pressed: true }).map((b) => b.textContent);
+const pressed = () => screen.getAllByRole('button', { pressed: true }).map((b) => b.textContent);
 
 test('orders the switcher Feed, Extracted, Web', () => {
   renderPane();
@@ -213,9 +214,14 @@ test('a failed extraction points at the Wayback Machine', () => {
     readableHtml: null,
     readableFetchedAt: '2026-09-01T00:00:00Z',
   });
-  expect(screen.getByText('Could not extract a clean version of this article.')).toBeInTheDocument();
+  expect(
+    screen.getByText('Could not extract a clean version of this article.'),
+  ).toBeInTheDocument();
   expect(screen.getByText(/The original may have moved or died/)).toBeInTheDocument();
-  expect(screen.getByRole('link', { name: 'Try the Wayback Machine.' })).toHaveAttribute('href', WAYBACK);
+  expect(screen.getByRole('link', { name: 'Try the Wayback Machine.' })).toHaveAttribute(
+    'href',
+    WAYBACK,
+  );
 });
 
 // A dropped /readable request is not a failed extraction.

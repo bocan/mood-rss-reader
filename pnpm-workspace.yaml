@@ -1,6 +1,6 @@
 packages:
-  - "apps/*"
-  - "packages/*"
+  - 'apps/*'
+  - 'packages/*'
 
 # No "Update available" box in CI and image build logs. pnpm 12 has a release
 # every few days; the version is pinned in package.json (packageManager) and
@@ -10,7 +10,7 @@ updateNotifier: false
 # Native/build-time deps we explicitly allow to run install scripts.
 allowBuilds:
   esbuild: true
-  "@node-rs/argon2": true
+  '@node-rs/argon2': true
   # Testcontainers transitive deps. We reach Docker via the local socket, not
   # SSH, so these native builds are not needed (pure-JS fallbacks are used).
   cpu-features: false

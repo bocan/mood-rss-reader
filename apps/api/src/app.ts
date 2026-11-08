@@ -32,7 +32,10 @@ export async function buildApp(): Promise<FastifyInstance> {
           level: isProd ? 'info' : 'debug',
           transport: isProd
             ? undefined
-            : { target: 'pino-pretty', options: { translateTime: 'HH:MM:ss', ignore: 'pid,hostname' } },
+            : {
+                target: 'pino-pretty',
+                options: { translateTime: 'HH:MM:ss', ignore: 'pid,hostname' },
+              },
         },
     trustProxy: true,
   });

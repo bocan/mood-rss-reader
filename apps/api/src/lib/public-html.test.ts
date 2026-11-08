@@ -1,6 +1,13 @@
 import { mf2 } from 'microformats-parser';
 import { describe, expect, test } from 'vitest';
-import { esc, escMultiline, layout, linkLabel, ownerCard, type OwnerCardSource } from './public-html.js';
+import {
+  esc,
+  escMultiline,
+  layout,
+  linkLabel,
+  ownerCard,
+  type OwnerCardSource,
+} from './public-html.js';
 
 // SPEC-026: the owner h-card.
 describe('linkLabel', () => {
@@ -50,9 +57,13 @@ describe('ownerCard', () => {
   });
 
   test('a bare profile renders only the name, with nothing empty', () => {
-    const html = ownerCard({ displayName: 'Chris', bio: null, websiteUrl: null, photoUrl: null, meLinks: [] }, page, {
-      author: false,
-    });
+    const html = ownerCard(
+      { displayName: 'Chris', bio: null, websiteUrl: null, photoUrl: null, meLinks: [] },
+      page,
+      {
+        author: false,
+      },
+    );
     expect(html).not.toMatch(/<img|<ul|p-note|rel="me/);
     expect(html).not.toContain('href=""');
     expect(parse(html).items[0]!.properties).toEqual({ name: ['Chris'], url: [page], uid: [page] });

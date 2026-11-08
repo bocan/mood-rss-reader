@@ -21,9 +21,8 @@ vi.mock('undici', () => ({
 const { fetchAndStoreFeed } = await import('./feed-fetch.js');
 const { db } = await import('../db/index.js');
 const { articles, feeds } = await import('../db/schema.js');
-const { loginAs, resetDb, seedArticle, seedFeed, seedSubscription, seedUser } = await import(
-  '../../test/helpers.js'
-);
+const { loginAs, resetDb, seedArticle, seedFeed, seedSubscription, seedUser } =
+  await import('../../test/helpers.js');
 const { buildApp } = await import('../app.js');
 
 beforeEach(async () => {
@@ -90,7 +89,11 @@ test('POST /feeds/:id/refresh fetches that one feed and returns its new state', 
     const cookie = await loginAs(user);
     responses.set(feed.feedUrl, { statusCode: 304 });
 
-    const res = await app.inject({ method: 'POST', url: `/api/feeds/${sub.id}/refresh`, headers: { cookie } });
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/feeds/${sub.id}/refresh`,
+      headers: { cookie },
+    });
     expect(res.statusCode).toBe(200);
     expect(res.json()).toMatchObject({ subscriptionId: sub.id, lastError: null });
     expect(res.json().lastSuccessAt).not.toBeNull();
@@ -99,7 +102,11 @@ test('POST /feeds/:id/refresh fetches that one feed and returns its new state', 
     const { request } = await import('undici');
     const fetchesBefore = vi.mocked(request).mock.calls.length;
     const other = await loginAs(await seedUser());
-    const denied = await app.inject({ method: 'POST', url: `/api/feeds/${sub.id}/refresh`, headers: { cookie: other } });
+    const denied = await app.inject({
+      method: 'POST',
+      url: `/api/feeds/${sub.id}/refresh`,
+      headers: { cookie: other },
+    });
     expect(denied.statusCode).toBe(404);
     expect(vi.mocked(request).mock.calls.length).toBe(fetchesBefore);
   } finally {
@@ -112,7 +119,10 @@ test('POST /feeds/:id/refresh fetches that one feed and returns its new state', 
 test('a later fetch fills a missing body from an HTML summary, and keeps a stored one', async () => {
   const feed = await seedFeed();
   const empty = await seedArticle(feed.id, { guid: 'https://ex.com/1', summary: 'Hello world.' });
-  const kept = await seedArticle(feed.id, { guid: 'https://ex.com/2', contentHtml: '<p>Stored</p>' });
+  const kept = await seedArticle(feed.id, {
+    guid: 'https://ex.com/2',
+    contentHtml: '<p>Stored</p>',
+  });
   const entry = (id: string) =>
     `<entry><id>${id}</id><title>t</title><link href="${id}"/><updated>2026-01-01T00:00:00Z</updated>` +
     `<summary type="html">&lt;p&gt;Hello &lt;em&gt;world&lt;/em&gt;.&lt;/p&gt;</summary></entry>`;
@@ -120,7 +130,9 @@ test('a later fetch fills a missing body from an HTML summary, and keeps a store
     statusCode: 200,
     body:
       '<?xml version="1.0"?><feed xmlns="http://www.w3.org/2005/Atom"><title>x</title>' +
-      entry('https://ex.com/1') + entry('https://ex.com/2') + '</feed>',
+      entry('https://ex.com/1') +
+      entry('https://ex.com/2') +
+      '</feed>',
   });
 
   await fetchAndStoreFeed(feed);

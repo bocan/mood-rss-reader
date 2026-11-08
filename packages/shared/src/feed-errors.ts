@@ -33,8 +33,16 @@ const RULES: { test: RegExp; summary: string; transient: boolean }[] = [
     summary: 'The site has a security certificate problem.',
     transient: false,
   },
-  { test: /^HTTP (404|410)\b/, summary: 'The feed is not at this address any more.', transient: false },
-  { test: /^HTTP (401|403)\b/, summary: 'The site does not allow access to the feed.', transient: false },
+  {
+    test: /^HTTP (404|410)\b/,
+    summary: 'The feed is not at this address any more.',
+    transient: false,
+  },
+  {
+    test: /^HTTP (401|403)\b/,
+    summary: 'The site does not allow access to the feed.',
+    transient: false,
+  },
   { test: /^HTTP 429\b/, summary: 'The site asks for fewer requests.', transient: false },
   { test: /^HTTP (502|503|504)\b/, summary: 'The site is down or busy.', transient: true },
   { test: /^HTTP 5\d\d\b/, summary: 'The site had a server error.', transient: false },

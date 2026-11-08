@@ -95,7 +95,7 @@ routes. This is an optimization, not a correctness dependency for this spec.
     app menu / settings, hidden when `canInstall` is false or the app is
     already in `display-mode: standalone`.
   - `useServiceWorkerUpdate()`: wraps the plugin's `registerSW({ onNeedRefresh,
-    onOfflineReady })`. On `onNeedRefresh`, show a non-blocking toast
+onOfflineReady })`. On `onNeedRefresh`, show a non-blocking toast
     ("A new version is available - Reload") whose action calls
     `updateSW(true)`. On `onOfflineReady`, show a one-time "Ready to work
     offline" toast.
@@ -109,7 +109,7 @@ routes. This is an optimization, not a correctness dependency for this spec.
   article bodies). Wrap the app in `PersistQueryClientProvider` in `main.tsx`,
   replacing the plain `QueryClientProvider`.
 - Persister: `createAsyncStoragePersister({ storage: { getItem, setItem,
-  removeItem } })` backed by `idb-keyval`, `key: 'reader-query-cache'`,
+removeItem } })` backed by `idb-keyval`, `key: 'reader-query-cache'`,
   `throttleTime: 1000`.
 - In `queryClient.ts`, raise `gcTime` to at least 24h so cached lists and
   article bodies survive long enough to be persisted and rehydrated; keep

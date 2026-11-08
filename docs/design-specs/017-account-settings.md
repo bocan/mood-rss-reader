@@ -9,7 +9,7 @@
 
 A signed-in user currently has no way to change their own account details.
 `apps/api/src/routes/auth.ts` exposes only register / login / logout / me /
-registration-mode; the admin routes (`admin.ts`) govern *other* users (role,
+registration-mode; the admin routes (`admin.ts`) govern _other_ users (role,
 disable, delete) and are self-locked for the last admin, so a single-user
 instance sees no controls at all. The Settings page (`SettingsPage.tsx`) covers
 reading preferences, OPML, and PWA install, but nothing about identity. SPEC-012
@@ -51,11 +51,11 @@ and scoped to `request.user!.id` (no id in the path):
 
 - `PATCH /auth/me` -> updated `PublicUser`. Applies displayName and/or email.
   A new email that another user already holds -> 409 `{ message: 'Email already
-  in use' }` (uniqueness check excludes the caller, so re-saving your own email
+in use' }` (uniqueness check excludes the caller, so re-saving your own email
   is a no-op success). Bumps `updatedAt`.
 - `POST /auth/change-password` -> 204. Verifies `currentPassword` against the
   stored hash; a mismatch -> 400 `{ message: 'Current password is incorrect' }`.
-  On success, writes the new argon2 hash and deletes every *other* session for
+  On success, writes the new argon2 hash and deletes every _other_ session for
   the user (`sessions.userId = me AND sessions.id != currentToken`), so other
   devices are signed out while the current cookie keeps working.
 

@@ -20,7 +20,12 @@ beforeEach(async () => {
 });
 
 const call = (method: InjectOptions['method'], url: string, cookie?: string, payload?: unknown) =>
-  app.inject({ method, url, ...(cookie ? { headers: { cookie } } : {}), ...(payload ? { payload } : {}) });
+  app.inject({
+    method,
+    url,
+    ...(cookie ? { headers: { cookie } } : {}),
+    ...(payload ? { payload } : {}),
+  });
 
 // --- Authorization matrix ------------------------------------------------
 
@@ -210,7 +215,9 @@ test('GET/PATCH /admin/settings reads and writes the registration mode', async (
   // Seeded lazily on first read; a fresh DB defaults to 'open'.
   expect((await call('GET', '/api/admin/settings', cookie)).json().registrationMode).toBe('open');
 
-  const patched = await call('PATCH', '/api/admin/settings', cookie, { registrationMode: 'invite' });
+  const patched = await call('PATCH', '/api/admin/settings', cookie, {
+    registrationMode: 'invite',
+  });
   expect(patched.statusCode).toBe(200);
   expect(patched.json().registrationMode).toBe('invite');
 
@@ -236,7 +243,9 @@ test('article retention round-trips, with null for forever', async () => {
   await call('PATCH', '/api/admin/settings', cookie, { defaultPollIntervalSec: 600 });
   expect((await call('GET', '/api/admin/settings', cookie)).json().articleRetentionDays).toBe(90);
 
-  const cleared = await call('PATCH', '/api/admin/settings', cookie, { articleRetentionDays: null });
+  const cleared = await call('PATCH', '/api/admin/settings', cookie, {
+    articleRetentionDays: null,
+  });
   expect(cleared.json().articleRetentionDays).toBeNull();
 });
 

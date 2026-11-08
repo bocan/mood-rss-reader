@@ -50,12 +50,12 @@ column.
 ## Non-goals
 
 - Marking an article read on open (mark-read-on-open) and star toggles from the
-  pane: SPEC-005. This spec only *reads and displays* the read/starred state.
+  pane: SPEC-005. This spec only _reads and displays_ the read/starred state.
 - Keyboard shortcuts to move between articles or switch views: SPEC-008.
 - Persisting the user's default view or per-feed view preference: SPEC-011. The
   view switcher is local, in-memory state here.
 - Offline caching of reader content: SPEC-013.
-- Changing the article *list* rendering, pagination, or filters: SPEC-003 owns
+- Changing the article _list_ rendering, pagination, or filters: SPEC-003 owns
   the list. This spec only consumes the selected id and the below-`lg` swap.
 
 ## Data model changes
@@ -67,16 +67,20 @@ mapped to snake_case by `casing: 'snake_case'`, so these become
 already imported, so no new imports are needed:
 
 ```ts
-export const articles = pgTable('articles', {
-  // ...existing columns: id, feedId, guid, url, title, author,
-  // contentHtml, summary, publishedAt, fetchedAt,
-  // (and SPEC-001's sanitizedAt, sanitizerVersion)...
-  readableHtml: text(),
-  readableFetchedAt: timestamp({ withTimezone: true }),
-}, (t) => [
-  uniqueIndex('articles_feed_guid_key').on(t.feedId, t.guid),
-  index('articles_feed_published_idx').on(t.feedId, t.publishedAt),
-]);
+export const articles = pgTable(
+  'articles',
+  {
+    // ...existing columns: id, feedId, guid, url, title, author,
+    // contentHtml, summary, publishedAt, fetchedAt,
+    // (and SPEC-001's sanitizedAt, sanitizerVersion)...
+    readableHtml: text(),
+    readableFetchedAt: timestamp({ withTimezone: true }),
+  },
+  (t) => [
+    uniqueIndex('articles_feed_guid_key').on(t.feedId, t.guid),
+    index('articles_feed_published_idx').on(t.feedId, t.publishedAt),
+  ],
+);
 ```
 
 - `readableHtml` (nullable `text`): cached, sanitized, Readability-extracted
@@ -86,9 +90,9 @@ export const articles = pgTable('articles', {
 - `readableFetchedAt` (nullable `timestamptz`): set to `now()` whenever an
   extraction attempt runs, whether or not it produced content. So the two
   columns encode three states the client must distinguish:
-  - `readableFetchedAt` is `NULL`                      -> never attempted (fetch lazily).
-  - `readableFetchedAt` set, `readableHtml` non-null   -> extracted, cached, show it.
-  - `readableFetchedAt` set, `readableHtml` is `NULL`  -> tried and failed (offer retry, fall back to Readable).
+  - `readableFetchedAt` is `NULL` -> never attempted (fetch lazily).
+  - `readableFetchedAt` set, `readableHtml` non-null -> extracted, cached, show it.
+  - `readableFetchedAt` set, `readableHtml` is `NULL` -> tried and failed (offer retry, fall back to Readable).
 
 `articles` is a global, deduplicated table (see the design note at the top of
 `schema.ts`): `readableHtml` is shared across all subscribers of the feed, not
@@ -138,17 +142,17 @@ user's state.
   ```jsonc
   {
     "id": "...",
-    "title": "...",            // nullable
-    "author": "...",           // nullable
-    "url": "...",              // nullable (item.link may be absent)
-    "contentHtml": "...",      // nullable, ALREADY sanitized by SPEC-001
-    "summary": "...",          // nullable
-    "publishedAt": "...",      // nullable ISO 8601 string
-    "readableHtml": "...",     // nullable
-    "readableFetchedAt": "...",// nullable ISO 8601 string
+    "title": "...", // nullable
+    "author": "...", // nullable
+    "url": "...", // nullable (item.link may be absent)
+    "contentHtml": "...", // nullable, ALREADY sanitized by SPEC-001
+    "summary": "...", // nullable
+    "publishedAt": "...", // nullable ISO 8601 string
+    "readableHtml": "...", // nullable
+    "readableFetchedAt": "...", // nullable ISO 8601 string
     "feed": { "id": "...", "title": "...", "siteUrl": "...", "faviconUrl": "..." },
     "read": false,
-    "starred": false
+    "starred": false,
   }
   ```
 
@@ -172,7 +176,7 @@ when a user opens Simplified for an article that has no cached result.
   `?refresh=true` forces re-extraction.
 - **Scope / not-found:** identical subscription scope check as
   `GET /api/articles/:id`. `404` with the same body if not found or not
-  subscribed. Do this *before* any fetch.
+  subscribed. Do this _before_ any fetch.
 - **Cache hit:** if `refresh` is not set and `readableFetchedAt` is non-null
   (an attempt has already run), return the current cached state without
   fetching the source page - even when `readableHtml` is `NULL` (a prior
@@ -301,9 +305,9 @@ Props: `{ articleId: string }`. Behavior:
 
 - Fetch with TanStack Query:
   `useQuery({ queryKey: ['article', articleId], queryFn: () => api<ArticleDetail>(\`/articles/${articleId}\`), enabled: !!articleId })`.
-  Use the existing `api()` helper (`apps/web/src/lib/api.ts`), which prefixes
-  `/api` and includes credentials; pass the path *without* the `/api` prefix
-  (e.g. `/articles/${id}`).
+Use the existing `api()` helper (`apps/web/src/lib/api.ts`), which prefixes
+`/api`and includes credentials; pass the path *without* the`/api`prefix
+(e.g.`/articles/${id}`).
 - Loading and error states: while `isLoading`, show a lightweight skeleton
   (reuse the `EmptyPane` visual language or a spinner). On error, show the error
   message; if the fetch 404s (an `ApiRequestError` with `status === 404`), show
@@ -313,14 +317,14 @@ Props: `{ articleId: string }`. Behavior:
   `lucide-react` `Rss` icon) + feed title (`feed.title` ?? `feed.siteUrl`),
   author (when present), and a formatted `publishedAt`. Include a persistent
   "Open original" external link to `article.url` (an `<a target="_blank"
-  rel="noopener noreferrer">` with an `ExternalLink` icon) whenever `url` is
+rel="noopener noreferrer">` with an `ExternalLink` icon) whenever `url` is
   non-null.
 - View switcher: a segmented control with the three `ARTICLE_VIEWS`
   (`'simplified' | 'readable' | 'web'`), current view held in local
   `useState<ArticleView>('simplified')`. Not persisted (SPEC-011). Switching
   views must **not** re-issue the `['article', id]` query - all three views read
   from the same already-fetched `ArticleDetail` (Web needs only `url`,
-  Simplified may trigger a *separate* `['article', id, 'readable']` request; see
+  Simplified may trigger a _separate_ `['article', id, 'readable']` request; see
   below). Reset the local view to `'simplified'` when `articleId` changes (key
   the switcher on `articleId`, or a `useEffect` on `articleId`).
 
@@ -337,10 +341,9 @@ Props: `{ articleId: string }`. Behavior:
     fire the readable fetch exactly once. Use a mutation or a query keyed on
     `['article', articleId, 'readable']` that calls
     `api<ArticleDetail>(\`/articles/${articleId}/readable\`)`. On success, write
-    the returned object into the `['article', articleId]` cache
-    (`queryClient.setQueryData`) so all fields stay consistent. Trigger it from
-    a `useEffect` keyed on `[articleId, view]` (fire only when
-    `view === 'simplified'` and not yet attempted), **not** on every render, so
+the returned object into the `['article', articleId]` cache
+(`queryClient.setQueryData`) so all fields stay consistent. Trigger it from
+a `useEffect`keyed on`[articleId, view]`(fire only when`view === 'simplified'` and not yet attempted), **not** on every render, so
     it runs once per article, not per keystroke or re-render.
   - `readableFetchedAt` set but `readableHtml === null` (tried and failed) ->
     show "Couldn't extract a clean version of this article." with a **Try
@@ -352,8 +355,12 @@ Props: `{ articleId: string }`. Behavior:
   ```tsx
   <div className="flex h-full flex-col">
     <div className="flex items-center gap-2 border-b p-2 text-sm">
-      <a href={article.url} target="_blank" rel="noopener noreferrer"
-         className="inline-flex items-center gap-1 text-primary">
+      <a
+        href={article.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-1 text-primary"
+      >
         <ExternalLink className="size-4" /> Open original in new tab
       </a>
       <span className="text-muted-foreground">
@@ -445,8 +452,7 @@ import { sanitizeArticleHtml } from './sanitize.js'; // from SPEC-001
 
 const FETCH_TIMEOUT_MS = 15_000; // matches rss-parser's timeout in poll.ts
 // A browser-like UA: bare/library UAs are blocked by some publishers.
-const USER_AGENT =
-  'Mozilla/5.0 (compatible; rss-reader/0.1; +https://github.com/your/rss-reader)';
+const USER_AGENT = 'Mozilla/5.0 (compatible; rss-reader/0.1; +https://github.com/your/rss-reader)';
 
 /**
  * Fetch `url`, extract the main article with Readability, and return sanitized
@@ -516,13 +522,13 @@ once.
 
 - **XSS / render trust.** Both `contentHtml` (SPEC-001, at ingestion) and
   `readableHtml` (this spec, at extraction time via `sanitizeArticleHtml`) are
-  sanitized *before storage*. `ArticleHtml` renders already-clean HTML and does
+  sanitized _before storage_. `ArticleHtml` renders already-clean HTML and does
   not re-sanitize. This is the invariant: never feed `ArticleHtml` a string that
   has not passed `sanitizeArticleHtml` server-side.
 - **Web-view iframe.** It intentionally loads third-party publisher origins.
   `sandbox="allow-scripts allow-same-origin allow-popups"` is safe here because
-  the framed page is always a *different* origin than the app: `allow-scripts` +
-  `allow-same-origin` together only grant the frame access to *its own* origin,
+  the framed page is always a _different_ origin than the app: `allow-scripts` +
+  `allow-same-origin` together only grant the frame access to _its own_ origin,
   not the parent's. Do **not** add `allow-forms`, `allow-top-navigation`, or
   `allow-modals`. `referrerpolicy="no-referrer"` avoids leaking the reader URL.
   The app's Helmet config currently disables CSP
@@ -637,7 +643,7 @@ and note the deferral. The API tests need no new infra (`vitest` is already an
 ### Integration (`apps/api`, `app.inject` per `health.test.ts`)
 
 Seed a user, a feed, a subscription, and an article (and a second user/feed the
-first user is *not* subscribed to). Mock `extractReadableHtml` (or the underlying
+first user is _not_ subscribed to). Mock `extractReadableHtml` (or the underlying
 `undici.request`) to control fetch behavior and count calls.
 
 - `GET /api/articles/:id` for a subscribed article -> `200`, full detail shape,

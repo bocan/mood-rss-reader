@@ -11,7 +11,7 @@ Reader is multi-user at the data layer already: `users` has a `role` enum
 (`'admin' | 'user'`), the first account to register becomes `admin`
 (`apps/api/src/routes/auth.ts`), `request.user` is populated per request, and
 `app.requireAuth` guards authenticated routes (`apps/api/src/plugins/auth.ts`).
-What is missing is any way to *administer* the instance: registration is
+What is missing is any way to _administer_ the instance: registration is
 unconditionally open, there is no admin UI, no roster of users, no way to
 promote/demote/disable/delete an account, and no invite mechanism. This spec
 adds the operator surface that turns a single-admin scaffold into a governable

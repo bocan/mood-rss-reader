@@ -9,7 +9,11 @@ let fetchMock: ReturnType<typeof vi.fn>;
 beforeEach(() => {
   fetchMock = vi.fn(
     async () =>
-      ({ ok: true, status: 201, json: async () => ({ subscription: {}, feed: { id: 'f1' } }) }) as Response,
+      ({
+        ok: true,
+        status: 201,
+        json: async () => ({ subscription: {}, feed: { id: 'f1' } }),
+      }) as Response,
   );
   vi.stubGlobal('fetch', fetchMock);
 });

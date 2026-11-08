@@ -115,8 +115,14 @@ describe('discoverFeedCandidates', () => {
 // SPEC-023: social profiles are feeds too.
 describe('socialFeedProbes', () => {
   test.each([
-    ['https://bsky.app/profile/somebody.bsky.social', 'https://bsky.app/profile/somebody.bsky.social/rss'],
-    ['https://bsky.app/profile/somebody.bsky.social/', 'https://bsky.app/profile/somebody.bsky.social/rss'],
+    [
+      'https://bsky.app/profile/somebody.bsky.social',
+      'https://bsky.app/profile/somebody.bsky.social/rss',
+    ],
+    [
+      'https://bsky.app/profile/somebody.bsky.social/',
+      'https://bsky.app/profile/somebody.bsky.social/rss',
+    ],
     [
       'https://bsky.app/profile/did:plc:z72i7hdynmk6r22z27h6tvur',
       'https://bsky.app/profile/did:plc:z72i7hdynmk6r22z27h6tvur/rss',
@@ -157,7 +163,10 @@ describe('discoverFeedCandidates with social profiles', () => {
 
   test('a Bluesky profile discovers exactly its /rss feed', async () => {
     const feed = 'https://bsky.app/profile/somebody.bsky.social/rss';
-    responses.set(feed, { headers: { 'content-type': 'application/rss+xml' }, body: RSS('@somebody.bsky.social') });
+    responses.set(feed, {
+      headers: { 'content-type': 'application/rss+xml' },
+      body: RSS('@somebody.bsky.social'),
+    });
     const out = await discoverFeedCandidates('https://bsky.app/profile/somebody.bsky.social');
     expect(out).toEqual([{ feedUrl: feed, title: '@somebody.bsky.social' }]);
   });
@@ -174,7 +183,9 @@ describe('discoverFeedCandidates with social profiles', () => {
     responses.set('https://writing.example/@writer.rss', { statusCode: 404, body: 'Not found' });
     responses.set(
       'https://writing.example/@writer',
-      html('<link rel="alternate" type="application/rss+xml" title="RSS" href="https://writing.example/feed/@writer">'),
+      html(
+        '<link rel="alternate" type="application/rss+xml" title="RSS" href="https://writing.example/feed/@writer">',
+      ),
     );
     const out = await discoverFeedCandidates('https://writing.example/@writer');
     expect(out).toEqual([{ feedUrl: 'https://writing.example/feed/@writer', title: 'RSS' }]);
@@ -221,7 +232,9 @@ describe('discoverFeedCandidates with social profiles', () => {
     const page = 'https://www.youtube.com/channel/UC123';
     responses.set(
       page,
-      html('<link rel="alternate" type="application/rss+xml" href="https://www.youtube.com/feeds/videos.xml?channel_id=UC123">'),
+      html(
+        '<link rel="alternate" type="application/rss+xml" href="https://www.youtube.com/feeds/videos.xml?channel_id=UC123">',
+      ),
     );
     await discoverFeedCandidates(page);
     expect(requested()[0]).toBe(page);
@@ -242,9 +255,18 @@ describe('feedArticleRows text coercion', () => {
           isoDate: '2026-01-01T00:00:00.000Z',
         },
         // A title-less note (empty xhtml div, attributes only) -> null title.
-        { id: 'g2', link: 'https://ex.com/2', title: { $: { type: 'xhtml' }, div: [{ $: { class: 'x' } }] } },
+        {
+          id: 'g2',
+          link: 'https://ex.com/2',
+          title: { $: { type: 'xhtml' }, div: [{ $: { class: 'x' } }] },
+        },
         // Atom <author> object -> its name.
-        { id: 'g3', link: 'https://ex.com/3', title: 'plain', author: { name: 'Jane', email: 'j@x.com' } },
+        {
+          id: 'g3',
+          link: 'https://ex.com/3',
+          title: 'plain',
+          author: { name: 'Jane', email: 'j@x.com' },
+        },
       ],
     } as unknown as Parameters<typeof feedArticleRows>[1];
 
@@ -306,7 +328,15 @@ describe('feedArticleRows text coercion', () => {
   test('a real body wins over an HTML summary', () => {
     const parsed = {
       link: 'https://ex.com',
-      items: [{ id: 'g1', link: 'https://ex.com/1', title: 't', content: '<p>Body</p>', summary: '<p>Teaser</p>' }],
+      items: [
+        {
+          id: 'g1',
+          link: 'https://ex.com/1',
+          title: 't',
+          content: '<p>Body</p>',
+          summary: '<p>Teaser</p>',
+        },
+      ],
     } as unknown as Parameters<typeof feedArticleRows>[1];
 
     expect(feedArticleRows('feed-1', parsed)[0]!.contentHtml).toBe('<p>Body</p>');
@@ -315,7 +345,15 @@ describe('feedArticleRows text coercion', () => {
   test('a plain-text summary does not become a body', () => {
     const parsed = {
       link: 'https://ex.com',
-      items: [{ id: 'g1', link: 'https://ex.com/1', title: 't', contentSnippet: 'Just text.', summary: 'Just text.' }],
+      items: [
+        {
+          id: 'g1',
+          link: 'https://ex.com/1',
+          title: 't',
+          contentSnippet: 'Just text.',
+          summary: 'Just text.',
+        },
+      ],
     } as unknown as Parameters<typeof feedArticleRows>[1];
 
     const row = feedArticleRows('feed-1', parsed)[0]!;
@@ -326,7 +364,9 @@ describe('feedArticleRows text coercion', () => {
   test('keeps a plain-text contentSnippet as is, even with a stray "<"', () => {
     const parsed = {
       link: 'https://ex.com',
-      items: [{ id: 'g1', link: 'https://ex.com/1', title: 't', contentSnippet: 'use <div> when 5 < 6' }],
+      items: [
+        { id: 'g1', link: 'https://ex.com/1', title: 't', contentSnippet: 'use <div> when 5 < 6' },
+      ],
     } as unknown as Parameters<typeof feedArticleRows>[1];
 
     expect(feedArticleRows('feed-1', parsed)[0]!.summary).toBe('use <div> when 5 < 6');

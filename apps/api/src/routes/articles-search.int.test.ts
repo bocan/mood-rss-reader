@@ -174,7 +174,11 @@ test('a mode-mismatched cursor is rejected as 400, not 500', async () => {
   const { cookie } = await corpus();
 
   // A chronological cursor (from a non-search list) replayed with q.
-  const chrono = await app.inject({ method: 'GET', url: '/api/articles?limit=1', headers: { cookie } });
+  const chrono = await app.inject({
+    method: 'GET',
+    url: '/api/articles?limit=1',
+    headers: { cookie },
+  });
   const chronoCursor = chrono.json().nextCursor as string;
   expect(chronoCursor).toBeTruthy();
   const wrongWay = await app.inject({
@@ -236,6 +240,10 @@ test('the GIN index is applicable to the search query', async () => {
 
 test('omitting q behaves as the plain chronological list', async () => {
   const { cookie } = await corpus();
-  const res = await app.inject({ method: 'GET', url: '/api/articles?limit=100', headers: { cookie } });
+  const res = await app.inject({
+    method: 'GET',
+    url: '/api/articles?limit=100',
+    headers: { cookie },
+  });
   expect(res.json().items.length).toBe(3);
 });

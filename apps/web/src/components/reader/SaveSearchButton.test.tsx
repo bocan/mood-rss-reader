@@ -7,7 +7,9 @@ import { SaveSearchButton } from './SaveSearchButton';
 
 let fetchMock: ReturnType<typeof vi.fn>;
 beforeEach(() => {
-  fetchMock = vi.fn(async () => ({ ok: true, status: 201, json: async () => ({ id: 's1' }) }) as Response);
+  fetchMock = vi.fn(
+    async () => ({ ok: true, status: 201, json: async () => ({ id: 's1' }) }) as Response,
+  );
   vi.stubGlobal('fetch', fetchMock);
 });
 afterEach(() => vi.unstubAllGlobals());
@@ -42,7 +44,9 @@ test('the popover names the search after the query and says what scope it keeps'
 test('Save sends the name, the query and the captured scope', async () => {
   renderButton();
   open();
-  fireEvent.change(await screen.findByRole('textbox', { name: 'Name' }), { target: { value: ' Postgres news ' } });
+  fireEvent.change(await screen.findByRole('textbox', { name: 'Name' }), {
+    target: { value: ' Postgres news ' },
+  });
   fireEvent.click(screen.getByRole('button', { name: 'Save' }));
   await waitFor(() => expect(fetchMock).toHaveBeenCalled());
   const [url, init] = fetchMock.mock.calls[0]!;

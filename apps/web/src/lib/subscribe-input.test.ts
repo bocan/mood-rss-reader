@@ -12,7 +12,10 @@ describe('normalizeSubscribeInput', () => {
     ['@Some.One_2@Social.Example.ORG', 'https://social.example.org/@Some.One_2'],
     // Full URLs stay as they are.
     ['https://hachyderm.io/@someone', 'https://hachyderm.io/@someone'],
-    ['https://bsky.app/profile/somebody.bsky.social', 'https://bsky.app/profile/somebody.bsky.social'],
+    [
+      'https://bsky.app/profile/somebody.bsky.social',
+      'https://bsky.app/profile/somebody.bsky.social',
+    ],
     ['http://example.com/feed.xml', 'http://example.com/feed.xml'],
     ['HTTPS://Example.com/', 'HTTPS://Example.com/'],
     // feed:// is what browsers use for feed links.

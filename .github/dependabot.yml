@@ -5,11 +5,11 @@ updates:
   # --- JavaScript / TypeScript -------------------------------------------
   # One pnpm workspace with a single root lockfile, so "/" covers apps/* and
   # packages/* together.
-  - package-ecosystem: "npm"
-    directory: "/"
+  - package-ecosystem: 'npm'
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: "monday"
+      interval: 'weekly'
+      day: 'monday'
     open-pull-requests-limit: 10
     # pnpm enforces a ~1-day minimumReleaseAge (its built-in default), so an
     # install --frozen-lockfile rejects any package published under a day ago.
@@ -21,42 +21,56 @@ updates:
       semver-minor-days: 7
       semver-major-days: 30
     commit-message:
-      prefix: "chore(deps)"
-      prefix-development: "chore(deps-dev)"
+      prefix: 'chore(deps)'
+      prefix-development: 'chore(deps-dev)'
     groups:
       # Collapse routine minor/patch bumps into a single PR; majors still open
       # individually so they get a deliberate review.
       minor-and-patch:
         update-types:
-          - "minor"
-          - "patch"
+          - 'minor'
+          - 'patch'
     ignore:
       # TypeScript is intentionally held at 6.x until typescript-eslint supports
       # 7 (see docs / the pinned version in every package.json). Allow 6.x
       # minor/patch, block the major bump.
-      - dependency-name: "typescript"
-        update-types: ["version-update:semver-major"]
+      - dependency-name: 'typescript'
+        update-types: ['version-update:semver-major']
 
   # --- GitHub Actions -----------------------------------------------------
   # Scans .github/workflows/*.yml (ci.yml, docker-publish.yml).
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: 'github-actions'
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: "monday"
+      interval: 'weekly'
+      day: 'monday'
     commit-message:
-      prefix: "chore(ci)"
+      prefix: 'chore(ci)'
     groups:
       github-actions:
         patterns:
-          - "*"
+          - '*'
 
   # --- Docker base image --------------------------------------------------
   # The production image (docker/Dockerfile, node:22-slim).
-  - package-ecosystem: "docker"
-    directory: "/docker"
+  - package-ecosystem: 'docker'
+    directory: '/docker'
     schedule:
-      interval: "weekly"
-      day: "monday"
+      interval: 'weekly'
+      day: 'monday'
     commit-message:
-      prefix: "chore(docker)"
+      prefix: 'chore(docker)'
+
+  # --- Docker Compose images ----------------------------------------------
+  # Image tags in docker/docker-compose*.yml (caddy, postgres). Caddy is pinned
+  # to an exact version because its patch releases can carry breaking changes,
+  # so read the release notes before merging a caddy bump.
+  - package-ecosystem: 'docker-compose'
+    directory: '/docker'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+    cooldown:
+      default-days: 3
+    commit-message:
+      prefix: 'chore(docker)'

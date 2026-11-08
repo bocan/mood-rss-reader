@@ -33,7 +33,10 @@ describe('sanitizeArticleHtml - XSS vectors', () => {
   });
 
   test('strips style attribute and CSS javascript vector', () => {
-    const out = sanitizeArticleHtml('<div style="background:url(javascript:alert(1))">x</div>', BASE);
+    const out = sanitizeArticleHtml(
+      '<div style="background:url(javascript:alert(1))">x</div>',
+      BASE,
+    );
     expect(out).not.toMatch(/\bstyle=/);
     expect(out.toLowerCase()).not.toContain('javascript:');
     expect(out).toContain('x');
@@ -95,7 +98,10 @@ describe('sanitizeArticleHtml - URL resolution', () => {
 
 describe('sanitizeArticleHtml - embeds and benign content', () => {
   test('retains an allowlisted YouTube embed, strips arbitrary hosts', () => {
-    const yt = sanitizeArticleHtml('<iframe src="https://www.youtube.com/embed/abc"></iframe>', BASE);
+    const yt = sanitizeArticleHtml(
+      '<iframe src="https://www.youtube.com/embed/abc"></iframe>',
+      BASE,
+    );
     expect(yt).toContain('<iframe');
     expect(yt).toContain('youtube.com/embed/abc');
 
@@ -116,10 +122,31 @@ describe('sanitizeArticleHtml - embeds and benign content', () => {
       '<a href="https://example.com">home</a>',
     ].join('');
     const out = sanitizeArticleHtml(input, BASE);
-    for (const tag of ['<h2', '<p', '<ul', '<li', '<table', '<thead', '<tbody', '<pre', '<code', '<blockquote', '<img', '<a']) {
+    for (const tag of [
+      '<h2',
+      '<p',
+      '<ul',
+      '<li',
+      '<table',
+      '<thead',
+      '<tbody',
+      '<pre',
+      '<code',
+      '<blockquote',
+      '<img',
+      '<a',
+    ]) {
       expect(out).toContain(tag);
     }
-    for (const text of ['Title', 'First paragraph', 'bold', 'one', 'two', 'const x = 1;', 'quote']) {
+    for (const text of [
+      'Title',
+      'First paragraph',
+      'bold',
+      'one',
+      'two',
+      'const x = 1;',
+      'quote',
+    ]) {
       expect(out).toContain(text);
     }
     expect(out).toContain('alt="pic"');

@@ -12,11 +12,18 @@ test('subfolders follow their parent, indented, and roots are by name', () => {
   render(
     <select aria-label="Folder">
       <FolderOptions
-        folders={[folder('n', 'News'), folder('c', 'CSS', 't'), folder('t', 'Tech'), folder('a', 'Art', 't')]}
+        folders={[
+          folder('n', 'News'),
+          folder('c', 'CSS', 't'),
+          folder('t', 'Tech'),
+          folder('a', 'Art', 't'),
+        ]}
       />
     </select>,
   );
-  const options = screen.getAllByRole('option').map((o) => [o.getAttribute('value'), o.textContent]);
+  const options = screen
+    .getAllByRole('option')
+    .map((o) => [o.getAttribute('value'), o.textContent]);
   const indent = String.fromCharCode(0xa0).repeat(4);
   expect(options).toEqual([
     ['n', 'News'],

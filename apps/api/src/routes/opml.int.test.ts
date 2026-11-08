@@ -14,9 +14,8 @@ vi.mock('../lib/feed-fetch.js', async (importOriginal) => {
 const { buildApp } = await import('../app.js');
 const { db } = await import('../db/index.js');
 const { feeds, folders, subscriptions } = await import('../db/schema.js');
-const { loginAs, resetDb, seedFeed, seedFolder, seedSubscription, seedUser } = await import(
-  '../../test/helpers.js'
-);
+const { loginAs, resetDb, seedFeed, seedFolder, seedSubscription, seedUser } =
+  await import('../../test/helpers.js');
 
 let app: FastifyInstance;
 
@@ -85,7 +84,10 @@ test('already-subscribed feeds count as skipped and create no duplicates', async
   expect(res.json()).toMatchObject({ skipped: 1, feedsAdded: 0 });
   expect(fetchAndStoreFeed).not.toHaveBeenCalled(); // existing feed: no refetch
 
-  const feedRows = await db.select().from(feeds).where(eq(feeds.feedUrl, 'https://a.example/known'));
+  const feedRows = await db
+    .select()
+    .from(feeds)
+    .where(eq(feeds.feedUrl, 'https://a.example/known'));
   expect(feedRows).toHaveLength(1);
   const subRows = await db.select().from(subscriptions).where(eq(subscriptions.userId, user.id));
   expect(subRows).toHaveLength(1);
@@ -97,7 +99,10 @@ test('an existing folder of the same name is reused, not duplicated', async () =
   const cookie = await loginAs(user);
 
   // Different case, to prove the match is case-insensitive.
-  await importOpml(cookie, wrap('<outline text="tech"><outline text="F" xmlUrl="https://a/1" /></outline>'));
+  await importOpml(
+    cookie,
+    wrap('<outline text="tech"><outline text="F" xmlUrl="https://a/1" /></outline>'),
+  );
 
   const folderRows = await db.select().from(folders).where(eq(folders.userId, user.id));
   expect(folderRows).toHaveLength(1);
@@ -133,7 +138,10 @@ test('a new feed whose first fetch fails (no throw) is rejected, not imported', 
     await db.update(feeds).set({ lastError: 'not a feed' }).where(eq(feeds.id, feed!.id));
   });
 
-  const res = await importOpml(cookie, wrap('<outline text="Dead" xmlUrl="https://a.example/dead.xml" />'));
+  const res = await importOpml(
+    cookie,
+    wrap('<outline text="Dead" xmlUrl="https://a.example/dead.xml" />'),
+  );
   const body = res.json();
   expect(body.feedsAdded).toBe(0);
   expect(body.failed).toHaveLength(1);
@@ -190,7 +198,11 @@ test('export produces OPML with the right headers and nesting', async () => {
   const user = await seedUser();
   const parent = await seedFolder(user.id, { name: 'Tech' });
   const child = await seedFolder(user.id, { name: 'Inner', parentId: parent.id });
-  const f1 = await seedFeed({ feedUrl: 'https://a.example/1', title: 'One', siteUrl: 'https://a.example' });
+  const f1 = await seedFeed({
+    feedUrl: 'https://a.example/1',
+    title: 'One',
+    siteUrl: 'https://a.example',
+  });
   const f2 = await seedFeed({ feedUrl: 'https://a.example/2', title: 'Two' });
   const f3 = await seedFeed({ feedUrl: 'https://a.example/3', title: 'Three' });
   await seedSubscription(user.id, f1.id, { folderId: parent.id });
@@ -240,9 +252,7 @@ test('round trip: export one user set and import it into a fresh user', async ()
       .where(eq(subscriptions.userId, userId));
     return {
       folders: fs.map((f) => `${f.parentId ? `${byId.get(f.parentId)}/` : ''}${f.name}`).sort(),
-      subs: subs
-        .map((s) => `${s.folderId ? byId.get(s.folderId) : 'root'}:${s.feedUrl}`)
-        .sort(),
+      subs: subs.map((s) => `${s.folderId ? byId.get(s.folderId) : 'root'}:${s.feedUrl}`).sort(),
     };
   };
   expect(await shape(second.id)).toEqual(await shape(first.id));

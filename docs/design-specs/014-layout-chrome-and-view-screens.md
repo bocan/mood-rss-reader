@@ -26,7 +26,7 @@ What exists today (`apps/web/src/routes/ReaderPage.tsx`):
 
 This spec rearranges the shell around the view mode, makes the sidebar
 collapsible, and moves scope chrome into the top bar. The **visual identity pass**
-(palette, typography, personality) is deliberately *not* in this spec; see
+(palette, typography, personality) is deliberately _not_ in this spec; see
 Non-goals.
 
 ## Goal
@@ -91,12 +91,12 @@ overlay for free.
 
 ### Content region, by view mode
 
-| Mode | Content region |
-| --- | --- |
-| `list` | Two columns: article list (`360px`) then reading pane (`1fr`). Today's behavior. |
-| `compact` | Same two columns as `list`, denser rows. |
-| `cards` | **One region**: a grid of square cards filling the width. |
-| `magazine` | **One region**: two columns of wide, non-square rows. |
+| Mode       | Content region                                                                   |
+| ---------- | -------------------------------------------------------------------------------- |
+| `list`     | Two columns: article list (`360px`) then reading pane (`1fr`). Today's behavior. |
+| `compact`  | Same two columns as `list`, denser rows.                                         |
+| `cards`    | **One region**: a grid of square cards filling the width.                        |
+| `magazine` | **One region**: two columns of wide, non-square rows.                            |
 
 So the grid template is:
 

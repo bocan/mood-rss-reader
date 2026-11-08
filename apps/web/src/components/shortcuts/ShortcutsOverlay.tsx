@@ -10,9 +10,7 @@ import { SHORTCUTS, type Shortcut } from '@/lib/shortcuts/registry';
  */
 function KeyHint({ shortcut }: { shortcut: Shortcut }) {
   const kbd = (k: string) => (
-    <kbd
-      className="rounded border bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground"
-    >
+    <kbd className="rounded border bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground">
       {k === ' ' ? 'Space' : k}
     </kbd>
   );
@@ -75,7 +73,12 @@ export function ShortcutsOverlay({
       >
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-sm font-semibold">Keyboard shortcuts</h2>
-          <Button variant="ghost" size="icon" aria-label="Close" onClick={() => onOpenChange(false)}>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Close"
+            onClick={() => onOpenChange(false)}
+          >
             <X />
           </Button>
         </div>

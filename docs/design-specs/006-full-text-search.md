@@ -100,24 +100,28 @@ form of `generatedAlwaysAs` so the self-references to `articles.*` resolve
 lazily:
 
 ```ts
-export const articles = pgTable('articles', {
-  // ...existing columns: id, feedId, guid, url, title, author,
-  // contentHtml, summary, publishedAt, fetchedAt, plus the SPEC-001
-  // sanitizedAt / sanitizerVersion columns...
-  contentText: text(),
-  // Managed as a generated STORED column; never written by app code.
-  searchVector: tsvector('search_vector').generatedAlwaysAs(
-    (): SQL =>
-      sql`setweight(to_tsvector('english', coalesce(${articles.title}, '')), 'A') || ` +
-      sql`setweight(to_tsvector('english', coalesce(${articles.contentText}, '')), 'B') || ` +
-      sql`setweight(to_tsvector('english', coalesce(${articles.author}, '')), 'C')`,
-  ),
-}, (t) => [
-  uniqueIndex('articles_feed_guid_key').on(t.feedId, t.guid),
-  index('articles_feed_published_idx').on(t.feedId, t.publishedAt),
-  // SPEC-003 also adds articles_sort_key_idx here.
-  index('articles_search_vector_idx').using('gin', t.searchVector),
-]);
+export const articles = pgTable(
+  'articles',
+  {
+    // ...existing columns: id, feedId, guid, url, title, author,
+    // contentHtml, summary, publishedAt, fetchedAt, plus the SPEC-001
+    // sanitizedAt / sanitizerVersion columns...
+    contentText: text(),
+    // Managed as a generated STORED column; never written by app code.
+    searchVector: tsvector('search_vector').generatedAlwaysAs(
+      (): SQL =>
+        sql`setweight(to_tsvector('english', coalesce(${articles.title}, '')), 'A') || ` +
+        sql`setweight(to_tsvector('english', coalesce(${articles.contentText}, '')), 'B') || ` +
+        sql`setweight(to_tsvector('english', coalesce(${articles.author}, '')), 'C')`,
+    ),
+  },
+  (t) => [
+    uniqueIndex('articles_feed_guid_key').on(t.feedId, t.guid),
+    index('articles_feed_published_idx').on(t.feedId, t.publishedAt),
+    // SPEC-003 also adds articles_sort_key_idx here.
+    index('articles_search_vector_idx').using('gin', t.searchVector),
+  ],
+);
 ```
 
 `SQL` and `sql` come from `drizzle-orm`; `customType`, `index`, and
@@ -253,13 +257,12 @@ rather than forcing them together:
   a stored column, the tiebreak comparison repeats the rank expression:
 
   ```ts
-  filters.push(
-    sql`(${rankExpr}, ${articles.id}) < (${cursor.r}::float8, ${cursor.id}::uuid)`,
-  );
+  filters.push(sql`(${rankExpr}, ${articles.id}) < (${cursor.r}::float8, ${cursor.id}::uuid)`);
   ```
 
   Both tuple positions are type-matched (`float8`, `uuid`); with both sort keys
   DESC, "the next page" is exactly the rows tuple-less-than the cursor.
+
 - **Capped depth.** Deep, rank-ordered keyset paging re-scans the full match
   set on every page (the GIN index accelerates `@@` but not the `ts_rank`
   cutoff), a known Postgres FTS trap. Cap total search results at
@@ -317,7 +320,7 @@ return { items, nextCursor } satisfies Paginated<(typeof items)[number]>;
   mode" component.
 - While `q` is non-empty, show the literal query (e.g. `Results for "quantum"`)
   and an approximate result count derived from loaded pages: `data.pages
-  .flatMap(p => p.items).length`, suffixed with `+` while `hasNextPage` is true
+.flatMap(p => p.items).length`, suffixed with `+` while `hasNextPage` is true
   (and thus capped-page-aware, since the API returns `nextCursor: null` at the
   cap). No extra `COUNT(*)` request just for display.
 - Clearing the input removes `q` from the query key, reverting to the normal

@@ -35,7 +35,9 @@ export function OpmlImportPanel({ autoFocus = false }: { autoFocus?: boolean }) 
       queryClient.invalidateQueries({ queryKey: ['counts'] });
     },
     onError: (err) =>
-      setError(err instanceof ApiRequestError ? (err.body?.message ?? err.message) : 'Import failed'),
+      setError(
+        err instanceof ApiRequestError ? (err.body?.message ?? err.message) : 'Import failed',
+      ),
   });
 
   async function onPick(file: File | undefined) {
@@ -90,7 +92,10 @@ export function OpmlImportPanel({ autoFocus = false }: { autoFocus?: boolean }) 
               {showFailures && (
                 <ul className="mt-2 space-y-2 text-xs">
                   {result.failed.map((f, i) => (
-                    <li key={`${f.xmlUrl ?? f.title ?? i}`} className="rounded border bg-background p-2">
+                    <li
+                      key={`${f.xmlUrl ?? f.title ?? i}`}
+                      className="rounded border bg-background p-2"
+                    >
                       <p className="font-medium">{f.title ?? '(untitled)'}</p>
                       {f.xmlUrl && <p className="break-all text-muted-foreground">{f.xmlUrl}</p>}
                       <p className="mt-1">{describeFeedError(f.reason).summary}</p>

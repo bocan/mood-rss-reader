@@ -1,12 +1,6 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
-import {
-  createContext,
-  useContext,
-  useRef,
-  type ComponentProps,
-  type RefObject,
-} from 'react';
+import { createContext, useContext, useRef, type ComponentProps, type RefObject } from 'react';
 import { cn } from '@/lib/utils';
 
 /**
@@ -109,11 +103,11 @@ export function DialogHeader({ className, ...props }: ComponentProps<'div'>) {
   return <div className={cn('flex flex-col gap-1 pr-8', className)} {...props} />;
 }
 
-export function DialogTitle({
-  className,
-  ...props
-}: ComponentProps<typeof DialogPrimitive.Title>) {
+export function DialogTitle({ className, ...props }: ComponentProps<typeof DialogPrimitive.Title>) {
   return (
-    <DialogPrimitive.Title className={cn('text-base font-semibold leading-none', className)} {...props} />
+    <DialogPrimitive.Title
+      className={cn('text-base font-semibold leading-none', className)}
+      {...props}
+    />
   );
 }

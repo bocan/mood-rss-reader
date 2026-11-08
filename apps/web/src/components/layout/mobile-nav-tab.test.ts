@@ -1,7 +1,10 @@
 import { expect, test } from 'vitest';
 import { mobileNavTab } from './mobile-nav-tab';
 
-const tab = (filters: Record<string, unknown>, extra: { isSearching?: boolean; communityOpen?: boolean } = {}) =>
+const tab = (
+  filters: Record<string, unknown>,
+  extra: { isSearching?: boolean; communityOpen?: boolean } = {},
+) =>
   mobileNavTab({
     isSearching: extra.isSearching ?? false,
     communityOpen: extra.communityOpen ?? false,

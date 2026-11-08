@@ -121,6 +121,8 @@ describe('buildOpml', () => {
   });
 
   test('the default title names the product', () => {
-    expect(buildOpml({ folders: [], feeds: [] })).toContain('<title>Mood Reader subscriptions</title>');
+    expect(buildOpml({ folders: [], feeds: [] })).toContain(
+      '<title>Mood Reader subscriptions</title>',
+    );
   });
 });

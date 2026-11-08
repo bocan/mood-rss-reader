@@ -13,7 +13,10 @@ afterEach(() => vi.unstubAllGlobals());
 function renderShell(phoneMenu?: ReactNode) {
   const qc = new QueryClient({ defaultOptions: { queries: { staleTime: Infinity } } });
   qc.setQueryData(['auth', 'me'], { id: 'u1', displayName: 'Chris' });
-  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 401, json: async () => null }));
+  vi.stubGlobal(
+    'fetch',
+    vi.fn().mockResolvedValue({ ok: false, status: 401, json: async () => null }),
+  );
   vi.stubGlobal('matchMedia', (query: string) => ({
     matches: false,
     media: query,

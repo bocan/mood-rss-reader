@@ -24,9 +24,8 @@ const { fetchAndStoreFeed, storeNewArticles } = await import('./feed-fetch.js');
 const { applyRuleToExisting, applyRulesToNewSubscription } = await import('./rules.js');
 const { db } = await import('../db/index.js');
 const { articles, articleStates, filterRules } = await import('../db/schema.js');
-const { resetDb, seedArticle, seedArticleState, seedFeed, seedSubscription, seedUser } = await import(
-  '../../test/helpers.js'
-);
+const { resetDb, seedArticle, seedArticleState, seedFeed, seedSubscription, seedUser } =
+  await import('../../test/helpers.js');
 
 beforeEach(async () => {
   await resetDb();
@@ -59,11 +58,17 @@ const RSS = (items: { guid: string; title: string; author?: string; body?: strin
     .join('') +
   '</channel></rss>';
 
-test('a poll applies each subscriber\'s own rules; others see pristine state', async () => {
+test("a poll applies each subscriber's own rules; others see pristine state", async () => {
   const feed = await seedFeed();
   const [ann, bob, cat] = [await seedUser(), await seedUser(), await seedUser()];
   for (const u of [ann, bob, cat]) await seedSubscription(u.id, feed.id);
-  await addRule({ userId: ann.id, feedId: feed.id, field: 'title', phrase: 'sponsored', action: 'markRead' });
+  await addRule({
+    userId: ann.id,
+    feedId: feed.id,
+    field: 'title',
+    phrase: 'sponsored',
+    action: 'markRead',
+  });
   await addRule({ userId: bob.id, feedId: null, field: 'author', phrase: 'simon', action: 'star' });
   responses.set(
     feed.feedUrl,
@@ -89,7 +94,13 @@ test('content rules read the body, and the summary of a summary-only feed', asyn
   const feed = await seedFeed();
   const user = await seedUser();
   await seedSubscription(user.id, feed.id);
-  await addRule({ userId: user.id, feedId: null, field: 'content', phrase: 'giveaway', action: 'markRead' });
+  await addRule({
+    userId: user.id,
+    feedId: null,
+    field: 'content',
+    phrase: 'giveaway',
+    action: 'markRead',
+  });
   responses.set(feed.feedUrl, RSS([{ guid: 'g', title: 't', body: 'Enter our GIVEAWAY now' }]));
 
   await fetchAndStoreFeed(feed);
@@ -101,9 +112,28 @@ test('disabled rules, rules for another feed, and rules of non-subscribers do no
   const other = await seedFeed();
   const [sub, outsider] = [await seedUser(), await seedUser()];
   await seedSubscription(sub.id, feed.id);
-  await addRule({ userId: sub.id, feedId: null, field: 'title', phrase: 'ad', action: 'markRead', enabled: false });
-  await addRule({ userId: sub.id, feedId: other.id, field: 'title', phrase: 'ad', action: 'markRead' });
-  await addRule({ userId: outsider.id, feedId: null, field: 'title', phrase: 'ad', action: 'markRead' });
+  await addRule({
+    userId: sub.id,
+    feedId: null,
+    field: 'title',
+    phrase: 'ad',
+    action: 'markRead',
+    enabled: false,
+  });
+  await addRule({
+    userId: sub.id,
+    feedId: other.id,
+    field: 'title',
+    phrase: 'ad',
+    action: 'markRead',
+  });
+  await addRule({
+    userId: outsider.id,
+    feedId: null,
+    field: 'title',
+    phrase: 'ad',
+    action: 'markRead',
+  });
   responses.set(feed.feedUrl, RSS([{ guid: 'ad', title: 'An ad' }]));
 
   await fetchAndStoreFeed(feed);
@@ -114,8 +144,20 @@ test('a crafted phrase ingests fine and matches only literally', async () => {
   const feed = await seedFeed();
   const user = await seedUser();
   await seedSubscription(user.id, feed.id);
-  await addRule({ userId: user.id, feedId: null, field: 'title', phrase: '100%_\\', action: 'star' });
-  responses.set(feed.feedUrl, RSS([{ guid: 'yes', title: 'We gave 100%_\\ today' }, { guid: 'no', title: '1000 ways' }]));
+  await addRule({
+    userId: user.id,
+    feedId: null,
+    field: 'title',
+    phrase: '100%_\\',
+    action: 'star',
+  });
+  responses.set(
+    feed.feedUrl,
+    RSS([
+      { guid: 'yes', title: 'We gave 100%_\\ today' },
+      { guid: 'no', title: '1000 ways' },
+    ]),
+  );
 
   await fetchAndStoreFeed(feed);
   expect(await stateOf(user.id, 'yes')).toEqual({ read: false, starred: true });
@@ -128,7 +170,13 @@ test('rules act on NEW articles only: a stored row whose gap is filled is not ne
   await seedSubscription(user.id, feed.id);
   // Stored before, with no body; the next fetch fills the body (an update).
   await seedArticle(feed.id, { guid: 'old', title: 'Sponsored old post', contentHtml: null });
-  await addRule({ userId: user.id, feedId: null, field: 'title', phrase: 'sponsored', action: 'markRead' });
+  await addRule({
+    userId: user.id,
+    feedId: null,
+    field: 'title',
+    phrase: 'sponsored',
+    action: 'markRead',
+  });
 
   await storeNewArticles(feed.id, [
     { feedId: feed.id, guid: 'old', title: 'Sponsored old post', contentHtml: '<p>Body</p>' },
@@ -147,8 +195,14 @@ test('apply matches existing articles, counts them, and is idempotent', async ()
   const feed = await seedFeed();
   const user = await seedUser();
   await seedSubscription(user.id, feed.id);
-  for (const t of ['Sponsored one', 'a SPONSORED two', 'Plain']) await seedArticle(feed.id, { title: t });
-  const rule = { feedId: null, field: 'title' as const, phrase: 'sponsored', action: 'markRead' as const };
+  for (const t of ['Sponsored one', 'a SPONSORED two', 'Plain'])
+    await seedArticle(feed.id, { title: t });
+  const rule = {
+    feedId: null,
+    field: 'title' as const,
+    phrase: 'sponsored',
+    action: 'markRead' as const,
+  };
 
   expect(await applyRuleToExisting(rule, user.id)).toBe(2);
   expect(await applyRuleToExisting(rule, user.id)).toBe(2);
@@ -162,16 +216,31 @@ test('apply never un-reads or un-stars, and keeps the first read time', async ()
   const user = await seedUser();
   await seedSubscription(user.id, feed.id);
   const starredUnread = await seedArticle(feed.id, { title: 'Sponsored A' });
-  await seedArticleState(user.id, starredUnread.id, { starred: true, starredAt: new Date('2026-01-01') });
+  await seedArticleState(user.id, starredUnread.id, {
+    starred: true,
+    starredAt: new Date('2026-01-01'),
+  });
   const readAlready = await seedArticle(feed.id, { title: 'Sponsored B' });
   const readAt = new Date('2026-02-02T00:00:00Z');
   await seedArticleState(user.id, readAlready.id, { read: true, readAt });
 
-  await applyRuleToExisting({ feedId: null, field: 'title', phrase: 'sponsored', action: 'markRead' }, user.id);
-  await applyRuleToExisting({ feedId: null, field: 'title', phrase: 'sponsored', action: 'star' }, user.id);
+  await applyRuleToExisting(
+    { feedId: null, field: 'title', phrase: 'sponsored', action: 'markRead' },
+    user.id,
+  );
+  await applyRuleToExisting(
+    { feedId: null, field: 'title', phrase: 'sponsored', action: 'star' },
+    user.id,
+  );
 
-  const [a] = await db.select().from(articleStates).where(eq(articleStates.articleId, starredUnread.id));
-  const [b] = await db.select().from(articleStates).where(eq(articleStates.articleId, readAlready.id));
+  const [a] = await db
+    .select()
+    .from(articleStates)
+    .where(eq(articleStates.articleId, starredUnread.id));
+  const [b] = await db
+    .select()
+    .from(articleStates)
+    .where(eq(articleStates.articleId, readAlready.id));
   expect(a).toMatchObject({ read: true, starred: true, starredAt: new Date('2026-01-01') });
   expect(b).toMatchObject({ read: true, starred: true, readAt });
 });
@@ -186,7 +255,10 @@ test('a star rule keeps expired Skim items read, and a kept-unread row unread', 
   await seedArticleState(user.id, keptUnread.id, { read: false }); // the user pressed u
   const fresh = await seedArticle(feed.id, { title: 'Sponsored new' });
 
-  await applyRuleToExisting({ feedId: null, field: 'title', phrase: 'sponsored', action: 'star' }, user.id);
+  await applyRuleToExisting(
+    { feedId: null, field: 'title', phrase: 'sponsored', action: 'star' },
+    user.id,
+  );
 
   expect(await stateOf(user.id, expired.guid)).toEqual({ read: true, starred: true });
   expect(await stateOf(user.id, keptUnread.guid)).toEqual({ read: false, starred: true });
@@ -209,7 +281,7 @@ test('apply is literal in SQL too: % and _ match only themselves', async () => {
   expect(await run('\\')).toBe(0);
 });
 
-test('apply touches only feeds the user still follows, and the rule\'s own feed', async () => {
+test("apply touches only feeds the user still follows, and the rule's own feed", async () => {
   const [mine, left, other] = [await seedFeed(), await seedFeed(), await seedFeed()];
   const user = await seedUser();
   await seedSubscription(user.id, mine.id);
@@ -218,9 +290,17 @@ test('apply touches only feeds the user still follows, and the rule\'s own feed'
   await seedArticle(left.id, { title: 'Sponsored' }); // not subscribed
   await seedArticle(other.id, { title: 'Sponsored' });
 
-  expect(await applyRuleToExisting({ feedId: null, field: 'title', phrase: 'sponsored', action: 'star' }, user.id)).toBe(2);
   expect(
-    await applyRuleToExisting({ feedId: mine.id, field: 'title', phrase: 'sponsored', action: 'star' }, user.id),
+    await applyRuleToExisting(
+      { feedId: null, field: 'title', phrase: 'sponsored', action: 'star' },
+      user.id,
+    ),
+  ).toBe(2);
+  expect(
+    await applyRuleToExisting(
+      { feedId: mine.id, field: 'title', phrase: 'sponsored', action: 'star' },
+      user.id,
+    ),
   ).toBe(1);
 });
 
@@ -237,22 +317,38 @@ test(`apply looks at no more than the newest ${RULE_APPLY_LIMIT} articles`, asyn
       publishedAt: new Date(now - i * 60_000),
     })),
   );
-  expect(await applyRuleToExisting({ feedId: null, field: 'title', phrase: 'sponsored', action: 'markRead' }, user.id)).toBe(
-    RULE_APPLY_LIMIT,
-  );
+  expect(
+    await applyRuleToExisting(
+      { feedId: null, field: 'title', phrase: 'sponsored', action: 'markRead' },
+      user.id,
+    ),
+  ).toBe(RULE_APPLY_LIMIT);
   // The three oldest were outside the window.
   for (const i of [RULE_APPLY_LIMIT, RULE_APPLY_LIMIT + 1, RULE_APPLY_LIMIT + 2]) {
     expect(await stateOf(user.id, `g${i}`)).toBeNull();
   }
 });
 
-test('a new subscription runs the user\'s rules over the articles already stored', async () => {
+test("a new subscription runs the user's rules over the articles already stored", async () => {
   const feed = await seedFeed();
   const user = await seedUser();
   await seedArticle(feed.id, { guid: 'ad', title: 'Sponsored post' });
   await seedArticle(feed.id, { guid: 'ok', title: 'Real post' });
-  await addRule({ userId: user.id, feedId: null, field: 'title', phrase: 'sponsored', action: 'markRead' });
-  await addRule({ userId: user.id, feedId: null, field: 'title', phrase: 'real', action: 'star', enabled: false });
+  await addRule({
+    userId: user.id,
+    feedId: null,
+    field: 'title',
+    phrase: 'sponsored',
+    action: 'markRead',
+  });
+  await addRule({
+    userId: user.id,
+    feedId: null,
+    field: 'title',
+    phrase: 'real',
+    action: 'star',
+    enabled: false,
+  });
   await seedSubscription(user.id, feed.id);
 
   await applyRulesToNewSubscription(user.id, feed.id);

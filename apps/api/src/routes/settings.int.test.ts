@@ -150,13 +150,21 @@ test('sort order: a user default, and a saved order per feed and per folder (#31
     app.inject({ method: 'PATCH', url, headers: { cookie }, payload });
 
   expect((await getSettings(cookie)).json().defaultSortOrder).toBe('newest');
-  expect((await putSettings(cookie, { defaultSortOrder: 'oldest' })).json().defaultSortOrder).toBe('oldest');
+  expect((await putSettings(cookie, { defaultSortOrder: 'oldest' })).json().defaultSortOrder).toBe(
+    'oldest',
+  );
   expect((await putSettings(cookie, { defaultSortOrder: 'random' })).statusCode).toBe(400);
 
-  expect((await patch(`/api/feeds/${sub.id}`, { sortOrder: 'oldest' })).json().sortOrder).toBe('oldest');
+  expect((await patch(`/api/feeds/${sub.id}`, { sortOrder: 'oldest' })).json().sortOrder).toBe(
+    'oldest',
+  );
   expect((await patch(`/api/feeds/${sub.id}`, { sortOrder: null })).json().sortOrder).toBeNull();
-  expect((await patch(`/api/folders/${folder.id}`, { sortOrder: 'oldest' })).json().sortOrder).toBe('oldest');
-  expect((await patch(`/api/folders/${folder.id}`, { sortOrder: 'sideways' })).statusCode).toBe(400);
+  expect((await patch(`/api/folders/${folder.id}`, { sortOrder: 'oldest' })).json().sortOrder).toBe(
+    'oldest',
+  );
+  expect((await patch(`/api/folders/${folder.id}`, { sortOrder: 'sideways' })).statusCode).toBe(
+    400,
+  );
 });
 
 test('PATCH /feeds rejects an out-of-enum viewMode', async () => {
@@ -174,7 +182,7 @@ test('PATCH /feeds rejects an out-of-enum viewMode', async () => {
   expect(res.statusCode).toBe(400);
 });
 
-test('POST /settings/reset-views clears the caller\'s feed and folder views only', async () => {
+test("POST /settings/reset-views clears the caller's feed and folder views only", async () => {
   const me = await seedUser();
   const other = await seedUser();
   const feed = await seedFeed();
@@ -184,7 +192,11 @@ test('POST /settings/reset-views clears the caller\'s feed and folder views only
   const otherFolder = await seedFolder(other.id, { viewMode: 'magazine' });
   const cookie = await loginAs(me);
 
-  const res = await app.inject({ method: 'POST', url: '/api/settings/reset-views', headers: { cookie } });
+  const res = await app.inject({
+    method: 'POST',
+    url: '/api/settings/reset-views',
+    headers: { cookie },
+  });
   expect(res.statusCode).toBe(204);
 
   const view = async (table: typeof subscriptions | typeof folders, id: string) =>

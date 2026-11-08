@@ -35,8 +35,7 @@ afterEach(() => {
 const wrapper = ({ children }: { children: ReactNode }) => (
   <QueryClientProvider client={qc}>{children}</QueryClientProvider>
 );
-const call = (path: string) =>
-  fetchMock.mock.calls.find(([url]) => String(url).endsWith(path));
+const call = (path: string) => fetchMock.mock.calls.find(([url]) => String(url).endsWith(path));
 
 test('the toast counts what the server marked, and Undo sends exactly those ids', async () => {
   render(<Toaster />);

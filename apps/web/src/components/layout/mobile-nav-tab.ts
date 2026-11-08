@@ -18,7 +18,6 @@ export function mobileNavTab({
   if (isSearching) return 'search';
   if (communityOpen) return null;
   if (filters.starred) return 'starred';
-  const allItems =
-    !filters.feedId && !filters.folderId && !filters.shared && !filters.attention;
+  const allItems = !filters.feedId && !filters.folderId && !filters.shared && !filters.attention;
   return allItems ? 'all' : null;
 }

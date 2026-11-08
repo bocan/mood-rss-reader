@@ -7,7 +7,13 @@ import { Agent, interceptors, request } from 'undici';
 import { db } from '../db/index.js';
 import { articles, feeds } from '../db/schema.js';
 import { errorMessage } from './error-message.js';
-import { extractText, htmlToText, looksLikeHtml, SANITIZER_VERSION, sanitizeArticleHtml } from './sanitize.js';
+import {
+  extractText,
+  htmlToText,
+  looksLikeHtml,
+  SANITIZER_VERSION,
+  sanitizeArticleHtml,
+} from './sanitize.js';
 import { findRenamedEntries } from './renamed-entries.js';
 import { applyFilterRules } from './rules.js';
 import { USER_AGENT } from './user-agent.js';
@@ -44,7 +50,15 @@ const FEED_LINK_TYPES = [
 ];
 
 // Common feed locations probed when a homepage advertises no <link> tags.
-const FALLBACK_PATHS = ['/feed', '/feed.xml', '/rss', '/rss.xml', '/atom.xml', '/index.xml', '/feed/'];
+const FALLBACK_PATHS = [
+  '/feed',
+  '/feed.xml',
+  '/rss',
+  '/rss.xml',
+  '/atom.xml',
+  '/index.xml',
+  '/feed/',
+];
 
 function firstHeader(value: string | string[] | undefined): string | undefined {
   if (Array.isArray(value)) return value[0];
@@ -435,7 +449,10 @@ export async function discoverFeedCandidates(url: string): Promise<FeedCandidate
     const href = link.getAttribute('href');
     if (!href) continue;
     try {
-      candidates.push({ feedUrl: new URL(href, url).href, title: link.getAttribute('title') ?? null });
+      candidates.push({
+        feedUrl: new URL(href, url).href,
+        title: link.getAttribute('title') ?? null,
+      });
     } catch {
       // skip unresolvable href
     }
@@ -477,10 +494,7 @@ export async function discoverFeedCandidates(url: string): Promise<FeedCandidate
  * The setWhere keeps this a no-op write on every ordinary poll. New articles
  * then go through each subscriber's filter rules (SPEC-025).
  */
-export async function storeNewArticles(
-  feedId: string,
-  rows: NewArticleInsert[],
-): Promise<void> {
+export async function storeNewArticles(feedId: string, rows: NewArticleInsert[]): Promise<void> {
   if (rows.length === 0) return;
   await adoptRenamedEntries(feedId, rows);
   const written = await db
@@ -539,7 +553,13 @@ async function adoptRenamedEntries(feedId: string, rows: NewArticleInsert[]): Pr
     .where(
       and(
         eq(articles.feedId, feedId),
-        or(inArray(articles.guid, rows.map((r) => r.guid)), inArray(articles.title, titles)),
+        or(
+          inArray(
+            articles.guid,
+            rows.map((r) => r.guid),
+          ),
+          inArray(articles.title, titles),
+        ),
       ),
     );
   const renamed = findRenamedEntries(
@@ -553,7 +573,8 @@ async function adoptRenamedEntries(feedId: string, rows: NewArticleInsert[]): Pr
   );
   for (const row of rows) {
     const id = renamed.get(row.guid);
-    if (id) await db.update(articles).set({ guid: row.guid, url: row.url }).where(eq(articles.id, id));
+    if (id)
+      await db.update(articles).set({ guid: row.guid, url: row.url }).where(eq(articles.id, id));
   }
 }
 
@@ -575,7 +596,13 @@ export async function fetchAndStoreFeed(feed: FeedRow): Promise<void> {
       const now = new Date();
       await db
         .update(feeds)
-        .set({ lastFetchedAt: now, lastSuccessAt: now, lastError: null, failureCount: 0, retryAt: null })
+        .set({
+          lastFetchedAt: now,
+          lastSuccessAt: now,
+          lastError: null,
+          failureCount: 0,
+          retryAt: null,
+        })
         .where(eq(feeds.id, feed.id));
       return;
     }

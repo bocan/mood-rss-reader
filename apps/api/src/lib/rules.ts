@@ -1,9 +1,4 @@
-import {
-  RULE_APPLY_LIMIT,
-  type FilterRuleDto,
-  type RuleAction,
-  type RuleField,
-} from '@rss/shared';
+import { RULE_APPLY_LIMIT, type FilterRuleDto, type RuleAction, type RuleField } from '@rss/shared';
 import { and, eq, isNull, or, sql } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import { articleStates, filterRules, subscriptions } from '../db/schema.js';
@@ -66,7 +61,12 @@ export function matchRules(rules: readonly RuleRow[], batch: readonly RuleArticl
       const text = ruleFieldText(article, rule.field);
       if (!text || !text.toLowerCase().includes(needle)) continue;
       const key = `${rule.userId}:${article.id}`;
-      const hit = hits.get(key) ?? { userId: rule.userId, articleId: article.id, read: false, starred: false };
+      const hit = hits.get(key) ?? {
+        userId: rule.userId,
+        articleId: article.id,
+        read: false,
+        starred: false,
+      };
       if (rule.action === 'markRead') hit.read = true;
       else hit.starred = true;
       hits.set(key, hit);
@@ -99,7 +99,10 @@ const addOnlyStates = {
  * Never throws: a rule problem must not stop the poll loop (the same
  * contract as fetchAndStoreFeed). Returns the number of state rows written.
  */
-export async function applyFilterRules(feedId: string, batch: readonly RuleArticle[]): Promise<number> {
+export async function applyFilterRules(
+  feedId: string,
+  batch: readonly RuleArticle[],
+): Promise<number> {
   if (batch.length === 0) return 0;
   try {
     const rules = await db
@@ -115,7 +118,10 @@ export async function applyFilterRules(feedId: string, batch: readonly RuleArtic
         and(eq(subscriptions.userId, filterRules.userId), eq(subscriptions.feedId, feedId)),
       )
       .where(
-        and(eq(filterRules.enabled, true), or(isNull(filterRules.feedId), eq(filterRules.feedId, feedId))),
+        and(
+          eq(filterRules.enabled, true),
+          or(isNull(filterRules.feedId), eq(filterRules.feedId, feedId)),
+        ),
       );
     const hits = matchRules(rules as RuleRow[], batch);
     if (hits.length === 0) return 0;

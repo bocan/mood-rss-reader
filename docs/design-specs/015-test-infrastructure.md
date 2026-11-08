@@ -10,13 +10,13 @@
 The suite today is 44 tests, all in `apps/api`, and all are unit tests of pure
 or network-mocked logic:
 
-| File | Tests | Scope | Hits Postgres? |
-| --- | --- | --- | --- |
-| `src/lib/sanitize.test.ts` | 15 | XSS sanitizer | no |
-| `src/lib/feed-fetch.test.ts` | 13 | discovery + favicon (undici mocked) | no |
-| `src/lib/readability.test.ts` | 8 | extraction (undici mocked) | no |
-| `src/lib/cursor.test.ts` | 6 | cursor encode/decode | no |
-| `src/routes/health.test.ts` | 2 | `/healthz` via `app.inject` | no |
+| File                          | Tests | Scope                               | Hits Postgres? |
+| ----------------------------- | ----- | ----------------------------------- | -------------- |
+| `src/lib/sanitize.test.ts`    | 15    | XSS sanitizer                       | no             |
+| `src/lib/feed-fetch.test.ts`  | 13    | discovery + favicon (undici mocked) | no             |
+| `src/lib/readability.test.ts` | 8     | extraction (undici mocked)          | no             |
+| `src/lib/cursor.test.ts`      | 6     | cursor encode/decode                | no             |
+| `src/routes/health.test.ts`   | 2     | `/healthz` via `app.inject`         | no             |
 
 `apps/web` has no test runner at all. CI (`.github/workflows/ci.yml`) runs
 `pnpm test`, which is these 44.
@@ -171,12 +171,12 @@ export async function setup() {
 container):
 
 - `resetDb()`: `TRUNCATE users, sessions, folders, feeds, subscriptions,
-  articles, article_states RESTART IDENTITY CASCADE`. Call in a `beforeEach` in
+articles, article_states RESTART IDENTITY CASCADE`. Call in a `beforeEach` in
   each integration file for a clean slate. CASCADE covers the FKs; ids are
   uuids so identity restart is a no-op but harmless.
 - Seed builders returning the inserted row(s): `seedUser({ role? })`,
   `seedFeed({ feedUrl, title?, ... })`, `seedSubscription(userId, feedId,
-  { folderId? })`, `seedFolder(userId, { name, parentId? })`,
+{ folderId? })`, `seedFolder(userId, { name, parentId? })`,
   `seedArticle(feedId, { publishedAt?, fetchedAt?, guid?, ... })`,
   `seedArticleState(userId, articleId, { read?, starred? })`. Thin wrappers over
   `db.insert(...).values(...).returning()`.
@@ -193,12 +193,19 @@ Pattern per integration file:
 ```ts
 import { afterAll, beforeAll, beforeEach, expect, test } from 'vitest';
 import { buildApp } from '../app.js';
-import { resetDb, seedUser, /* ... */ } from '../../test/helpers.js';
+import { resetDb, seedUser /* ... */ } from '../../test/helpers.js';
 
 let app;
-beforeAll(async () => { app = await buildApp(); await app.ready(); });
-afterAll(async () => { await app.close(); });
-beforeEach(async () => { await resetDb(); });
+beforeAll(async () => {
+  app = await buildApp();
+  await app.ready();
+});
+afterAll(async () => {
+  await app.close();
+});
+beforeEach(async () => {
+  await resetDb();
+});
 ```
 
 ### Mocking outbound HTTP

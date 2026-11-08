@@ -1,4 +1,9 @@
-import { focusManager, onlineManager, QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import {
+  focusManager,
+  onlineManager,
+  QueryClient,
+  QueryClientProvider,
+} from '@tanstack/react-query';
 import { act, renderHook } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
@@ -10,7 +15,9 @@ import { useNewArticleCount, type ArticleFilters } from './use-articles';
 let fetchMock: ReturnType<typeof vi.fn>;
 beforeEach(() => {
   vi.useFakeTimers({ shouldAdvanceTime: true });
-  fetchMock = vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ count: 4 }) }) as Response);
+  fetchMock = vi.fn(
+    async () => ({ ok: true, status: 200, json: async () => ({ count: 4 }) }) as Response,
+  );
   vi.stubGlobal('fetch', fetchMock);
 });
 afterEach(() => {

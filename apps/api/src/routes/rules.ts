@@ -73,7 +73,10 @@ export async function ruleRoutes(app: FastifyInstance): Promise<void> {
     if (input.feedId && !(await followsFeed(userId, input.feedId))) {
       return badRequest(reply, 'invalid_scope', 'You do not follow that feed');
     }
-    const [stats] = await db.select({ n: count() }).from(filterRules).where(eq(filterRules.userId, userId));
+    const [stats] = await db
+      .select({ n: count() })
+      .from(filterRules)
+      .where(eq(filterRules.userId, userId));
     if ((stats?.n ?? 0) >= MAX_FILTER_RULES) {
       return badRequest(reply, 'too_many_rules', `You can have up to ${MAX_FILTER_RULES} rules`);
     }

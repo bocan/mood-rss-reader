@@ -82,7 +82,9 @@ export function AppShell({
           <span className="hidden font-semibold tracking-tight sm:inline">Mood Reader</span>
         </span>
         {bar && <div className="flex min-w-0 flex-1 items-center gap-2">{bar}</div>}
-        <div className={bar ? 'flex shrink-0 items-center gap-2' : 'ml-auto flex items-center gap-2'}>
+        <div
+          className={bar ? 'flex shrink-0 items-center gap-2' : 'ml-auto flex items-center gap-2'}
+        >
           {!online && (
             <span
               role="status"

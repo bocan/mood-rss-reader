@@ -16,9 +16,11 @@ const base = {
 
 describe('emptyReason', () => {
   test('no subscriptions is the first run, whatever else is set', () => {
-    expect(emptyReason({ ...base, hasSubscriptions: false, query: 'x', unreadOnly: true })).toEqual({
-      kind: 'welcome',
-    });
+    expect(emptyReason({ ...base, hasSubscriptions: false, query: 'x', unreadOnly: true })).toEqual(
+      {
+        kind: 'welcome',
+      },
+    );
   });
 
   test('a search that found nothing names the query, the scope and the filter', () => {
@@ -29,7 +31,9 @@ describe('emptyReason', () => {
 
   test('unread only and nothing unread is "caught up", also in Starred', () => {
     expect(emptyReason({ ...base, unreadOnly: true })).toEqual({ kind: 'caught-up' });
-    expect(emptyReason({ ...base, unreadOnly: true, starred: true })).toEqual({ kind: 'caught-up' });
+    expect(emptyReason({ ...base, unreadOnly: true, starred: true })).toEqual({
+      kind: 'caught-up',
+    });
   });
 
   test('Starred and Shared have their own', () => {

@@ -24,7 +24,8 @@ const { fetchAndStoreFeed } = await import('../lib/feed-fetch.js');
 const { db } = await import('../db/index.js');
 const { appSettings, articles, articleStates } = await import('../db/schema.js');
 const { getAppSettings } = await import('../lib/app-settings.js');
-const { resetDb, seedArticle, seedArticleState, seedFeed, seedUser } = await import('../../test/helpers.js');
+const { resetDb, seedArticle, seedArticleState, seedFeed, seedUser } =
+  await import('../../test/helpers.js');
 
 const DAY = 24 * 60 * 60 * 1000;
 const daysAgo = (n: number) => new Date(Date.now() - n * DAY);
@@ -42,7 +43,9 @@ async function setRetention(days: number | null) {
   await db.update(appSettings).set({ articleRetentionDays: days }).where(eq(appSettings.id, 1));
 }
 const ids = async (feedId: string) =>
-  (await db.select({ id: articles.id }).from(articles).where(eq(articles.feedId, feedId))).map((r) => r.id);
+  (await db.select({ id: articles.id }).from(articles).where(eq(articles.feedId, feedId))).map(
+    (r) => r.id,
+  );
 
 /** A busy feed: `n` recent articles, so its newest 100 are all recent. */
 async function busyFeed(n = KEEP_NEWEST_PER_FEED) {
@@ -79,7 +82,10 @@ test('old articles go; starred, shared and recently fetched ones stay', async ()
   const shared = await seedArticle(feed.id, old);
   await seedArticleState(user.id, shared.id, { shared: true });
   // An old post from a feed subscribed to this week.
-  const newlyFetched = await seedArticle(feed.id, { publishedAt: daysAgo(400), fetchedAt: daysAgo(2) });
+  const newlyFetched = await seedArticle(feed.id, {
+    publishedAt: daysAgo(400),
+    fetchedAt: daysAgo(2),
+  });
   // Inside the window.
   const young = await seedArticle(feed.id, { publishedAt: daysAgo(10), fetchedAt: daysAgo(10) });
 
@@ -115,7 +121,10 @@ test("each feed's newest 100 stay, however old", async () => {
     })),
   );
   expect(await pruneOldArticles()).toBe(5);
-  const left = await db.select({ guid: articles.guid }).from(articles).where(eq(articles.feedId, feed.id));
+  const left = await db
+    .select({ guid: articles.guid })
+    .from(articles)
+    .where(eq(articles.feedId, feed.id));
   expect(left).toHaveLength(KEEP_NEWEST_PER_FEED);
   // The oldest five went.
   expect(left.map((r) => r.guid)).not.toContain(`old-${KEEP_NEWEST_PER_FEED + 4}`);
@@ -124,15 +133,28 @@ test("each feed's newest 100 stay, however old", async () => {
 test('a sparse feed keeps its old items, and a re-poll adds nothing new', async () => {
   await setRetention(30);
   const feed = await seedFeed();
-  const items = [2019, 2020, 2021].map((y) => ({ guid: `https://sparse.example/${y}`, date: `${y}-06-01T00:00:00Z` }));
+  const items = [2019, 2020, 2021].map((y) => ({
+    guid: `https://sparse.example/${y}`,
+    date: `${y}-06-01T00:00:00Z`,
+  }));
   for (const it of items) {
-    await seedArticle(feed.id, { guid: it.guid, url: it.guid, publishedAt: new Date(it.date), fetchedAt: daysAgo(900) });
+    await seedArticle(feed.id, {
+      guid: it.guid,
+      url: it.guid,
+      publishedAt: new Date(it.date),
+      fetchedAt: daysAgo(900),
+    });
   }
   // The feed XML still lists all three.
   responses.set(
     feed.feedUrl,
     '<?xml version="1.0"?><rss version="2.0"><channel><title>Sparse</title><link>https://sparse.example</link>' +
-      items.map((it) => `<item><guid>${it.guid}</guid><link>${it.guid}</link><pubDate>${new Date(it.date).toUTCString()}</pubDate></item>`).join('') +
+      items
+        .map(
+          (it) =>
+            `<item><guid>${it.guid}</guid><link>${it.guid}</link><pubDate>${new Date(it.date).toUTCString()}</pubDate></item>`,
+        )
+        .join('') +
       '</channel></rss>',
   );
 

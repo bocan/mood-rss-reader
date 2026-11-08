@@ -37,11 +37,17 @@ let qc: QueryClient;
 let fetchMock: ReturnType<typeof vi.fn>;
 
 beforeEach(() => {
-  qc = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
+  qc = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
   qc.setQueryData(['feeds'], { items: [sub] });
   fetchMock = vi.fn(async (url: string) =>
     url.endsWith('/feeds/restore')
-      ? ({ ok: true, status: 201, json: async () => ({ ...sub, subscriptionId: 's2' }) } as Response)
+      ? ({
+          ok: true,
+          status: 201,
+          json: async () => ({ ...sub, subscriptionId: 's2' }),
+        } as Response)
       : ({ ok: true, status: 204 } as Response),
   );
   vi.stubGlobal('fetch', fetchMock);

@@ -35,9 +35,7 @@ export function SharePopover({ article }: { article: ArticleDetail }) {
 
   const shareViaDevice = () => {
     if (!article.url) return;
-    navigator
-      .share({ title: article.title ?? undefined, url: article.url })
-      .catch(() => undefined); // dismissing the sheet is not an error
+    navigator.share({ title: article.title ?? undefined, url: article.url }).catch(() => undefined); // dismissing the sheet is not an error
   };
 
   const setShared = (shared: boolean) => {

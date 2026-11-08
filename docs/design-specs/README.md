@@ -32,29 +32,29 @@ Legend: **Todo** / **In progress** / **Done**
 
 ### Phase 1 - Reading core (turn the scaffold into a usable reader)
 
-| #   | Spec                                             | Depends on | Status |
-| --- | ------------------------------------------------ | ---------- | ------ |
-| 001 | HTML sanitization pipeline                       | -          | Done   |
-| 002 | Feed metadata, favicons, and discovery on subscribe | -       | Done   |
-| 003 | Article list: keyset pagination + infinite scroll | -         | Done   |
-| 004 | Article reading pane + article view modes        | 001, 003   | Done   |
-| 005 | Read / unread / star state + mark-all-read       | 003        | Done   |
+| #   | Spec                                                | Depends on | Status |
+| --- | --------------------------------------------------- | ---------- | ------ |
+| 001 | HTML sanitization pipeline                          | -          | Done   |
+| 002 | Feed metadata, favicons, and discovery on subscribe | -          | Done   |
+| 003 | Article list: keyset pagination + infinite scroll   | -          | Done   |
+| 004 | Article reading pane + article view modes           | 001, 003   | Done   |
+| 005 | Read / unread / star state + mark-all-read          | 003        | Done   |
 
 ### Foundational (recommended next, before Phase 2 features)
 
-| #   | Spec                                             | Depends on | Status |
-| --- | ------------------------------------------------ | ---------- | ------ |
-| 015 | Test infrastructure (API integration harness)    | 001-005    | Done   |
+| #   | Spec                                          | Depends on | Status |
+| --- | --------------------------------------------- | ---------- | ------ |
+| 015 | Test infrastructure (API integration harness) | 001-005    | Done   |
 
 ### Phase 2 - Organization and power features
 
-| #   | Spec                                             | Depends on | Status |
-| --- | ------------------------------------------------ | ---------- | ------ |
-| 006 | Full-text search (Postgres tsvector)             | 003        | Done   |
-| 007 | Folders and subscription management UI           | 002        | Done   |
-| 008 | Keyboard navigation and shortcuts                | 004, 005   | Done   |
-| 009 | OPML import / export                             | 002, 007   | Done   |
-| 010 | Reading list views (cards / list / magazine / compact) | 003  | Done   |
+| #   | Spec                                                   | Depends on | Status |
+| --- | ------------------------------------------------------ | ---------- | ------ |
+| 006 | Full-text search (Postgres tsvector)                   | 003        | Done   |
+| 007 | Folders and subscription management UI                 | 002        | Done   |
+| 008 | Keyboard navigation and shortcuts                      | 004, 005   | Done   |
+| 009 | OPML import / export                                   | 002, 007   | Done   |
+| 010 | Reading list views (cards / list / magazine / compact) | 003        | Done   |
 
 ### Phase 3 - Platform and polish
 
@@ -68,10 +68,10 @@ Legend: **Todo** / **In progress** / **Done**
 
 Split in two: 014 is the structural rework, 016 the visual identity.
 
-| #   | Spec                                             | Depends on          | Status      |
-| --- | ------------------------------------------------ | ------------------- | ----------- |
-| 014 | Layout chrome and view-driven screens            | 003, 004, 008, 010  | Done        |
-| 016 | Visual identity (palette, type, personality)     | 014                 | Done        |
+| #   | Spec                                         | Depends on         | Status |
+| --- | -------------------------------------------- | ------------------ | ------ |
+| 014 | Layout chrome and view-driven screens        | 003, 004, 008, 010 | Done   |
+| 016 | Visual identity (palette, type, personality) | 014                | Done   |
 
 ### Phase 4 - The open web (sharing, realtime, resilience)
 
@@ -80,16 +80,16 @@ open web. 019 comes first (it creates the `profiles` table, the public route
 scope, and the HTML helpers that 020 reuses); the rest are independent of
 each other unless noted.
 
-| #   | Spec                                              | Depends on            | Status |
-| --- | ------------------------------------------------- | --------------------- | ------ |
-| 019 | Sharing, shared items, and the public linkblog    | 005, 011, 017         | Done   |
-| 020 | Public blogroll (HTML + OPML)                     | 019, 009              | Done   |
-| 021 | WebSub realtime delivery (subscriber side)        | 002                   | Done   |
-| 022 | Attention tiers (firehose / normal / precious)    | 005, 007, 018         | Done   |
-| 023 | Subscribe to social-web profiles                  | 002                   | Done   |
-| 024 | Link-rot armor (archives, retention, Wayback)     | 004, 005              | Done   |
-| 025 | Saved searches (virtual feeds) + filter rules     | 006, 015              | Done   |
-| 026 | IndieWeb identity (h-card, rel="me", bookmarks)   | 019, 020              | Done   |
+| #   | Spec                                            | Depends on    | Status |
+| --- | ----------------------------------------------- | ------------- | ------ |
+| 019 | Sharing, shared items, and the public linkblog  | 005, 011, 017 | Done   |
+| 020 | Public blogroll (HTML + OPML)                   | 019, 009      | Done   |
+| 021 | WebSub realtime delivery (subscriber side)      | 002           | Done   |
+| 022 | Attention tiers (firehose / normal / precious)  | 005, 007, 018 | Done   |
+| 023 | Subscribe to social-web profiles                | 002           | Done   |
+| 024 | Link-rot armor (archives, retention, Wayback)   | 004, 005      | Done   |
+| 025 | Saved searches (virtual feeds) + filter rules   | 006, 015      | Done   |
+| 026 | IndieWeb identity (h-card, rel="me", bookmarks) | 019, 020      | Done   |
 
 ## Scope summary
 

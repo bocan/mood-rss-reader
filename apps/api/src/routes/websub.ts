@@ -21,18 +21,20 @@ const verifyQuerySchema = z.object({
 });
 
 async function feedByToken(token: string) {
-  const [row] = await db
-    .select()
-    .from(feeds)
-    .where(eq(feeds.websubCallbackToken, token))
-    .limit(1);
+  const [row] = await db.select().from(feeds).where(eq(feeds.websubCallbackToken, token)).limit(1);
   return row ?? null;
 }
 
 export async function websubRoutes(app: FastifyInstance): Promise<void> {
   // Raw bodies for signature verification, scoped to this plugin only.
   app.addContentTypeParser(
-    ['application/rss+xml', 'application/atom+xml', 'application/xml', 'text/xml', 'application/rdf+xml'],
+    [
+      'application/rss+xml',
+      'application/atom+xml',
+      'application/xml',
+      'text/xml',
+      'application/rdf+xml',
+    ],
     { parseAs: 'buffer', bodyLimit: 5 * 1024 * 1024 },
     (_req, body, done) => done(null, body),
   );
@@ -72,9 +74,7 @@ export async function websubRoutes(app: FastifyInstance): Promise<void> {
           .update(feeds)
           .set({
             websubState: 'active',
-            websubLeaseExpiresAt: leaseSeconds
-              ? new Date(Date.now() + leaseSeconds * 1000)
-              : null,
+            websubLeaseExpiresAt: leaseSeconds ? new Date(Date.now() + leaseSeconds * 1000) : null,
           })
           .where(eq(feeds.id, feed.id));
         return reply.code(200).type('text/plain').send(challenge);
@@ -100,7 +100,11 @@ export async function websubRoutes(app: FastifyInstance): Promise<void> {
       const signature = request.headers['x-hub-signature'];
       const valid =
         feed.websubSecret !== null &&
-        verifySignature(feed.websubSecret, Array.isArray(signature) ? signature[0] : signature, raw);
+        verifySignature(
+          feed.websubSecret,
+          Array.isArray(signature) ? signature[0] : signature,
+          raw,
+        );
       if (!valid) {
         // Per spec 7.1: still 2xx (so the hub does not retry) but ignore.
         request.log.warn({ feedId: feed.id }, 'websub push with missing/invalid signature ignored');

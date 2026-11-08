@@ -83,7 +83,9 @@ describe('useShortcuts dispatch', () => {
   test('ignores keys combined with browser/OS modifiers', () => {
     render(<Harness ctx="list" actions={actions} />);
     act(() => {
-      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'r', metaKey: true, bubbles: true }));
+      document.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'r', metaKey: true, bubbles: true }),
+      );
     });
     expect(actions.fetchFeeds).not.toHaveBeenCalled();
   });

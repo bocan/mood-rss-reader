@@ -4,7 +4,8 @@ const OPTIONS = [
   {
     unread: true,
     label: 'Unread',
-    title: 'Show unread articles only. The sidebar also hides feeds and folders with nothing unread.',
+    title:
+      'Show unread articles only. The sidebar also hides feeds and folders with nothing unread.',
   },
   {
     unread: false,
@@ -25,7 +26,11 @@ export function UnreadToggle({
   onChange: (unreadOnly: boolean) => void;
 }) {
   return (
-    <div role="group" aria-label="Articles to show" className="inline-flex shrink-0 rounded-md border p-0.5">
+    <div
+      role="group"
+      aria-label="Articles to show"
+      className="inline-flex shrink-0 rounded-md border p-0.5"
+    >
       {OPTIONS.map(({ unread, label, title }) => {
         const active = unreadOnly === unread;
         return (

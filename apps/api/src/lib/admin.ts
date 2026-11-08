@@ -28,6 +28,9 @@ export function inviteRedeemable(
  * status (demote, disable, or delete) is blocked when they are the only active
  * admin left. `activeAdminCount` counts admins whose account is not disabled.
  */
-export function isLastAdminRemoval(activeAdminCount: number, targetIsActiveAdmin: boolean): boolean {
+export function isLastAdminRemoval(
+  activeAdminCount: number,
+  targetIsActiveAdmin: boolean,
+): boolean {
   return targetIsActiveAdmin && activeAdminCount <= 1;
 }
