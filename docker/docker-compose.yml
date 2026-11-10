@@ -79,7 +79,7 @@ services:
   # Pinned to an exact release: Caddy ships breaking changes in patch releases
   # (2.11.8, 2.11.9). Dependabot (docker-compose ecosystem) proposes bumps.
   caddy:
-    image: caddy:2.11.8-alpine
+    image: caddy:2.11.9-alpine
     restart: unless-stopped
     environment:
       SITE_ADDRESS: ${SITE_ADDRESS:-localhost}
