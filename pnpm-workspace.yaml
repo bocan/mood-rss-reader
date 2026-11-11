@@ -35,7 +35,7 @@ minimumReleaseAgeExclude:
 
 overrides:
   brace-expansion@<=5.0.7: ^5.0.8
-  fast-uri@>=3.0.0 <3.1.6: ^3.1.6
+  fast-uri@>=3.0.0 <3.1.6: ^4.0.0
   # esbuild advisories in dev-only tools (GHSA-67mh-4wv8-2f99 via
   # drizzle-kit > @esbuild-kit, GHSA-g7r4-m6w7-qqqr via tsup). Both go past
   # the declared ranges (~0.18.20, ^0.27.0); db:generate and the tsup build
