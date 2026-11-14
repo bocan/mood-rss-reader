@@ -232,7 +232,7 @@ importers:
         version: link:../../packages/shared
       drizzle-orm:
         specifier: 0.45.4
-        version: 0.45.4(postgres@4.1.0)
+        version: 0.45.4(postgres@4.1.1)
       fast-xml-parser:
         specifier: 5.12.0
         version: 5.12.0
@@ -246,8 +246,8 @@ importers:
         specifier: 9.0.7
         version: 9.0.7
       postgres:
-        specifier: 4.1.0
-        version: 4.1.0
+        specifier: 4.1.1
+        version: 4.1.1
       rss-parser:
         specifier: 3.13.0
         version: 3.13.0
@@ -4340,8 +4340,8 @@ packages:
     resolution: {integrity: sha512-LJlKCCAUFKOuZxipUdYw1NzIITEsPcgyOG9LkvRJvuKj/bRzbuRY0ARXvL0pWGpsZvn8jku+LMep2eU0seHp8g==}
     engines: {node: ^10 || ^12 || >=14}
 
-  postgres@4.1.0:
-    resolution: {integrity: sha512-s+0WH67YAyLdBQUb6XczbziBhY+C9uiQsg9S8R5RHdZhk6sdyK6202E+T2tXpiInSEEjDLRSJ3OpYBe3PN6MsQ==}
+  postgres@4.1.1:
+    resolution: {integrity: sha512-1kJDojqNZC+iTHHXh6eif0J98LUtyLAePe/qkW1GK35eh2JixlsAiIKq3FGI+xqI+SUGTNodzf7TScVeIIyUug==}
     engines: {node: '>=18'}
 
   prelude-ls@1.2.1:
@@ -7988,9 +7988,9 @@ snapshots:
       esbuild: 0.25.12
       tsx: 4.23.15
 
-  drizzle-orm@0.45.4(postgres@4.1.0):
+  drizzle-orm@0.45.4(postgres@4.1.1):
     optionalDependencies:
-      postgres: 4.1.0
+      postgres: 4.1.1
 
   dunder-proto@1.0.1:
     dependencies:
@@ -9176,7 +9176,7 @@ snapshots:
       picocolors: 1.1.1
       source-map-js: 1.2.2
 
-  postgres@4.1.0: {}
+  postgres@4.1.1: {}
 
   prelude-ls@1.2.1: {}
 
