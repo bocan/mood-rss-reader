@@ -25,7 +25,7 @@
     "@fastify/cors": "11.4.3",
     "@fastify/helmet": "13.2.0",
     "@fastify/rate-limit": "11.2.2",
-    "@fastify/static": "10.1.11",
+    "@fastify/static": "10.1.12",
     "@mozilla/readability": "0.6.0",
     "@node-rs/argon2": "2.2.2",
     "@rss/shared": "workspace:*",
@@ -41,7 +41,7 @@
     "zod": "4.6.7"
   },
   "devDependencies": {
-    "@testcontainers/postgresql": "12.2.1",
+    "@testcontainers/postgresql": "12.2.2",
     "@types/node": "26.6.6",
     "@types/sanitize-html": "2.16.2",
     "drizzle-kit": "0.31.11",
